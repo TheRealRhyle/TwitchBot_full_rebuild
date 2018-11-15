@@ -5,10 +5,7 @@ import loader
 # Method for sending a message
 def Send_message(message):
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
-    print(nick + ": " + message)
-
-def op_royal():
-    s.send()
+    # print(nick + ": " + message)
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
@@ -47,10 +44,14 @@ while Running == True:
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
         if (line[0] == "PING"):
             s.send("PONG %s\r\n" % line[1])
+            line[0] = "twitchPing"
         else:
             parts = line.split(":")
+            # print("Line = " + line)
+            # print("Line = " + line[0])
+            # print("Parts = " + str(parts))
 
-            if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1]:
+            if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1] and "PING" not in parts[0]:
                 try:
                     # Sets the message variable to the actual message sent
                     # message = ': '.join(parts[2:])
@@ -67,36 +68,57 @@ while Running == True:
 
                 # Only works after twitch is done announcing stuff (MODT = Message of the day)
                 if init_mesage == '':
-                    init_mesage = nick + ' has been initialized.  Awaiting commands.'
+                    init_message = nick + ' has been initialized.  Awaiting commands.'
+                    # print(init_mesage)
                     Send_message(init_mesage)
 
                 if MODT:
                     print(username + ": " + message)
 
+                    # testing for the Ping:Pong crash
+                    # if username == '':
+                    #     print(message)
+                    #     print('Ping:Pong')
+
                     #
                     # The bulk of the processing goes down here!
                     #
+                    if message == '':
+                        continue
 
                     if username != '' and message[0] == '!':
-                        if username == 'darkxilde' and message[0:7] == '!create':
-                            # Parse the command to be added/created
-                            command, target, action = message.split(', ')
-                            ex_com, command = command.split(' ')
-                            command = '!' + command
-                            action = ' ' + action
-                            # print(action)
-                            c.execute("insert into commands values (:command, :target, :action)",
-                                      {'command': command, 'target': target, 'action': action})
-                            conn.commit()
+                        if username == 'darkxilde':
+                            if message[0:7] == '!create':
+                                # Parse the command to be added/created
+                                command, target, action = message.split(', ')
+                                ex_com, command = command.split(' ')
+                                command = '!' + command
+                                action = ' ' + action
+                                c.execute("insert into commands values (:command, :target, :action)",
+                                          {'command': command, 'target': target, 'action': action})
+                                conn.commit()
+                                Send_message("Command " + command + " has been added.")
 
-                        elif username == 'darkxilde' and message[0:7] == '!remove':
-                            # Parse the command to be removed
-                            ex_com, command = message.split(' ')
-                            command = '!' + command
-                            c.execute("delete from commands where ex_command = ?",(command,))
-                            conn.commit()
+                            elif message[0:7] == '!update':
+                                # Parse the command to be added/created
+                                command, target, action = message.split(', ')
+                                ex_com, command = command.split(' ')
+                                command = '!' + command
+                                action = ' ' + action
+                                c.execute("update commands set action = :action where ex_command = :command",
+                                          {'command': command, 'target': target, 'action': action})
+                                conn.commit()
+                                Send_message("Command " + command + " has been updated.")
 
-                        elif message[0] == '!':
+                            elif message[0:7] == '!remove':
+                                # Parse the command to be removed
+                                ex_com, command = message.split(' ')
+                                command = '!' + command
+                                c.execute("delete from commands where ex_command = ?",(command,))
+                                conn.commit()
+                                Send_message("Command " + command + " has been removed.")
+
+                        if message[0] == '!' and message[0:4] not in ('!remo', '!crea', '!upda', '!gunt'):
                             try:
                                 chatmessage = message
                                 chatmessage = c.execute("select action from commands where ex_command = ?", (chatmessage,))
@@ -104,7 +126,15 @@ while Running == True:
                                 Send_message('Hello ' + username + " " + chatmessage)
                             except:
                                 Send_message('Hello ' + username + " there is not currently a " + message + " command. " +
-                                    "If you would like to have one created, let me know. Subs take precedence for !commands.")
+                                             "If you would like to have one created, let me know. Subs take precedence for !commands.")
+
+                        # Gunter command
+                        elif message[0:7] == '!gunter':
+                            commandlist = list(c.execute("select ex_command from commands"))
+                            for itr in range(len(commandlist)):
+                                commandlist[itr] = commandlist[itr][0]
+                            Send_message("You've found the (not so) hidden command list " + username +". Command list: "
+                                         + ', '.join(commandlist))
                         else:
                             print("Hit else:")
                             print(username)
