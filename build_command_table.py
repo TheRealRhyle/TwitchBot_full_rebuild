@@ -5,6 +5,16 @@ global c
 conn = sqlite3.connect("dxchatbot.db")
 c = conn.cursor()
 
+# USER STATUS
+# ('vips', [])
+# ('moderators', [])
+# ('staff', [])
+# ('admins', [])
+# ('global_mods', [])
+# ('viewers', [])
+# ('subs', []) - custom
+# ('fots', []) - custom
+
 # c.execute("""create table users (
 #                 uname text,
 #                 status text)""")
@@ -12,13 +22,12 @@ c = conn.cursor()
 
 # c.execute("""insert into users values ('Zangeru13','fots')""")
 
-
 # c.execute("""update users
 #             set status = ''
 #             where uname = 'spookeriffic'""")
 
 
-# c.execute("""delete from users where uname = 'orphenadler' and status = 'user'""")
+# c.execute("""delete from users where uname = 'zangeru13'""")
 # conn.commit()
 
 ulist = c.execute("""select * from users""").fetchall()
@@ -38,10 +47,10 @@ print(ulist)
 # conn.commit()
 
 
-tab = c.execute('select * from commands').fetchall()
-print(len(tab))
-for i in range(len(tab)):
-    print(tab[i])
+# tab = c.execute('select * from commands').fetchall()
+# print(len(tab))
+# for i in range(len(tab)):
+#     print(tab[i])
 #
 # c.execute("""update commands
 #     set action = 'Find me on twitter to get stream updates and notifications when I go live! @dxstreaming twitter.com/dxstreaming'
