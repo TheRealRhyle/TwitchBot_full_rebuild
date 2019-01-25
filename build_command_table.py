@@ -30,8 +30,8 @@ c = conn.cursor()
 # c.execute("""delete from users where uname = 'zangeru13'""")
 # conn.commit()
 
-ulist = c.execute("""select * from users""").fetchall()
-print(ulist)
+# ulist = c.execute("""select * from users""").fetchall()
+# print(ulist)
 # c.execute('drop table commands')
 # conn.commit()
 #
@@ -47,10 +47,10 @@ print(ulist)
 # conn.commit()
 
 
-# tab = c.execute('select * from commands').fetchall()
-# print(len(tab))
-# for i in range(len(tab)):
-#     print(tab[i])
+tab = c.execute('select * from commands').fetchall()
+print(len(tab))
+for i in range(len(tab)):
+    print(tab[i])
 #
 # c.execute("""update commands
 #     set action = 'Find me on twitter to get stream updates and notifications when I go live! @dxstreaming twitter.com/dxstreaming'

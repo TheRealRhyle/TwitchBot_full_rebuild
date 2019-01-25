@@ -1,6 +1,6 @@
 import socket
 import loader
-
+import time
 
 # Method for sending a message
 def Send_message(message):
@@ -14,12 +14,12 @@ conn, c = loader.loading_seq()
 streamr = c.execute('select * from streamer').fetchall()
 streamr = list(streamr[0])
 host, nick, port, oauth, readbuffer = streamr
-TLD = ['com', 'org', 'net', 'int', 'edu', 'gov', 'mil', 'arpa', 'top', 'loan', 'xyz', 'club', 'online',
-       'vip', 'win', 'shop', 'ltd', 'men', 'site', 'work', 'stream', 'bid', 'wang', 'app', 'review',
-       'space', 'ooo', 'website', 'live', 'tech', 'life', 'blog', 'download', 'link', 'today', 'guru',
-       'news', 'tokyo', 'london', 'nyc', 'berlin', 'amsterdam', 'hamburg', 'boston', 'paris', 'kiwi',
-       'vegas', 'moscow', 'miami', 'istanbul', 'scot', 'melbourne', 'sydney', 'quebec', 'brussels',
-       'capetown', 'rio']
+# TLD = ['com', 'org', 'net', 'int', 'edu', 'gov', 'mil', 'arpa', 'top', 'loan', 'xyz', 'club', 'online',
+#        'vip', 'win', 'shop', 'ltd', 'men', 'site', 'work', 'stream', 'bid', 'wang', 'app', 'review',
+#        'space', 'ooo', 'website', 'live', 'tech', 'life', 'blog', 'download', 'link', 'today', 'guru',
+#        'news', 'tokyo', 'london', 'nyc', 'berlin', 'amsterdam', 'hamburg', 'boston', 'paris', 'kiwi',
+#        'vegas', 'moscow', 'miami', 'istanbul', 'scot', 'melbourne', 'sydney', 'quebec', 'brussels',
+#        'capetown', 'rio']
 
 # Set the channel to join for testing purposes:
 chan = 'darkxilde'
@@ -29,33 +29,32 @@ s = socket.socket()
 s.connect((host, port))
 s.send(bytes('PASS %s\r\n' %oauth, 'UTF-8'))
 s.send(bytes('NICK %s\r\n' %nick, 'UTF-8'))
-s.send(("JOIN #" + chan + "\r\n").encode('UTF-8'))
+s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
+# s.send(bytes("CAP REQ :twitch.tv/tags\r\n", 'UTF-8'))
+# s.send(bytes("ROOMSTATE #darkxilde\r\n", 'UTF-8'))
 
 Running = True
 readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
+Send_message("I'm awake, quit poking me already!")
 
 while Running == True:
-    readbuffer = readbuffer + s.recv(1024).decode()
+    readbuffer = s.recv(1024).decode("UTF-8")
     temp = str(readbuffer).split("\n")
     readbuffer = temp.pop()
 
-    #TODO Get user list
-    #TODO Async
-    #TODO API
+    # TODO Get user list
+    # TODO Async
+    # TODO API
 
     for line in temp:
-        action=''
+        # action=''
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
-        if (line[0] == "PING"):
-            print('recieved ping, sending pong.')
-            print("PONG %s\r\n" % line[1])
-            s.send("PONG %s\r\n" % line[1])
-            print(line[0])
-            line[0] = "twitchPing"
-            print(line[0])
+
+        if ("PING :" in line):
+            s.send(bytes("PONG\r\n", "UTF-8"))
         else:
             parts = line.split(":")
             # print("Line = " + line)
@@ -81,6 +80,12 @@ while Running == True:
 
                 # Only works after twitch is done announcing stuff (MODT = Message of the day)
                 if MODT:
+                    # testing for the Ping:Pong crash
+                    # print(message)
+                    if username == '':
+                        print(message)
+                        print('Ping:Pong')
+
                     userfetch = c.execute("select * from users where uname = ?", (username.lower(),)).fetchall()
                     try:
                         user_status = userfetch[0][1]
@@ -89,10 +94,7 @@ while Running == True:
                     # print(user_status)
                     print(username + " (" + user_status + "): " + message)
 
-                    # testing for the Ping:Pong crash
-                    if username == '':
-                        print(message)
-                        print('Ping:Pong')
+
 
                     # if init_message == 'init_done':
                     #     init_message = nick + ' has been initialized.  Awaiting commands.'
@@ -108,7 +110,7 @@ while Running == True:
                     # Link detection and timeout
                     if 'http' in message:
                         # print(user_status)
-                        if user_status not in ['admin', 'mod', 'sub', 'fots']:
+                        if user_status not in ['admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
                             Send_message(username + " links are not currently allowed.")
                             Send_message("/timeout " + username + " 1")
 
@@ -149,7 +151,7 @@ while Running == True:
                                     ex_com, command = command.split(' ')
                                     command = '!' + command
                                     c.execute("update commands set action = :action where ex_command = :command",
-                                              {'command': command, 'target': target, 'action': action.lstip(' ')})
+                                              {'command': command, 'target': target, 'action': action.lstrip(' ')})
                                     conn.commit()
                                     Send_message("Command " + command + " has been updated.")
 
@@ -182,12 +184,18 @@ while Running == True:
                                 #     s.send(("PRIVMSG #" + chan + " :/mod " + mod_user + "\r\n").encode('UTF-8'))
                                 #     print(mod_user + " should now be modded.")
 
-                            if message[0:5] not in ('!updu', '!delu', '!addu', '!remo', '!crea', '!upda', '!gunt', '!slow'):
+                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo'):
                                 try:
                                     chatmessage = message
                                     if message == '!lurk':
                                         chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
                                                     "Hopefully they will find their way back soon!"
+                                    elif message == "!ban":
+                                        chatmessage = "It looks like " + username + " no longer thinks they can be a " \
+                                                                                    "good member of the community and " \
+                                                                                    "has requested to be banned."
+                                        Send_message("/ban " + username + " Self exile")
+
                                     else:
                                         chatmessage = c.execute("select action from commands where ex_command = ?", (chatmessage,))
                                         chatmessage = chatmessage.fetchone()[0]
@@ -209,13 +217,9 @@ while Running == True:
                             #     print(message[0:7])
                             #     print(list(c.execute("select * from commands")))
 
-
-
-
                     #
                     # End of bot processing
                     #
-
 
                 for l in parts:
                     if "End of /NAMES list" in l:

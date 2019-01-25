@@ -3,12 +3,12 @@ from urllib import request
 import json
 import sqlite3
 import time
-global conn
 global c
 conn = sqlite3.connect("dxchatbot.db")
 c = conn.cursor()
 import schedule
 import time
+import socket
 
 def check_chatters():
     print("Checking chatters on twitch.tv/DarkXilde")
