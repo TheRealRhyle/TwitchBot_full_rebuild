@@ -1,6 +1,5 @@
 import socket
 import loader
-import time
 
 # Method for sending a message
 def Send_message(message):
@@ -14,15 +13,15 @@ conn, c = loader.loading_seq()
 streamr = c.execute('select * from streamer').fetchall()
 streamr = list(streamr[0])
 host, nick, port, oauth, readbuffer = streamr
-# TLD = ['com', 'org', 'net', 'int', 'edu', 'gov', 'mil', 'arpa', 'top', 'loan', 'xyz', 'club', 'online',
-#        'vip', 'win', 'shop', 'ltd', 'men', 'site', 'work', 'stream', 'bid', 'wang', 'app', 'review',
-#        'space', 'ooo', 'website', 'live', 'tech', 'life', 'blog', 'download', 'link', 'today', 'guru',
-#        'news', 'tokyo', 'london', 'nyc', 'berlin', 'amsterdam', 'hamburg', 'boston', 'paris', 'kiwi',
-#        'vegas', 'moscow', 'miami', 'istanbul', 'scot', 'melbourne', 'sydney', 'quebec', 'brussels',
-#        'capetown', 'rio']
+TLD = ['.com', '.org', '.net', '.int', '.edu', '.gov', '.mil', '.arpa', '.top', '.loan', '.xyz', '.club', '.online',
+       '.vip', '.win', '.shop', '.ltd', '.men', '.site', '.work', '.stream', '.bid', '.wang', '.app', '.review',
+       '.space', '.ooo', '.website', '.live', '.tech', '.life', '.blog', '.download', '.link', '.today', '.guru',
+       '.news', '.tokyo', '.london', '.nyc', '.berlin', '.amsterdam', '.hamburg', '.boston', '.paris', '.kiwi',
+       '.vegas', '.moscow', '.miami', '.istanbul', '.scot', '.melbourne', '.sydney', '.quebec', '.brussels',
+       '.capetown', '.rio', '.tv']
 
 # Set the channel to join for testing purposes:
-chan = 'darkxilde'
+chan = "rhyle_"
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -108,7 +107,9 @@ while Running == True:
 
                     # TODO Setup some better handling / identification for link handling.
                     # Link detection and timeout
-                    if 'http' in message:
+                    # if any(word in 'some one long two phrase three' for word in list_):
+                    if any(ext in message for ext in TLD):
+                    # if any(text in 'www .com http' for text in message):
                         # print(user_status)
                         if user_status not in ['admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
                             Send_message(username + " links are not currently allowed.")
@@ -117,7 +118,7 @@ while Running == True:
                     # Command processing
                     if message[0] == '!':
                         if username != '':
-                            if username == 'darkxilde':
+                            if username == 'rhyle_':
                                 if message[0:8] == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",{'user': new_user.lower(), 'status': user_type})
@@ -163,6 +164,29 @@ while Running == True:
                                     conn.commit()
                                     Send_message("Command " + command + " has been removed.")
 
+                                elif message[0:4] == '!mtc':
+                                    parts = message.split(' ', 3)
+                                    parts += '' * (3-len(parts))
+                                    ex_com, strm1, strm2 = parts
+                                    command = '!multi'
+                                    target = ''
+                                    action = "Access the multitwitch at multitwitch.tv/" + strm1 + '/'  + strm2 + '/'
+                                    if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
+                                        c.execute("update commands set action = :action where ex_command = :command",
+                                                  {'command': command, 'action': action})
+                                        conn.commit()
+                                    else:
+                                        c.execute("insert into commands values (:command, :target, :action)",
+                                                  {'command': command, 'target': target, 'action': action})
+                                        conn.commit()
+                                    Send_message(action)
+
+
+
+                                    # parts = s.split(" ", 4) # Will raise exception if too many options
+                                    # parts += [None] * (4 - len(parts)) # Assume we can have max. 4 items. Fill in missing entries with None.
+                                    # value1, value2, optional_value, optional_value2 = parts
+
                                 elif message == "!slow":
                                     if slow == "off":
                                         Send_message("Engaging Slow Chat Mode...")
@@ -184,7 +208,7 @@ while Running == True:
                                 #     s.send(("PRIVMSG #" + chan + " :/mod " + mod_user + "\r\n").encode('UTF-8'))
                                 #     print(mod_user + " should now be modded.")
 
-                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo'):
+                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo', '!mtc'):
                                 try:
                                     chatmessage = message
                                     if message == '!lurk':

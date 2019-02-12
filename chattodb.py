@@ -11,8 +11,8 @@ import time
 import socket
 
 def check_chatters():
-    print("Checking chatters on twitch.tv/DarkXilde")
-    resp = request.urlopen("http://tmi.twitch.tv/group/user/darkxilde/chatters")
+    print("Started")
+    resp = request.urlopen("http://tmi.twitch.tv/group/user/rhyle_/chatters")
     chatters_json = resp.read().decode("UTF-8")
     userlist = json.loads(chatters_json)
     viewerlist = userlist['chatters']['viewers']
@@ -32,7 +32,7 @@ def check_chatters():
 
 if __name__ == "__main__":
     check_chatters()
-    schedule.every(10).minutes.do(check_chatters)
+    schedule.every(1).minutes.do(check_chatters)
 
     while 1:
         schedule.run_pending()
