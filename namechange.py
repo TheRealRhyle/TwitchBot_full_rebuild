@@ -16,10 +16,10 @@ user = 'jtn2002'
 # conn.commit()
 # c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
 
-c.execute("update users set status = 'fots' where uname in ('orphenadler')")
-conn.commit()
+# c.execute("update streamer set nick = 'rhyle_bot' where nick in ('darkxildebot')")
+# conn.commit()
 
-print(str(c.execute("select * from users where status not in ('bot', 'fots', 'moderators')").fetchall()).replace('),','\n'))
+print(str(c.execute("select * from streamer").fetchall()).replace('),','\n'))
 
 # if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
 #     print('not empty')
