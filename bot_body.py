@@ -181,6 +181,17 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
 
+                                elif message[0:4] == '!rew':
+                                    parts = message.split(' ', 3)
+                                    parts += '' * (3-len(parts))
+                                    ex_com, viewer, amount = parts
+                                    rew_user = c.execute("select * from users where uname = ?",(viewer.lower(),)).fetchone()
+                                    cxp = rew_user[2]
+                                    cxp += int(amount)
+                                    c.execute("update users set exp = ? where uname = ?",(cxp, viewer.lower()))
+                                    conn.commit()
+
+
 
 
                                     # parts = s.split(" ", 4) # Will raise exception if too many options
@@ -208,7 +219,8 @@ while Running == True:
                                 #     s.send(("PRIVMSG #" + chan + " :/mod " + mod_user + "\r\n").encode('UTF-8'))
                                 #     print(mod_user + " should now be modded.")
 
-                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo', '!mtc'):
+                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo',
+                                                    '!mtc', '!rew'):
                                 try:
                                     chatmessage = message
                                     if message == '!lurk':
@@ -219,7 +231,16 @@ while Running == True:
                                                                                     "good member of the community and " \
                                                                                     "has requested to be banned."
                                         Send_message("/ban " + username + " Self exile")
-
+                                    elif message == "!char":
+                                        chatmessage = "Hello " + username + ", command will allow you to create a character " \
+                                                    "for my forthcoming chat game.  This character will earn XP and allow " \
+                                                    "you to challange random monster from the game as well as other users!"
+                                    elif message == "!retire":
+                                        chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                                                            "moment, please check back soon(tm)."
+                                    elif message == "!permadeath":
+                                        chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                                                            "moment, please check back soon(tm)."
                                     else:
                                         chatmessage = c.execute("select action from commands where ex_command = ?", (chatmessage,))
                                         chatmessage = chatmessage.fetchone()[0]
