@@ -1,4 +1,4 @@
-import schedule
+# import schedule
 import time
 import socket
 import urllib
@@ -43,3 +43,12 @@ print(c.execute("select gchar from users where uname = ?", (username.lower(),)).
 # print(c.execute('select ex_command from commands').fetchall())
 # streamr = c.execute('select * from streamer').fetchall()
 
+parts = 'a b c'.split(' ')
+var1, var2, var3, var4 = [parts[i] if i < len(parts) else None for i in range(4)]
+
+if var4 ==  None:
+    mtc = 'http://multitwitch.tv/' + var1 + '/' + var2 + '/' + var3 + '/'
+else:
+    mtc = 'http://multitwitch.tv/' + var1 + '/' + var2 + '/' + var3 + '/' + var4
+
+print(mtc)

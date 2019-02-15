@@ -95,10 +95,6 @@ while Running == True:
                     # print(user_status)
                     print(username + " (" + user_status + "): " + message)
 
-                    # if init_message == 'init_done':
-                    #     init_message = nick + ' has been initialized.  Awaiting commands.'
-                    #     Send_message(init_mesage)
-
                     #
                     # The bulk of the processing goes down here!
                     #
@@ -166,12 +162,18 @@ while Running == True:
                                     Send_message("Command " + command + " has been removed.")
 
                                 elif message[0:4] == '!mtc':
-                                    parts = message.split(' ', 3)
-                                    parts += '' * (3 - len(parts))
-                                    ex_com, strm1, strm2 = parts
+                                    parts = message.split(' ')
+                                    ex_com, strm1, strm2, strm3, strm4 = [parts[i] if i < len(parts) else None for i in range(5)]
                                     command = '!multi'
                                     target = ''
-                                    action = "Access the multitwitch at http://multitwitch.tv/" + strm1 + '/' + strm2 + '/'
+                                    if strm3 == None:
+                                        multi = strm1 + '/' + strm2
+                                    elif strm4 == None:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3
+                                    else:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
+
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi
                                     if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
                                         c.execute("update commands set action = :action where ex_command = :command",
                                                   {'command': command, 'action': action})
@@ -213,11 +215,6 @@ while Running == True:
                                         continue
 
                                 # TODO: Figure out how to get the bot to mod someone
-
-                                # elif message[0:4] == '!mod':
-                                #     _cmd, mod_user = message.split(' ')
-                                #     s.send(("PRIVMSG #" + chan + " :/mod " + mod_user + "\r\n").encode('UTF-8'))
-                                #     print(mod_user + " should now be modded.")
 
                             if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo',
                                                     '!mtc', '!rew'):
