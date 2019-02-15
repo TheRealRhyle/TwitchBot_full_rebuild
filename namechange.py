@@ -6,12 +6,14 @@ from urllib import request
 import json
 import sqlite3
 import time
+import tcChargen
 
 global c
 conn = sqlite3.connect("dxchatbot.db")
 c = conn.cursor()
 
-
+username = 'rhyle_'
+print(c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0])
 
 # c.execute("insert into users values ('rhyle_', 'moderators')")
 # conn.commit()
@@ -22,13 +24,13 @@ c = conn.cursor()
 # c.execute("""alter table users add gchar text""")
 # conn.commit()
 
-print(c.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall())
-print(c.execute("SELECT * FROM users where uname = 'n3td3v'").fetchall())
-c.execute("update users set status = 'bot' where uname = 'rhyle_bot'")
-conn.commit()
+# print(c.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall())
+# print(c.execute("SELECT * FROM users where uname = 'n3td3v'").fetchall())
+# c.execute("update users set status = 'bot' where uname = 'rhyle_bot'")
+# conn.commit()
 
-c.execute("update users set exp = 0")
-conn.commit()
+
+# conn.commit()
 
 # print(str(c.execute("select * from users").fetchall()).replace('),','\n'))
 
