@@ -49,7 +49,7 @@ def check_chatters():
 if __name__ == "__main__":
     print("Started")
     check_chatters()
-    schedule.every(1).minutes.do(check_chatters)
+    schedule.every(5).minutes.do(check_chatters)
 
     while 1:
         schedule.run_pending()
