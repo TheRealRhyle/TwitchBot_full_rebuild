@@ -19,6 +19,8 @@ def check_chatters():
 
     for usr in range(len(userlist['chatters']['moderators'])):
         viewerlist.append(userlist['chatters']['moderators'][usr])
+    for usr in range(len(userlist['chatters']['vips'])):
+        viewerlist.append(userlist['chatters']['vips'][usr])
 
     ulist = c.execute("select uname from users").fetchall()
     uliststr = str(ulist).replace(",)", ")").replace("(",'').replace(')','')
@@ -54,3 +56,10 @@ if __name__ == "__main__":
     while 1:
         schedule.run_pending()
         time.sleep(1)
+
+print("Started")
+check_chatters()
+schedule.every(5).minutes.do(check_chatters)
+while 1:
+    schedule.run_pending()
+    time.sleep(1)

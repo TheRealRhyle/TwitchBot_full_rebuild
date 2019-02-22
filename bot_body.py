@@ -33,7 +33,7 @@ s.send(bytes('PASS %s\r\n' % oauth, 'UTF-8'))
 s.send(bytes('NICK %s\r\n' % nick, 'UTF-8'))
 s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
 # s.send(bytes("CAP REQ :twitch.tv/tags\r\n", 'UTF-8'))
-# s.send(bytes("ROOMSTATE #darkxilde\r\n", 'UTF-8'))
+# s.send(bytes("ROOMSTATE #rhyle_\r\n", 'UTF-8'))
 
 Running = True
 readbuffer = ''
