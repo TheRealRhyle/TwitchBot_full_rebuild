@@ -15,6 +15,9 @@ c = conn.cursor()
 username = 'rhyle_'
 print(c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0])
 
+
+# if c.execute("select gchar from users where uname = ?", (username,)).fetchone() != ('',):
+
 # c.execute("insert into users values ('rhyle_', 'moderators')")
 # conn.commit()
 # c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:

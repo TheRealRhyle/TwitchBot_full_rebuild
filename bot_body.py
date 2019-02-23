@@ -227,20 +227,28 @@ while Running == True:
                                         chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                     "good member of the community and has requested to be banned."
                                         Send_message("/ban " + username + " Self exile")
+
+                                    elif message == "!game":
+                                        chatmessage = f"Hello {username}, I am currently working on a semi-interactive chat " \
+                                                "based role playing game.  The core ruleset is from and old pen and " \
+                                                "paper table top game called Warhammer Fantasy Roleplay. The game " \
+                                                "will be a stripped down and modified version of the rules because " \
+                                                "I do not want to be C&D'd by Games-Workshop or Fantasy Flight. Game " \
+                                                "commands: !game, !char, !retire, !permadeath, more to come"
+
+
                                     elif message == "!char":
                                         if c.execute("select gchar from users where uname = ?",
-                                                     (username.lower(),)).fetchone() != ('',):
+                                                     (username,)).fetchone() != ('',):
                                             chatmessage = c.execute("select gchar from users where uname = ?",
                                                                     (username.lower(),)).fetchone()[0]
                                         else:
-                                            Send_message(username + ' a character is being generated for you right ' \
-                                                    'NOW! This will only take a moment.')
+                                            gchar = str(tcChargen.chat_char(username))
                                             c.execute("""update users 
                                                         set gchar = ? 
-                                                        where uname = ?""", (chatmessage, username.lower()))
+                                                        where uname = ?""", (gchar, username.lower()))
                                             conn.commit()
-                                            chatmessage = str(tcChargen.chat_char(username))
-
+                                            chatmessage = gchar + '.  Welcome to the game.'
                                     elif message == "!retire":
                                         # TODO: Retired characters should output to HTML and be stored on a webserver.
                                         # TODO: should also provide link for download in whisper.
@@ -253,7 +261,7 @@ while Running == True:
                                         #       {'command': command, 'target': target, 'action': action.lstrip(' ')})
                                         # conn.commit()
                                         try:
-                                            c.execute("update users set gchar = '' where uname = ?",(username,))
+                                            c.execute("update users set gchar = '' where uname = ?",(username.lower(),))
                                             conn.commit()
                                             chatmessage = username + " has chosen to permanently kill off their " \
                                                     "character. You may issue the !char command to create a new one."

@@ -5,31 +5,15 @@ class Character():
     """ This is going to be a random character generator for twitch.tv/rhyle_
     """
 
-    def __init__(self, name, race, prof, phys, social, mental):
+    def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness):
         self.name = name
         self.race = race
         self.prof = prof
-        self.phys = phys
-        self.social = social
-        self.mental = mental
+        self.ws = weapon_skill
+        self.bs= ballistic_skill
+        self.s = strength
+        self.t = toughness
 
-    def retire(self):
-        pass
-
-    def permadeath(self):
-        pass
-
-    def upgrade(self, category):
-        pass
-
-    def physical_combat(self):
-        pass
-
-    def social_combat(self):
-        pass
-
-    def mental_combat(self):
-        pass
 
     def __str__(self):
         return f"{self.name} is a {self.race} {self.prof} who has {self.phys} physical, {self.social} social, and {self.mental} mental traits."
