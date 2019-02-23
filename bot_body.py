@@ -62,7 +62,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-# Send_message("I'm awake, quit poking me already!")
+Send_message("I'm awake, quit poking me already, try !commands or something.")
 
 while Running == True:
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -212,11 +212,12 @@ while Running == True:
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
-                                    rew_user = c.execute("select * from users where uname = ?",
-                                                         (viewer.lower(),)).fetchone()
-                                    cxp = rew_user[2]
-                                    cxp += int(amount)
-                                    c.execute("update users set exp = ? where uname = ?", (cxp, viewer.lower()))
+                                    rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
+                                                   fetchone()[0])
+                                    print(rew_user)
+                                    rew_user += int(amount)
+                                    print(rew_user)
+                                    c.execute("update users set exp = ? where uname = ?", (rew_user, viewer.lower()))
                                     conn.commit()
 
                                     # parts = s.split(" ", 4) # Will raise exception if too many options
@@ -259,25 +260,31 @@ while Running == True:
                                         try:
                                             ex_com, race = message.split(" ")
                                             change_char = ret_char(username)
-                                            if race.lower() not in ['human','elf','halfling','dwarf']:
+                                            cxp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])
+                                            if cxp < 100:
+                                                chatmessage = f"Sorry {username}, you do not have enough accrued exp to" \
+                                                    f" change your race at the moment, please try again later {cxp}/100."
+                                            elif race.lower() not in ['human','elf','halfling','dwarf']:
                                                 chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                                     f' races: Human, Elf, Dwarf, Halfling. Please try again.'
                                             elif race.lower() == 'human' and change_char['race'] != 'human':
                                                 change_char['race']='human'
-                                                print(str(change_char))
                                                 change_race(username, str(change_char))
+                                                chatmessage=f'{username} you race has been changed to {race}'
                                             elif race.lower() == 'elf' and change_char['race'] != 'elf':
                                                 change_char['race']='elf'
-                                                print(str(change_char))
                                                 change_race(username, str(change_char))
+                                                chatmessage=f'{username} you race has been changed to {race}'
                                             elif race.lower() == 'halfling' and change_char['race'] != 'halfling':
                                                 change_char['race']='halfling'
-                                                print(str(change_char))
                                                 change_race(username, str(change_char))
+                                                chatmessage=f'{username} you race has been changed to {race}'
                                             elif race.lower() == 'dwarf' and change_char['race'] != 'dwarf':
                                                 change_char['race']='dwarf'
-                                                print(str(change_char))
                                                 change_race(username, str(change_char))
+                                                chatmessage=f'{username} you race has been changed to {race}'
+
+
                                         except:
                                             chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                                 f' races: Human, Elf, Dwarf, Halfling.'
@@ -293,7 +300,9 @@ while Running == True:
                                             elif gchar_dict['race'] == 'dwarf':
                                                 gchar_dict['race'] = 'dwarven'
 
-                                            chatmessage = username + ' is ' + article + str(gchar_dict['race']).capitalize() + ' ' + gchar_dict['prof']
+                                            chatmessage = f"/w {username} {username} is {article} " \
+                                                f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+
                                         else:
                                             # Generate character using the Character Class
                                             gchar = tcChargen.chat_char(username)
@@ -316,8 +325,10 @@ while Running == True:
                                                         where uname = ?""", (gchar_dict_to_sql, username.lower()))
                                             conn.commit()
 
-                                            chatmessage = f"Welcome to the game {username}. Your character is " \
-                                                f"a {str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}."
+                                            chatmessage = f"/w {username} {username} is {article} " \
+                                                f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+                                            Send_message(f"{username} the {str(gchar_dict['race']).capitalize()} has "
+                                                         f"entered the game.")
                                     elif message == "!retire":
                                         # TODO: Retired characters should output to HTML and be stored on a webserver.
                                         # TODO: should also provide link for download in whisper.

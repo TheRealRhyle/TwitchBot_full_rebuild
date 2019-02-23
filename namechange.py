@@ -16,7 +16,7 @@ c = conn.cursor()
 # change_char="'name': 'rhyle_', 'race': 'human', 'prof': 'Camp Follower', 'weapon_skill': 36, 'ballistic_skill': 38, 'strength': 26, 'toughness': 45}"
 # username='rhyle_'
 # print((change_char))
-
+print(int(c.execute("select exp from users where uname = ?",('thecrudecastle',)).fetchone()[0]))
 print(c.execute('select * from streamer').fetchall())
 # print(str(c.execute("select * from users").fetchall()).replace("), (",'\n'))
 #
