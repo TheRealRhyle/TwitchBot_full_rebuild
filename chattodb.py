@@ -16,6 +16,7 @@ def check_chatters():
     chatters_json = resp.read().decode("UTF-8")
     userlist = json.loads(chatters_json)
     viewerlist = userlist['chatters']['viewers']
+    broadcaster = userlist['chatters']['broadcaster'][0]
 
     for usr in range(len(userlist['chatters']['moderators'])):
         viewerlist.append(userlist['chatters']['moderators'][usr])
@@ -45,11 +46,12 @@ def check_chatters():
                 # except:
                 #     print('No exp added for ' + cquery[0])
             # pass
+    return broadcaster
 
 if __name__ == "__main__":
     print("Started")
     check_chatters()
-    schedule.every(5).minutes.do(check_chatters)
+    schedule.every(10).minutes.do(check_chatters)
 
     while 1:
         schedule.run_pending()

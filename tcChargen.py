@@ -1,28 +1,52 @@
 from random import choice, randint
+import ast
 
 
-class Character():
+class Character:
     """ This is going to be a random character generator for twitch.tv/rhyle_
     """
 
     def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness):
+
         self.name = name
         self.race = race
         self.prof = prof
         self.ws = weapon_skill
-        self.bs= ballistic_skill
+        self.bs = ballistic_skill
         self.s = strength
         self.t = toughness
 
-
-    def __str__(self):
-        return f"{self.name} is a {self.race} {self.prof} who has {self.phys} physical, {self.social} social, and {self.mental} mental traits."
+    def get_char(self,name):
+        char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
+                      'toughness':''}
+        char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t]
+        return dict(zip(char_dict, char_))
+    # def __str__(self):
+    #     return f"""{self.name} is a {self.race} {self.prof} who has {self.ws} weapon skill, {self.bs} ballistic skill,
+    #     and {self.s} strength, and {self.t} toughness."""
 
 def chat_char(uname):
     race = choice(['dwarf', 'elf', 'halfling', 'human'])
-    phys = randint(1, 10)
-    social = randint(1, 10)
-    mental = randint(1, 10)
+    stats_dict = {'WS': 0, 'BS': 0, 'S': 0, 'T': 0}
+
+    if race == 'dwarf':
+        stats = [30, 20, 20, 30]
+
+    elif race == 'elf':
+        stats = [20, 30, 20, 20]
+
+    elif race == 'halfling':
+        stats = [10, 30, 10, 10]
+
+    elif race == 'human':
+        stats = [20, 20, 20, 20]
+
+    stat_prof  = [stats[stat] + randint(2, 20) for stat in range(len(stats))]
+    stats_dict = dict(zip(stats_dict, stat_prof))
+
+    # phys = randint(1, 10)
+    # social = randint(1, 10)
+    # mental = randint(1, 10)
     prof = choice(['Agitator', 'Apprentice Wizard', 'Bailiff', 'Barber-Surgeon', 'Boatman', 'Bodyguard', 'Bone Picker',
                    'Bounty Hunter', 'Burgher', 'Camp Follower', 'Charcoal-Burner', 'Coachman', 'Entertainer', 'Envoy',
                    'Estalian Diestro', 'Ferryman', 'Fieldwarden', 'Fisherman', 'Grave Robber', 'Hedge Wizard', 'Hunter',
@@ -40,8 +64,14 @@ def chat_char(uname):
                    'Pistolier', 'Politician', 'Priest', 'Racketeer', 'Scholar', 'Scout', 'Sea Captain', 'Sergeant', 'Spy',
                    'Steward', 'Targeteer', 'Vampire Hunter', 'Veteran', 'Witch Hunter', 'Wizard Lord'])
 
-    # name,race,prof, phys, social, mental
-    chatchar = Character(uname, race, prof, phys, social, mental)
+    # name, race, prof, weapon_skill, ballistic_skill, strength, toughness)
+
+    chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'])
+
     return chatchar
 
-# print(chatchar)
+# ch = (chat_char('rhyle_'))
+
+# print(type(str(ch.get_char('rhyle_'))))
+
+

@@ -1,16 +1,38 @@
+import ast
 import socket
+import json
 import loader
 import tcChargen
+from urllib import request
 
+
+# from chattodb import check_chatters
 
 # Method for sending a message
 def Send_message(message):
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
     # print(nick + ": " + message)
 
+def ret_char(username):
+    char_to_return = c.execute("select gchar from users where uname = '{}'".format(username)).fetchone()[0]
+    return ast.literal_eval(char_to_return)
+
+def change_race(username, change_char):
+    exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
+    c.execute("update users set gchar = ? where uname = ?",(change_char, username))
+    c.execute("update users set exp = ? where uname = ?",(exp, username))
+    conn.commit()
+
+def get_bcaster(target):
+    resp = request.urlopen(f"http://tmi.twitch.tv/group/user/{target}/chatters")
+    chatters_json = resp.read().decode("UTF-8")
+    userlist = json.loads(chatters_json)
+    bcaster = userlist['chatters']['broadcaster'][0]
+    return  bcaster
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
+
 
 # get connection info from db
 streamr = c.execute('select * from streamer').fetchall()
@@ -173,7 +195,9 @@ while Running == True:
                                     else:
                                         multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
 
-                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " " \
+                                             "or you can access kadgar at http://kadgar.net/live/" + multi
+
                                     if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
                                         c.execute("update commands set action = :action where ex_command = :command",
                                                   {'command': command, 'action': action})
@@ -223,32 +247,77 @@ while Running == True:
                                     if message == '!lurk':
                                         chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
                                                         "Hopefully they will find their way back soon!"
+                                    elif message[0:5] == '!chec':
+                                        ex_com, tgt = message.split(' ')
+                                        print(get_bcaster(tgt))
+
                                     elif message == "!ban":
                                         chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                     "good member of the community and has requested to be banned."
                                         Send_message("/ban " + username + " Self exile")
-
-                                    elif message == "!game":
-                                        chatmessage = f"Hello {username}, I am currently working on a semi-interactive chat " \
-                                                "based role playing game.  The core ruleset is from and old pen and " \
-                                                "paper table top game called Warhammer Fantasy Roleplay. The game " \
-                                                "will be a stripped down and modified version of the rules because " \
-                                                "I do not want to be C&D'd by Games-Workshop or Fantasy Flight. Game " \
-                                                "commands: !game, !char, !retire, !permadeath, more to come"
-
-
+                                    elif message[0:6] == "!chang":
+                                        try:
+                                            ex_com, race = message.split(" ")
+                                            change_char = ret_char(username)
+                                            if race.lower() not in ['human','elf','halfling','dwarf']:
+                                                chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
+                                                    f' races: Human, Elf, Dwarf, Halfling. Please try again.'
+                                            elif race.lower() == 'human' and change_char['race'] != 'human':
+                                                change_char['race']='human'
+                                                print(str(change_char))
+                                                change_race(username, str(change_char))
+                                            elif race.lower() == 'elf' and change_char['race'] != 'elf':
+                                                change_char['race']='elf'
+                                                print(str(change_char))
+                                                change_race(username, str(change_char))
+                                            elif race.lower() == 'halfling' and change_char['race'] != 'halfling':
+                                                change_char['race']='halfling'
+                                                print(str(change_char))
+                                                change_race(username, str(change_char))
+                                            elif race.lower() == 'dwarf' and change_char['race'] != 'dwarf':
+                                                change_char['race']='dwarf'
+                                                print(str(change_char))
+                                                change_race(username, str(change_char))
+                                        except:
+                                            chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
+                                                f' races: Human, Elf, Dwarf, Halfling.'
                                     elif message == "!char":
                                         if c.execute("select gchar from users where uname = ?",
                                                      (username,)).fetchone() != ('',):
-                                            chatmessage = c.execute("select gchar from users where uname = ?",
-                                                                    (username.lower(),)).fetchone()[0]
+                                            gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+                                            gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+                                            article = 'a '
+                                            if gchar_dict['race'] == 'elf':
+                                                gchar_dict['race'] = 'elven'
+                                                article = 'an '
+                                            elif gchar_dict['race'] == 'dwarf':
+                                                gchar_dict['race'] = 'dwarven'
+
+                                            chatmessage = username + ' is ' + article + str(gchar_dict['race']).capitalize() + ' ' + gchar_dict['prof']
                                         else:
-                                            gchar = str(tcChargen.chat_char(username))
+                                            # Generate character using the Character Class
+                                            gchar = tcChargen.chat_char(username)
+                                            # Converts the Class to a dictionary
+                                            gchar_dict = gchar.get_char(username)
+                                            # Casts the dictionary to a string for storage in SQL
+                                            gchar_dict_to_sql = str(gchar_dict)
+
+                                            article = 'a '
+                                            if gchar_dict['race'] == 'elf':
+                                                gchar_dict['race'] = 'elven'
+                                                article = 'an '
+                                            elif gchar_dict['race'] == 'dwarf':
+                                                gchar_dict['race'] = 'dwarven'
+
+
+                                            # Stores character in SQL
                                             c.execute("""update users 
                                                         set gchar = ? 
-                                                        where uname = ?""", (gchar, username.lower()))
+                                                        where uname = ?""", (gchar_dict_to_sql, username.lower()))
                                             conn.commit()
-                                            chatmessage = gchar + '.  Welcome to the game.'
+
+                                            chatmessage = f"Welcome to the game {username}. Your character is " \
+                                                f"a {str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}."
                                     elif message == "!retire":
                                         # TODO: Retired characters should output to HTML and be stored on a webserver.
                                         # TODO: should also provide link for download in whisper.
@@ -269,6 +338,20 @@ while Running == True:
                                         except:
                                             chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                             "moment, please check back soon(tm)."
+                                    elif message == "!accept":
+                                        chatmessage = 'This command will be used to accepting viewer issued duels in ' \
+                                                      'the future.  Right now it only gives this message.'
+                                    elif message[0:10] == "!challenge":
+                                        # !challange <target> <risk amount>
+                                        try:
+                                            ex_com, target, amount = message.split(' ')
+                                            chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
+                                                f' can take you down.  If you want to accept the fight type !accept.' \
+                                                f' Don\'t worry though, this command doesnt actually do anything at'\
+                                                ' this time.'
+                                        except:
+                                            chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
+                                                f'<risk amount>'
                                     else:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
                                                                 (chatmessage,))
