@@ -46,8 +46,6 @@ def check_chatters():
                 #     print('No exp added for ' + cquery[0])
             # pass
 
-
-
 if __name__ == "__main__":
     print("Started")
     check_chatters()

@@ -40,7 +40,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message("I'm awake, quit poking me already!")
+# Send_message("I'm awake, quit poking me already!")
 
 while Running == True:
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -233,17 +233,33 @@ while Running == True:
                                             chatmessage = c.execute("select gchar from users where uname = ?",
                                                                     (username.lower(),)).fetchone()[0]
                                         else:
-                                            chatmessage = str(tcChargen.chat_char(username))
+                                            Send_message(username + ' a character is being generated for you right ' \
+                                                    'NOW! This will only take a moment.')
                                             c.execute("""update users 
                                                         set gchar = ? 
                                                         where uname = ?""", (chatmessage, username.lower()))
                                             conn.commit()
+                                            chatmessage = str(tcChargen.chat_char(username))
 
                                     elif message == "!retire":
+                                        # TODO: Retired characters should output to HTML and be stored on a webserver.
+                                        # TODO: should also provide link for download in whisper.
                                         chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                             "moment, please check back soon(tm)."
                                     elif message == "!permadeath":
-                                        chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                        # TODO: Permadeath command should just wipe the gchar data from the user table for 
+                                        # the command user.
+                                        # c.execute("update commands set action = :action where ex_command = :command",
+                                        #       {'command': command, 'target': target, 'action': action.lstrip(' ')})
+                                        # conn.commit()
+                                        try:
+                                            c.execute("update users set gchar = '' where uname = ?",(username,))
+                                            conn.commit()
+                                            chatmessage = username + " has chosen to permanently kill off their " \
+                                                    "character. You may issue the !char command to create a new one."
+
+                                        except:
+                                            chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                             "moment, please check back soon(tm)."
                                     else:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
