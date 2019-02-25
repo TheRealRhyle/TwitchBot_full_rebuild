@@ -10,7 +10,7 @@ import datetime
 
 # TODO:
 # TODO:
-# TODO: For Challanges set a lower limit so characters do not go into the negative.
+# TODO: For Challenges set a lower limit so characters do not go into the negative.
 # TODO:
 # TODO:
 
@@ -51,32 +51,7 @@ def get_elevated_users(target):
     return eaccess
 
 def challenge(challenger, victim, amount):
-    for challenger, victim in pvp.items():
-        if victim[0] == username:
-            chall = ret_char(challenger)
-            vic = ret_char(victim[0])
-
-
-
-    Send_message(f"{str(chall['name']).capitalize()}, " \
-                     f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
-                     f"combat!")
-    time.sleep(1)
-    Send_message(f"{victim[0]} hits {challenger} with their {vic['weapon']}")
-    time.sleep(1)
-    Send_message(f"{challenger} returns the blow with their {chall['weapon']}")
-    time.sleep(1)
-    vic_roll = int(vic['weapon_skill']) + randint(2, 100)
-    chall_roll = int(chall['weapon_skill']) + randint(2, 100)
-
-    if vic_roll > chall_roll:
-        chatmessage = f'{victim[0]} has defeated their challenger {challenger} and ' \
-            f'earned! {amount} exp.'
-    elif vic_roll == chall_roll:
-        chatmessage = f'After a bloody fight {victim[0]} and {challenger} call it a draw!'
-    else:
-        chatmessage = f'{challenger} has bested his victim, {victim[0]}, earning ' \
-            f'themselves {amount/2}'
+    pass
 
 def challenge_result(user, amount, *args):
     """
@@ -105,6 +80,12 @@ def challenge_result(user, amount, *args):
 
 def uptime(at_command_time):
     return at_command_time - bot_start
+
+def shop():
+    pass
+
+def level_up():
+    pass
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
@@ -213,7 +194,7 @@ while Running == True:
                     # Command processing
                     if message[0] == '!':
                         if username != '':
-                            # TODO: Mod, Boradcaster, FOTS, VIP Commands
+                            # TODO: Mod, Broadcaster, FOTS, VIP Commands
                             if username == 'rhyle_':
                             # if username == 'rhyle_':
                                 if message[0:8] == '!adduser':
@@ -328,9 +309,6 @@ while Running == True:
                                     # TODO: Random Lurk messages
                                     chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
                                                     "Hopefully they will find their way back soon!"
-                                elif message[0:5] == '!chec':
-                                    ex_com, tgt = message.split(' ')
-                                    print(get_bcaster(tgt))
                                 elif message.lower() == "!ban":
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                 "good member of the community and has requested to be banned."
@@ -451,7 +429,7 @@ while Running == True:
                                             vic = ret_char(victim[0])
 
                                             Send_message(f"{str(chall['name']).capitalize()}, " \
-                                                f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
+                                                f"{str(vic['name']).capitalize()} has accepted your challenge.  Prepare for " \
                                                 f"combat!")
                                             time.sleep(1)
                                             vic_roll = int(vic['weapon_skill']) + randint(2, 100)
@@ -482,7 +460,7 @@ while Running == True:
                                     # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
                                     #               'the future.  Right now it only gives this message.'
                                 elif message[0:10].lower() == "!challenge":
-                                    # TODO: !challange <target> <risk amount>
+                                    # TODO: !challenge <target> <risk amount>
                                     try:
                                         ex_com, target, amount = message.split(' ')
                                         cxp = get_user_exp(username)
@@ -495,7 +473,7 @@ while Running == True:
                                         else:
                                             chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
                                                 f' can take you down.  If you want to accept the fight type !accept.' \
-                                                f' Don\'t worry though, this command doesnt actually do anything at'\
+                                                f' Don\'t worry though, this command doesn\'t actually do anything at'\
                                                 ' this time.'
                                             pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
                                     except:
