@@ -79,18 +79,22 @@ def challenge_result(user, amount, *args):
     :param other_user:
     :return:
     """
+
     winner_exp = int(c.execute("select exp from users where uname = ?", (user,)).fetchone()[0])
+
     loser_exp = 0
     if not args:
+        pass
+    else:
+        print(*args)
         loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
-    winner_exp += amount
-    loser_exp -= amount
+        loser_exp -= int(amount)
+        c.execute("update users set exp = ? where uname = ?",(loser_exp, *args))
+        conn.commit()
+    winner_exp += int(amount)
 
-    print(user, amount, *args)
-    print(winner_exp, loser_exp)
-    # c.execute("update users set exp = {}")
-
-
+    c.execute("update users set exp = ? where uname = ?",(winner_exp, user))
+    conn.commit()
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
@@ -450,18 +454,19 @@ while Running == True:
                                             if vic_roll > chall_roll:
                                                 Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and ' \
                                                     f'earned! {amount} exp.')
+                                                challenge_result(victim[0], amount, challenger[0])
                                             elif vic_roll == chall_roll:
                                                 Send_message(f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
                                             else:
                                                 Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning ' \
                                                     f'themselves {amount}')
+                                                challenge_result(challenger[0], amount)
                                             chatmessage = ""
                                         else:
                                             chatmessage = f"There is not currently a pending challenge for {username}"
-                                    print(pvp)
+
                                     del pvp[challenger]
-                                    print(pvp)
-                                        # challenge_result(challenger, amount, '')
+
 
                                     # print(amount)
                                     # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
@@ -483,8 +488,6 @@ while Running == True:
                                                 f' Don\'t worry though, this command doesnt actually do anything at'\
                                                 ' this time.'
                                             pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
-                                        print(pvp)
-
                                     except:
                                         chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
                                             f'<risk amount>'
@@ -496,7 +499,7 @@ while Running == True:
                                 # send the assembled chatmessage variable
                                 Send_message(chatmessage)
 
-                                print(f'{username} send command {message}')
+                                # print(f'{username} send command {message}')
 
                                     # Send_message(
                                     #     'Hello ' + username + " there is not currently a " + message + " command. " +
