@@ -7,6 +7,17 @@ import tcChargen
 from urllib import request
 import time
 
+
+# TODO:
+# TODO:
+# TODO: For Challanges set a lower limit so characters do not go into the negative.
+# TODO:
+# TODO:
+
+
+
+
+
 # Method for sending a message
 def Send_message(message):
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
