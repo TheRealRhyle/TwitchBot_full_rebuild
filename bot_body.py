@@ -1,20 +1,28 @@
+from random import randint
 import ast
 import socket
 import json
 import loader
 import tcChargen
 from urllib import request
-
-
-# from chattodb import check_chatters
+import time
 
 # Method for sending a message
 def Send_message(message):
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
     # print(nick + ": " + message)
 
+def get_user_exp(username):
+    """
+    Will get the user details for the database and return them as a dictionary
+    :param username:
+    :return:
+    """
+    user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
+    return user_info[2]
+
 def ret_char(username):
-    char_to_return = c.execute("select gchar from users where uname = '{}'".format(username)).fetchone()[0]
+    char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
     return ast.literal_eval(char_to_return)
 
 def change_race(username, change_char):
@@ -23,12 +31,66 @@ def change_race(username, change_char):
     c.execute("update users set exp = ? where uname = ?",(exp, username))
     conn.commit()
 
-def get_bcaster(target):
+def get_elevated_users(target):
     resp = request.urlopen(f"http://tmi.twitch.tv/group/user/{target}/chatters")
     chatters_json = resp.read().decode("UTF-8")
     userlist = json.loads(chatters_json)
-    bcaster = userlist['chatters']['broadcaster'][0]
-    return  bcaster
+    bcaster = userlist['chatters']['broadcaster']
+    vips = userlist['chatters']['vips']
+    moderators = userlist['chatters']['moderators']
+    eusers = bcaster, vips, moderators
+    eaccess = set([user for sublist in eusers for user in sublist])
+
+    return eaccess
+
+def challenge(challenger, victim, amount):
+    for challenger, victim in pvp.items():
+        if victim[0] == username:
+            chall = ret_char(challenger)
+            vic = ret_char(victim[0])
+
+
+
+    Send_message(f"{str(chall['name']).capitalize()}, " \
+                     f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
+                     f"combat!")
+    time.sleep(1)
+    Send_message(f"{victim[0]} hits {challenger} with their {vic['weapon']}")
+    time.sleep(1)
+    Send_message(f"{challenger} returns the blow with their {chall['weapon']}")
+    time.sleep(1)
+    vic_roll = int(vic['weapon_skill']) + randint(2, 100)
+    chall_roll = int(chall['weapon_skill']) + randint(2, 100)
+
+    if vic_roll > chall_roll:
+        chatmessage = f'{victim[0]} has defeated their challenger {challenger} and ' \
+            f'earned! {amount} exp.'
+    elif vic_roll == chall_roll:
+        chatmessage = f'After a bloody fight {victim[0]} and {challenger} call it a draw!'
+    else:
+        chatmessage = f'{challenger} has bested his victim, {victim[0]}, earning ' \
+            f'themselves {amount/2}'
+
+def challenge_result(user, amount, *args):
+    """
+    Used to modify the XP as a result of a pvp challenge.
+    :param user:
+    :param amount:
+    :param other_user:
+    :return:
+    """
+    # winner_exp = int(c.execute("select exp from users where uname = ?", (user,)).fetchone()[0])
+    # loser_exp = 0
+    # if not args:
+    #     loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
+    # winner_exp += amount
+    # loser_exp -= amount
+    #
+    # print(user, amount, *args)
+    # print(winner_exp, loser_exp)
+    # c.execute("update users set exp = {}")
+
+
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
@@ -62,7 +124,8 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message("I'm awake, quit poking me already, try !commands or something.")
+# Send_message("I'm awake, quit poking me already, try !commands or something.")
+pvp = {}
 
 while Running == True:
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -120,7 +183,7 @@ while Running == True:
                     #
                     # The bulk of the processing goes down here!
                     #
-                    if message == '':
+                    if message.lower() == '':
                         continue
 
                     # TODO Setup some better handling / identification for link handling.
@@ -136,7 +199,9 @@ while Running == True:
                     # Command processing
                     if message[0] == '!':
                         if username != '':
+                            # TODO: Mod, Boradcaster, FOTS, VIP Commands
                             if username == 'rhyle_':
+                            # if username == 'rhyle_':
                                 if message[0:8] == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
@@ -155,7 +220,25 @@ while Running == True:
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
 
-                                elif message[0:7] == '!create':
+                                elif message[0:4] == '!rew':
+                                    parts = message.split(' ', 3)
+                                    parts += '' * (3 - len(parts))
+                                    ex_com, viewer, amount = parts
+                                    rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
+                                                   fetchone()[0])
+                                    print(rew_user)
+                                    rew_user += int(amount)
+                                    print(rew_user)
+                                    c.execute("update users set exp = ? where uname = ?", (rew_user, viewer.lower()))
+                                    conn.commit()
+
+                                    # parts = s.split(" ", 4) # Will raise exception if too many options
+                                    # parts += [None] * (4 - len(parts)) # Assume we can have max. 4 items.
+                                    # Fill in missing entries with None.
+                                    # value1, value2, optional_value, optional_value2 = parts
+
+                            elif username.lower() in get_elevated_users(chan):
+                                if message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(', ')
                                     ex_com, command = command.split(' ')
@@ -165,7 +248,7 @@ while Running == True:
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
 
-                                elif message[0:7] == '!update':
+                                elif message[0:7].lower() == '!update':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(', ')
                                     ex_com, command = command.split(' ')
@@ -175,7 +258,7 @@ while Running == True:
                                     conn.commit()
                                     Send_message("Command " + command + " has been updated.")
 
-                                elif message[0:7] == '!remove':
+                                elif message[0:7].lower() == '!remove':
                                     # Parse the command to be removed
                                     ex_com, command = message.split(' ')
                                     command = '!' + command
@@ -183,7 +266,7 @@ while Running == True:
                                     conn.commit()
                                     Send_message("Command " + command + " has been removed.")
 
-                                elif message[0:4] == '!mtc':
+                                elif message[0:4].lower() == '!mtc':
                                     parts = message.split(' ')
                                     ex_com, strm1, strm2, strm3, strm4 = [parts[i] if i < len(parts) else None for i in range(5)]
                                     command = '!multi'
@@ -208,24 +291,7 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
 
-                                elif message[0:4] == '!rew':
-                                    parts = message.split(' ', 3)
-                                    parts += '' * (3 - len(parts))
-                                    ex_com, viewer, amount = parts
-                                    rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
-                                                   fetchone()[0])
-                                    print(rew_user)
-                                    rew_user += int(amount)
-                                    print(rew_user)
-                                    c.execute("update users set exp = ? where uname = ?", (rew_user, viewer.lower()))
-                                    conn.commit()
-
-                                    # parts = s.split(" ", 4) # Will raise exception if too many options
-                                    # parts += [None] * (4 - len(parts)) # Assume we can have max. 4 items.
-                                    # Fill in missing entries with None.
-                                    # value1, value2, optional_value, optional_value2 = parts
-
-                                elif message == "!slow":
+                                elif message.lower() == "!slow":
                                     if slow == "off":
                                         Send_message("Engaging Slow Chat Mode...")
                                         print("Engaging Slow Chat Mode...")
@@ -245,14 +311,14 @@ while Running == True:
                                                     '!mtc', '!rew'):
                                 try:
                                     chatmessage = message
-                                    if message == '!lurk':
+                                    if message.lower() == '!lurk':
+                                        # TODO: Random Lurk messages
                                         chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
                                                         "Hopefully they will find their way back soon!"
                                     elif message[0:5] == '!chec':
                                         ex_com, tgt = message.split(' ')
                                         print(get_bcaster(tgt))
-
-                                    elif message == "!ban":
+                                    elif message.lower() == "!ban":
                                         chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                     "good member of the community and has requested to be banned."
                                         Send_message("/ban " + username + " Self exile")
@@ -283,16 +349,18 @@ while Running == True:
                                                 change_char['race']='dwarf'
                                                 change_race(username, str(change_char))
                                                 chatmessage=f'{username} you race has been changed to {race}'
-
-
                                         except:
                                             chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                                 f' races: Human, Elf, Dwarf, Halfling.'
-                                    elif message == "!char":
+                                    elif message.lower() == "!char":
                                         if c.execute("select gchar from users where uname = ?",
-                                                     (username,)).fetchone() != ('',):
-                                            gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+                                                     (username.lower(),)).fetchone() != ('',):
+                                            gchar_dict_to_sql = c.execute("select gchar from users where uname = ?",
+                                                                          (username.lower(),)).fetchone()[0]
                                             gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+
+                                            cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+                                            # print(gchar_dict)
                                             article = 'a '
                                             if gchar_dict['race'] == 'elf':
                                                 gchar_dict['race'] = 'elven'
@@ -300,14 +368,32 @@ while Running == True:
                                             elif gchar_dict['race'] == 'dwarf':
                                                 gchar_dict['race'] = 'dwarven'
 
-                                            chatmessage = f"/w {username} {username} is {article} " \
-                                                f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+                                            chatmessage = ""
+                                            # chatmessage = f"{username} is {article} " \
+                                            #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+
+                                            # print(*gchar_dict, sep='\n')
+
+                                            build_whisper = f"{username} {username} is {article}" \
+                                                f"{str(gchar_dict['race']).capitalize()} " \
+                                                f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                                f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                f" You are currently using your " \
+                                                f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                                f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                                f" and armor.  Current available Exp: {cxp}"
+
+                                            Send_message(f"/w {build_whisper}")
 
                                         else:
                                             # Generate character using the Character Class
                                             gchar = tcChargen.chat_char(username)
+
                                             # Converts the Class to a dictionary
                                             gchar_dict = gchar.get_char(username)
+
                                             # Casts the dictionary to a string for storage in SQL
                                             gchar_dict_to_sql = str(gchar_dict)
 
@@ -318,28 +404,24 @@ while Running == True:
                                             elif gchar_dict['race'] == 'dwarf':
                                                 gchar_dict['race'] = 'dwarven'
 
-
                                             # Stores character in SQL
-                                            c.execute("""update users 
-                                                        set gchar = ? 
+                                            c.execute("""update users
+                                                        set gchar = ?
                                                         where uname = ?""", (gchar_dict_to_sql, username.lower()))
                                             conn.commit()
 
-                                            chatmessage = f"/w {username} {username} is {article} " \
-                                                f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
-                                            Send_message(f"{username} the {str(gchar_dict['race']).capitalize()} has "
-                                                         f"entered the game.")
-                                    elif message == "!retire":
+                                            # Message to chat and /w to user the character information.
+                                            chatmessage = f"{username} the {str(gchar_dict['race']).capitalize()} has " \
+                                                f"entered the game."
+                                            # This is the whisper to user.
+                                    elif message.lower() == "!retire":
                                         # TODO: Retired characters should output to HTML and be stored on a webserver.
                                         # TODO: should also provide link for download in whisper.
                                         chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                             "moment, please check back soon(tm)."
-                                    elif message == "!permadeath":
+                                    elif message.lower() == "!permadeath":
                                         # TODO: Permadeath command should just wipe the gchar data from the user table for 
-                                        # the command user.
-                                        # c.execute("update commands set action = :action where ex_command = :command",
-                                        #       {'command': command, 'target': target, 'action': action.lstrip(' ')})
-                                        # conn.commit()
+                                        # TODO: the command user.
                                         try:
                                             c.execute("update users set gchar = '' where uname = ?",(username.lower(),))
                                             conn.commit()
@@ -349,17 +431,65 @@ while Running == True:
                                         except:
                                             chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                             "moment, please check back soon(tm)."
-                                    elif message == "!accept":
-                                        chatmessage = 'This command will be used to accepting viewer issued duels in ' \
-                                                      'the future.  Right now it only gives this message.'
-                                    elif message[0:10] == "!challenge":
-                                        # !challange <target> <risk amount>
+                                    elif message.lower() == "!accept":
+                                        for challenger, victim in pvp.items():
+                                            if victim[0] == username:
+                                                chall = ret_char(challenger[0])
+                                                vic = ret_char(victim[0])
+
+                                                Send_message(f"{str(chall['name']).capitalize()}, " \
+                                                    f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
+                                                    f"combat!")
+                                                time.sleep(1)
+                                                vic_roll = int(vic['weapon_skill']) + randint(2, 100)
+                                                Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} ({vic_roll})")
+                                                time.sleep(1)
+                                                chall_roll = int(chall['weapon_skill']) + randint(2, 100)
+                                                Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} ({chall_roll})")
+                                                time.sleep(1)
+
+                                                if vic_roll > chall_roll:
+                                                    Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and ' \
+                                                        f'earned! {amount} exp.')
+                                                elif vic_roll == chall_roll:
+                                                    Send_message(f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
+                                                else:
+                                                    Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning ' \
+                                                        f'themselves {amount}')
+
+
+                                                print(pvp)
+                                                del pvp[challenger]
+                                                print(pvp)
+
+
+                                            else:
+                                                chatmessage = f"There is not currently a pending challenge for {username}"
+
+                                            # challenge_result(challenger, amount, '')
+
+                                        # print(amount)
+                                        # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
+                                        #               'the future.  Right now it only gives this message.'
+                                    elif message[0:10].lower() == "!challenge":
+                                        # TODO: !challange <target> <risk amount>
                                         try:
                                             ex_com, target, amount = message.split(' ')
-                                            chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
-                                                f' can take you down.  If you want to accept the fight type !accept.' \
-                                                f' Don\'t worry though, this command doesnt actually do anything at'\
-                                                ' this time.'
+                                            cxp = get_user_exp(username)
+
+                                            if target == username:
+                                                chatmessage = f"Nice try {username}, you can beat yourself on your own time."
+                                            elif int(amount) > int(cxp):
+                                                chatmessage = f"{username} attempting to wager more exp than you have is " \
+                                                    f"not allowed. You may risk only the exp you've earned."
+                                            else:
+                                                chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
+                                                    f' can take you down.  If you want to accept the fight type !accept.' \
+                                                    f' Don\'t worry though, this command doesnt actually do anything at'\
+                                                    ' this time.'
+                                                pvp[(f'{username}',f'{time.time()}')] = (f'{target}', amount)
+                                            print(pvp)
+
                                         except:
                                             chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
                                                 f'<risk amount>'
@@ -367,14 +497,18 @@ while Running == True:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
                                                                 (chatmessage,))
                                         chatmessage = chatmessage.fetchone()[0]
+
+                                    # send the assembled chatmessage variable
                                     Send_message(chatmessage)
                                 except:
-                                    Send_message(
-                                        'Hello ' + username + " there is not currently a " + message + " command. " +
-                                        "If you would like to have one created, let me know. Subs take precedence for !commands.")
+                                    print(f'{username} send command {message}')
+
+                                    # Send_message(
+                                    #     'Hello ' + username + " there is not currently a " + message + " command. " +
+                                    #     "If you would like to have one created, let me know. Subs take precedence for !commands.")
 
                             # Gunter command
-                            elif message[0:7] == '!gunter':
+                            elif message[0:7].lower() == '!gunter':
                                 commandlist = list(c.execute("select ex_command from commands"))
                                 for itr in range(len(commandlist)):
                                     commandlist[itr] = commandlist[itr][0]
