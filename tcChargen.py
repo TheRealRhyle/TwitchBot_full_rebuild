@@ -6,7 +6,7 @@ class Character:
     """ This is going to be a random character generator for twitch.tv/rhyle_
     """
 
-    def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness):
+    def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon):
 
         self.name = name
         self.race = race
@@ -15,11 +15,13 @@ class Character:
         self.bs = ballistic_skill
         self.s = strength
         self.t = toughness
+        self.armor = armor
+        self.weapon = weapon
 
     def get_char(self,name):
         char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
-                      'toughness':''}
-        char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t]
+                      'toughness':'', 'armor':'','weapon':''}
+        char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t, self.armor, self.weapon]
         return dict(zip(char_dict, char_))
     # def __str__(self):
     #     return f"""{self.name} is a {self.race} {self.prof} who has {self.ws} weapon skill, {self.bs} ballistic skill,
@@ -41,7 +43,7 @@ def chat_char(uname):
     elif race == 'human':
         stats = [20, 20, 20, 20]
 
-    stat_prof  = [stats[stat] + randint(2, 20) for stat in range(len(stats))]
+    stat_prof  = [stat + randint(2, 20) for stat in stats]
     stats_dict = dict(zip(stats_dict, stat_prof))
 
     # phys = randint(1, 10)
@@ -64,14 +66,20 @@ def chat_char(uname):
                    'Pistolier', 'Politician', 'Priest', 'Racketeer', 'Scholar', 'Scout', 'Sea Captain', 'Sergeant', 'Spy',
                    'Steward', 'Targeteer', 'Vampire Hunter', 'Veteran', 'Witch Hunter', 'Wizard Lord'])
 
-    # name, race, prof, weapon_skill, ballistic_skill, strength, toughness)
+    # TODO: Randomly generated armor/weapon?
+    armor = 'None'
+    weapon = 'Fists'
+    # name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon
 
-    chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'])
+    chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'],
+                         armor, weapon)
 
     return chatchar
 
-# ch = (chat_char('rhyle_'))
-
-# print(type(str(ch.get_char('rhyle_'))))
+# ch = (chat_char('test'))
+#
+# print(type(str(ch.get_char('test'))))
+# print(str(ch.get_char('test')))
+# print(*ch.get_char("test"), sep='\n')
 
 
