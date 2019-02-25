@@ -79,15 +79,15 @@ def challenge_result(user, amount, *args):
     :param other_user:
     :return:
     """
-    # winner_exp = int(c.execute("select exp from users where uname = ?", (user,)).fetchone()[0])
-    # loser_exp = 0
-    # if not args:
-    #     loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
-    # winner_exp += amount
-    # loser_exp -= amount
-    #
-    # print(user, amount, *args)
-    # print(winner_exp, loser_exp)
+    winner_exp = int(c.execute("select exp from users where uname = ?", (user,)).fetchone()[0])
+    loser_exp = 0
+    if not args:
+        loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
+    winner_exp += amount
+    loser_exp -= amount
+
+    print(user, amount, *args)
+    print(winner_exp, loser_exp)
     # c.execute("update users set exp = {}")
 
 
@@ -309,199 +309,194 @@ while Running == True:
 
                             if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo',
                                                     '!mtc', '!rew'):
-                                try:
-                                    chatmessage = message
-                                    if message.lower() == '!lurk':
-                                        # TODO: Random Lurk messages
-                                        chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
-                                                        "Hopefully they will find their way back soon!"
-                                    elif message[0:5] == '!chec':
-                                        ex_com, tgt = message.split(' ')
-                                        print(get_bcaster(tgt))
-                                    elif message.lower() == "!ban":
-                                        chatmessage = "It looks like " + username + " no longer thinks they can be a " \
-                                                    "good member of the community and has requested to be banned."
-                                        Send_message("/ban " + username + " Self exile")
-                                    elif message[0:6] == "!chang":
-                                        try:
-                                            ex_com, race = message.split(" ")
-                                            change_char = ret_char(username)
-                                            cxp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])
-                                            if cxp < 100:
-                                                chatmessage = f"Sorry {username}, you do not have enough accrued exp to" \
-                                                    f" change your race at the moment, please try again later {cxp}/100."
-                                            elif race.lower() not in ['human','elf','halfling','dwarf']:
-                                                chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
-                                                    f' races: Human, Elf, Dwarf, Halfling. Please try again.'
-                                            elif race.lower() == 'human' and change_char['race'] != 'human':
-                                                change_char['race']='human'
-                                                change_race(username, str(change_char))
-                                                chatmessage=f'{username} you race has been changed to {race}'
-                                            elif race.lower() == 'elf' and change_char['race'] != 'elf':
-                                                change_char['race']='elf'
-                                                change_race(username, str(change_char))
-                                                chatmessage=f'{username} you race has been changed to {race}'
-                                            elif race.lower() == 'halfling' and change_char['race'] != 'halfling':
-                                                change_char['race']='halfling'
-                                                change_race(username, str(change_char))
-                                                chatmessage=f'{username} you race has been changed to {race}'
-                                            elif race.lower() == 'dwarf' and change_char['race'] != 'dwarf':
-                                                change_char['race']='dwarf'
-                                                change_race(username, str(change_char))
-                                                chatmessage=f'{username} you race has been changed to {race}'
-                                        except:
+                                chatmessage = message
+                                if message.lower() == '!lurk':
+                                    # TODO: Random Lurk messages
+                                    chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
+                                                    "Hopefully they will find their way back soon!"
+                                elif message[0:5] == '!chec':
+                                    ex_com, tgt = message.split(' ')
+                                    print(get_bcaster(tgt))
+                                elif message.lower() == "!ban":
+                                    chatmessage = "It looks like " + username + " no longer thinks they can be a " \
+                                                "good member of the community and has requested to be banned."
+                                    Send_message("/ban " + username + " Self exile")
+                                elif message[0:6] == "!chang":
+                                    try:
+                                        ex_com, race = message.split(" ")
+                                        change_char = ret_char(username)
+                                        cxp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])
+                                        if cxp < 100:
+                                            chatmessage = f"Sorry {username}, you do not have enough accrued exp to" \
+                                                f" change your race at the moment, please try again later {cxp}/100."
+                                        elif race.lower() not in ['human','elf','halfling','dwarf']:
                                             chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
-                                                f' races: Human, Elf, Dwarf, Halfling.'
-                                    elif message.lower() == "!char":
-                                        if c.execute("select gchar from users where uname = ?",
-                                                     (username.lower(),)).fetchone() != ('',):
-                                            gchar_dict_to_sql = c.execute("select gchar from users where uname = ?",
-                                                                          (username.lower(),)).fetchone()[0]
-                                            gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+                                                f' races: Human, Elf, Dwarf, Halfling. Please try again.'
+                                        elif race.lower() == 'human' and change_char['race'] != 'human':
+                                            change_char['race']='human'
+                                            change_race(username, str(change_char))
+                                            chatmessage=f'{username} you race has been changed to {race}'
+                                        elif race.lower() == 'elf' and change_char['race'] != 'elf':
+                                            change_char['race']='elf'
+                                            change_race(username, str(change_char))
+                                            chatmessage=f'{username} you race has been changed to {race}'
+                                        elif race.lower() == 'halfling' and change_char['race'] != 'halfling':
+                                            change_char['race']='halfling'
+                                            change_race(username, str(change_char))
+                                            chatmessage=f'{username} you race has been changed to {race}'
+                                        elif race.lower() == 'dwarf' and change_char['race'] != 'dwarf':
+                                            change_char['race']='dwarf'
+                                            change_race(username, str(change_char))
+                                            chatmessage=f'{username} you race has been changed to {race}'
+                                    except:
+                                        chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
+                                            f' races: Human, Elf, Dwarf, Halfling.'
+                                elif message.lower() == "!char":
+                                    if c.execute("select gchar from users where uname = ?",
+                                                 (username.lower(),)).fetchone() != ('',):
+                                        gchar_dict_to_sql = c.execute("select gchar from users where uname = ?",
+                                                                      (username.lower(),)).fetchone()[0]
+                                        gchar_dict = ast.literal_eval(gchar_dict_to_sql)
 
-                                            cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
-                                            # print(gchar_dict)
-                                            article = 'a '
-                                            if gchar_dict['race'] == 'elf':
-                                                gchar_dict['race'] = 'elven'
-                                                article = 'an '
-                                            elif gchar_dict['race'] == 'dwarf':
-                                                gchar_dict['race'] = 'dwarven'
+                                        cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+                                        # print(gchar_dict)
+                                        article = 'a '
+                                        if gchar_dict['race'] == 'elf':
+                                            gchar_dict['race'] = 'elven'
+                                            article = 'an '
+                                        elif gchar_dict['race'] == 'dwarf':
+                                            gchar_dict['race'] = 'dwarven'
 
-                                            chatmessage = ""
-                                            # chatmessage = f"{username} is {article} " \
-                                            #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+                                        chatmessage = ""
+                                        # chatmessage = f"{username} is {article} " \
+                                        #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
 
-                                            # print(*gchar_dict, sep='\n')
+                                        # print(*gchar_dict, sep='\n')
 
-                                            build_whisper = f"{username} {username} is {article}" \
-                                                f"{str(gchar_dict['race']).capitalize()} " \
-                                                f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
-                                                f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
-                                                f" You are currently using your " \
-                                                f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
-                                                f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
-                                                f" and armor.  Current available Exp: {cxp}"
+                                        build_whisper = f"{username} {username} is {article}" \
+                                            f"{str(gchar_dict['race']).capitalize()} " \
+                                            f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                            f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                            f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                            f" You are currently using your " \
+                                            f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                            f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                            f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                            f" and armor.  Current available Exp: {cxp}"
 
-                                            Send_message(f"/w {build_whisper}")
+                                        Send_message(f"/w {build_whisper}")
 
-                                        else:
-                                            # Generate character using the Character Class
-                                            gchar = tcChargen.chat_char(username)
-
-                                            # Converts the Class to a dictionary
-                                            gchar_dict = gchar.get_char(username)
-
-                                            # Casts the dictionary to a string for storage in SQL
-                                            gchar_dict_to_sql = str(gchar_dict)
-
-                                            article = 'a '
-                                            if gchar_dict['race'] == 'elf':
-                                                gchar_dict['race'] = 'elven'
-                                                article = 'an '
-                                            elif gchar_dict['race'] == 'dwarf':
-                                                gchar_dict['race'] = 'dwarven'
-
-                                            # Stores character in SQL
-                                            c.execute("""update users
-                                                        set gchar = ?
-                                                        where uname = ?""", (gchar_dict_to_sql, username.lower()))
-                                            conn.commit()
-
-                                            # Message to chat and /w to user the character information.
-                                            chatmessage = f"{username} the {str(gchar_dict['race']).capitalize()} has " \
-                                                f"entered the game."
-                                            # This is the whisper to user.
-                                    elif message.lower() == "!retire":
-                                        # TODO: Retired characters should output to HTML and be stored on a webserver.
-                                        # TODO: should also provide link for download in whisper.
-                                        chatmessage = "Hello " + username + ", this command is being worked on at the " \
-                                                                            "moment, please check back soon(tm)."
-                                    elif message.lower() == "!permadeath":
-                                        # TODO: Permadeath command should just wipe the gchar data from the user table for 
-                                        # TODO: the command user.
-                                        try:
-                                            c.execute("update users set gchar = '' where uname = ?",(username.lower(),))
-                                            conn.commit()
-                                            chatmessage = username + " has chosen to permanently kill off their " \
-                                                    "character. You may issue the !char command to create a new one."
-
-                                        except:
-                                            chatmessage = "Hello " + username + ", this command is being worked on at the " \
-                                                                            "moment, please check back soon(tm)."
-                                    elif message.lower() == "!accept":
-                                        for challenger, victim in pvp.items():
-                                            if victim[0] == username:
-                                                chall = ret_char(challenger[0])
-                                                vic = ret_char(victim[0])
-
-                                                Send_message(f"{str(chall['name']).capitalize()}, " \
-                                                    f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
-                                                    f"combat!")
-                                                time.sleep(1)
-                                                vic_roll = int(vic['weapon_skill']) + randint(2, 100)
-                                                Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} ({vic_roll})")
-                                                time.sleep(1)
-                                                chall_roll = int(chall['weapon_skill']) + randint(2, 100)
-                                                Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} ({chall_roll})")
-                                                time.sleep(1)
-
-                                                if vic_roll > chall_roll:
-                                                    Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and ' \
-                                                        f'earned! {amount} exp.')
-                                                elif vic_roll == chall_roll:
-                                                    Send_message(f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
-                                                else:
-                                                    Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning ' \
-                                                        f'themselves {amount}')
-
-
-                                                print(pvp)
-                                                del pvp[challenger]
-                                                print(pvp)
-
-
-                                            else:
-                                                chatmessage = f"There is not currently a pending challenge for {username}"
-
-                                            # challenge_result(challenger, amount, '')
-
-                                        # print(amount)
-                                        # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
-                                        #               'the future.  Right now it only gives this message.'
-                                    elif message[0:10].lower() == "!challenge":
-                                        # TODO: !challange <target> <risk amount>
-                                        try:
-                                            ex_com, target, amount = message.split(' ')
-                                            cxp = get_user_exp(username)
-
-                                            if target == username:
-                                                chatmessage = f"Nice try {username}, you can beat yourself on your own time."
-                                            elif int(amount) > int(cxp):
-                                                chatmessage = f"{username} attempting to wager more exp than you have is " \
-                                                    f"not allowed. You may risk only the exp you've earned."
-                                            else:
-                                                chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
-                                                    f' can take you down.  If you want to accept the fight type !accept.' \
-                                                    f' Don\'t worry though, this command doesnt actually do anything at'\
-                                                    ' this time.'
-                                                pvp[(f'{username}',f'{time.time()}')] = (f'{target}', amount)
-                                            print(pvp)
-
-                                        except:
-                                            chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
-                                                f'<risk amount>'
                                     else:
-                                        chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                                (chatmessage,))
-                                        chatmessage = chatmessage.fetchone()[0]
+                                        # Generate character using the Character Class
+                                        gchar = tcChargen.chat_char(username)
 
-                                    # send the assembled chatmessage variable
-                                    Send_message(chatmessage)
-                                except:
-                                    print(f'{username} send command {message}')
+                                        # Converts the Class to a dictionary
+                                        gchar_dict = gchar.get_char(username)
+
+                                        # Casts the dictionary to a string for storage in SQL
+                                        gchar_dict_to_sql = str(gchar_dict)
+
+                                        article = 'a '
+                                        if gchar_dict['race'] == 'elf':
+                                            gchar_dict['race'] = 'elven'
+                                            article = 'an '
+                                        elif gchar_dict['race'] == 'dwarf':
+                                            gchar_dict['race'] = 'dwarven'
+
+                                        # Stores character in SQL
+                                        c.execute("""update users
+                                                    set gchar = ?
+                                                    where uname = ?""", (gchar_dict_to_sql, username.lower()))
+                                        conn.commit()
+
+                                        # Message to chat and /w to user the character information.
+                                        chatmessage = f"{username} the {str(gchar_dict['race']).capitalize()} has " \
+                                            f"entered the game."
+                                        # This is the whisper to user.
+                                elif message.lower() == "!retire":
+                                    # TODO: Retired characters should output to HTML and be stored on a webserver.
+                                    # TODO: should also provide link for download in whisper.
+                                    chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                                                        "moment, please check back soon(tm)."
+                                elif message.lower() == "!permadeath":
+                                    # TODO: Permadeath command should just wipe the gchar data from the user table for
+                                    # TODO: the command user.
+                                    try:
+                                        c.execute("update users set gchar = '' where uname = ?",(username.lower(),))
+                                        conn.commit()
+                                        chatmessage = username + " has chosen to permanently kill off their " \
+                                                "character. You may issue the !char command to create a new one."
+
+                                    except:
+                                        chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                                                        "moment, please check back soon(tm)."
+                                elif message.lower() == "!accept":
+                                    for challenger, victim in pvp.items():
+                                        if victim[0] == username:
+                                            chall = ret_char(challenger[0])
+                                            vic = ret_char(victim[0])
+
+                                            Send_message(f"{str(chall['name']).capitalize()}, " \
+                                                f"{str(vic['name']).capitalize()} has accepted your challage.  Prepare for " \
+                                                f"combat!")
+                                            time.sleep(1)
+                                            vic_roll = int(vic['weapon_skill']) + randint(2, 100)
+                                            Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} ({vic_roll})")
+                                            time.sleep(1)
+                                            chall_roll = int(chall['weapon_skill']) + randint(2, 100)
+                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} ({chall_roll})")
+                                            time.sleep(1)
+
+                                            if vic_roll > chall_roll:
+                                                Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and ' \
+                                                    f'earned! {amount} exp.')
+                                            elif vic_roll == chall_roll:
+                                                Send_message(f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
+                                            else:
+                                                Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning ' \
+                                                    f'themselves {amount}')
+                                            chatmessage = ""
+                                        else:
+                                            chatmessage = f"There is not currently a pending challenge for {username}"
+                                    print(pvp)
+                                    del pvp[challenger]
+                                    print(pvp)
+                                        # challenge_result(challenger, amount, '')
+
+                                    # print(amount)
+                                    # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
+                                    #               'the future.  Right now it only gives this message.'
+                                elif message[0:10].lower() == "!challenge":
+                                    # TODO: !challange <target> <risk amount>
+                                    try:
+                                        ex_com, target, amount = message.split(' ')
+                                        cxp = get_user_exp(username)
+
+                                        if target == username:
+                                            chatmessage = f"Nice try {username}, you can beat yourself on your own time."
+                                        elif int(amount) > int(cxp):
+                                            chatmessage = f"{username} attempting to wager more exp than you have is " \
+                                                f"not allowed. You may risk only the exp you've earned."
+                                        else:
+                                            chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
+                                                f' can take you down.  If you want to accept the fight type !accept.' \
+                                                f' Don\'t worry though, this command doesnt actually do anything at'\
+                                                ' this time.'
+                                            pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
+                                        print(pvp)
+
+                                    except:
+                                        chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
+                                            f'<risk amount>'
+                                else:
+                                    chatmessage = c.execute("select action from commands where ex_command = ?",
+                                                            (chatmessage,))
+                                    chatmessage = chatmessage.fetchone()[0]
+
+                                # send the assembled chatmessage variable
+                                Send_message(chatmessage)
+
+                                print(f'{username} send command {message}')
 
                                     # Send_message(
                                     #     'Hello ' + username + " there is not currently a " + message + " command. " +
