@@ -1,6 +1,10 @@
-challenger= ('tstallis', '1551068064.8879814')
-d = {('tstallis', '1551068064.8879814'): ('rhyle_', '200')}
-
-print(d)
-del d[challenger]
-print(d)
+import time
+import datetime
+start = datetime.datetime.now().replace(microsecond=0)
+try:
+    while True:
+        print('running')
+        time.sleep(1)
+except KeyboardInterrupt:
+    end = datetime.datetime.now().replace(microsecond=0)
+    print(f"Keyboard Interrupt recieved, dying. ran for {end - start}")

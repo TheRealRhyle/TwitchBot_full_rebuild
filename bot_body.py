@@ -6,17 +6,13 @@ import loader
 import tcChargen
 from urllib import request
 import time
-
+import datetime
 
 # TODO:
 # TODO:
 # TODO: For Challanges set a lower limit so characters do not go into the negative.
 # TODO:
 # TODO:
-
-
-
-
 
 # Method for sending a message
 def Send_message(message):
@@ -107,9 +103,11 @@ def challenge_result(user, amount, *args):
     c.execute("update users set exp = ? where uname = ?",(winner_exp, user))
     conn.commit()
 
+def uptime(at_command_time):
+    return at_command_time - bot_start
+
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
-
 
 # get connection info from db
 streamr = c.execute('select * from streamer').fetchall()
@@ -140,6 +138,7 @@ MODT = False
 init_mesage = ''
 slow = 'off'
 # Send_message("I'm awake, quit poking me already, try !commands or something.")
+bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 
 while Running == True:
@@ -502,6 +501,10 @@ while Running == True:
                                     except:
                                         chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
                                             f'<risk amount>'
+                                elif message.lower() == "!uptime":
+                                    timenow = datetime.datetime.now().replace(microsecond=0)
+
+                                    chatmessage = str(uptime(timenow))
                                 else:
                                     chatmessage = c.execute("select action from commands where ex_command = ?",
                                                             (chatmessage,))
