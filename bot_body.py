@@ -198,25 +198,21 @@ while Running == True:
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
                             if username == 'rhyle_':
-                            # if username == 'rhyle_':
                                 if message[0:8] == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
                                               {'user': new_user.lower(), 'status': user_type})
                                     conn.commit()
-
                                 elif message[0:8] == '!deluser':
                                     command, new_user = message.split(' ')
                                     c.execute("delete from users where uname = ?", (new_user.lower(),))
                                     conn.commit()
-
                                 elif message[0:8] == '!upduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("""update users
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
-
                                 elif message[0:4] == '!rew':
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
@@ -244,7 +240,6 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
-
                                 elif message[0:7].lower() == '!update':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(', ')
@@ -254,7 +249,6 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action.lstrip(' ')})
                                     conn.commit()
                                     Send_message("Command " + command + " has been updated.")
-
                                 elif message[0:7].lower() == '!remove':
                                     # Parse the command to be removed
                                     ex_com, command = message.split(' ')
@@ -262,7 +256,6 @@ while Running == True:
                                     c.execute("delete from commands where ex_command = ?", (command,))
                                     conn.commit()
                                     Send_message("Command " + command + " has been removed.")
-
                                 elif message[0:4].lower() == '!mtc':
                                     parts = message.split(' ')
                                     ex_com, strm1, strm2, strm3, strm4 = [parts[i] if i < len(parts) else None for i in range(5)]
@@ -287,7 +280,6 @@ while Running == True:
                                                   {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
-
                                 elif message.lower() == "!slow":
                                     if slow == "off":
                                         Send_message("Engaging Slow Chat Mode...")
@@ -434,11 +426,19 @@ while Running == True:
                                                 f"{str(vic['name']).capitalize()} has accepted your challenge.  Prepare for " \
                                                 f"combat!")
                                             time.sleep(1)
-                                            vic_roll = int(vic['weapon_skill']) + randint(2, 100)
-                                            Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} ({vic_roll})")
+                                            victim_random = randint(2, 100)
+                                            vic_roll = (vic['weapon_skill'] + victim_random) - chall['toughness']
+                                            if vic_roll < 0:
+                                                vic_roll = 0
+                                            Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} " \
+                                                f"(({vic['weapon_skill']} + {victim_random})-{chall['toughness']}) ({vic_roll})")
                                             time.sleep(1)
-                                            chall_roll = int(chall['weapon_skill']) + randint(2, 100)
-                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} ({chall_roll})")
+                                            challenger_random = randint(2, 100)
+                                            chall_roll = (chall['weapon_skill'] + challenger_random) - vic['toughness']
+                                            if chall_roll < 0:
+                                                chall_roll = 0
+                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} " \
+                                                f"(({chall['weapon_skill']} + {challenger_random}) - {vic['toughness']}) ({chall_roll})")
                                             time.sleep(1)
 
                                             if vic_roll > chall_roll:
@@ -468,7 +468,7 @@ while Running == True:
                                         cxp = get_user_exp(username)
 
                                         absolute_amount = int(amount)
-                                        absolute_amount = abs(posint)
+                                        absolute_amount = abs(absolute_amount)
 
                                         if target == username:
                                             chatmessage = f"Nice try {username}, you can beat yourself on your own time."
@@ -490,22 +490,12 @@ while Running == True:
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
                                         f'stream uptime.'
                                 else:
-                                    try:
-                                        chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                                (chatmessage,))
-                                        chatmessage = chatmessage.fetchone()[0]
-                                    except:
-                                        Send_message(f'Hello {username} there is not currently a {message} command. ' \
-                                            f'If you would like to have one created, let me know. Subs take precedence for !commands.')
+                                    chatmessage = c.execute("select action from commands where ex_command = ?",
+                                                            (chatmessage,))
+                                    chatmessage = chatmessage.fetchone()[0]
 
                                 # send the assembled chatmessage variable
                                 Send_message(chatmessage)
-
-                                # print(f'{username} send command {message}')
-
-                                    # Send_message(
-                                    #     'Hello ' + username + " there is not currently a " + message + " command. " +
-                                    #     "If you would like to have one created, let me know. Subs take precedence for !commands.")
 
                             # Gunter command
                             elif message[0:7].lower() == '!gunter':
@@ -515,6 +505,10 @@ while Running == True:
                                 Send_message(
                                     "You've found the (not so) hidden command list " + username + ". Command list: "
                                     + ', '.join(commandlist))
+
+                            else:
+                                Send_message(f'Hello {username} there is not currently a {message} command. ' \
+                                            f'If you would like to have one created, let me know. Subs take precedence for !commands.')
                             # else:
                             #     print("Hit else:")
                             #     print(username)
