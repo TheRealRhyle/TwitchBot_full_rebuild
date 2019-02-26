@@ -3,13 +3,14 @@ from urllib import request
 import json
 import sqlite3
 import time
+import schedule
+from time import sleep
+import socket
+
 global c
 conn = sqlite3.connect("dxchatbot.db")
 c = conn.cursor()
-import schedule
-from time import sleep
-import time
-import socket
+
 
 def check_chatters():
     resp = request.urlopen("http://tmi.twitch.tv/group/user/rhyle_/chatters")
@@ -48,6 +49,15 @@ def check_chatters():
             # pass
     # return broadcaster
 
+def get_chatters():
+    print("Getting current chat list.")
+    check_chatters()
+    schedule.every(10).minutes.do(check_chatters)
+    while 1:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 if __name__ == "__main__":
     print("Started")
     check_chatters()
@@ -57,9 +67,3 @@ if __name__ == "__main__":
         schedule.run_pending()
         time.sleep(1)
 
-print("Started")
-check_chatters()
-schedule.every(5).minutes.do(check_chatters)
-while 1:
-    schedule.run_pending()
-    time.sleep(1)

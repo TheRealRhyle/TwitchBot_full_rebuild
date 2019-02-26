@@ -71,6 +71,8 @@ def challenge_result(user, amount, *args):
         print(*args)
         loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
         loser_exp -= int(amount)
+        if loser_exp < 0:
+            loser_exp = 0
         c.execute("update users set exp = ? where uname = ?",(loser_exp, *args))
         conn.commit()
     winner_exp += int(amount)
@@ -210,7 +212,7 @@ while Running == True:
 
                                 elif message[0:8] == '!upduser':
                                     command, new_user, user_type = message.split(' ')
-                                    c.execute("""update users 
+                                    c.execute("""update users
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
@@ -465,28 +467,36 @@ while Running == True:
                                         ex_com, target, amount = message.split(' ')
                                         cxp = get_user_exp(username)
 
+                                        absolute_amount = int(amount)
+                                        absolute_amount = abs(posint)
+
                                         if target == username:
                                             chatmessage = f"Nice try {username}, you can beat yourself on your own time."
-                                        elif int(amount) > int(cxp):
+                                        elif absolute_amount > int(cxp):
                                             chatmessage = f"{username} attempting to wager more exp than you have is " \
                                                 f"not allowed. You may risk only the exp you've earned."
                                         else:
-                                            chatmessage = f'hey @{target}, {username} has wagered {amount} exp that they' \
+                                            chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
                                                 f' can take you down.  If you want to accept the fight type !accept.' \
                                                 f' Don\'t worry though, this command doesn\'t actually do anything at'\
                                                 ' this time.'
                                             pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
                                     except:
-                                        chatmessage = f'Blast! {username} the proper command is !challenge <target> ' \
-                                            f'<risk amount>'
+                                        chatmessage = f'Blast! {username} the proper command is !challenge >target< ' \
+                                            f'>risk amount<'
                                 elif message.lower() == "!uptime":
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
-                                    chatmessage = str(uptime(timenow))
+                                    chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
+                                        f'stream uptime.'
                                 else:
-                                    chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                            (chatmessage,))
-                                    chatmessage = chatmessage.fetchone()[0]
+                                    try:
+                                        chatmessage = c.execute("select action from commands where ex_command = ?",
+                                                                (chatmessage,))
+                                        chatmessage = chatmessage.fetchone()[0]
+                                    except:
+                                        Send_message(f'Hello {username} there is not currently a {message} command. ' \
+                                            f'If you would like to have one created, let me know. Subs take precedence for !commands.')
 
                                 # send the assembled chatmessage variable
                                 Send_message(chatmessage)
