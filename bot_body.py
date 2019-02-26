@@ -217,6 +217,7 @@ while Running == True:
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
                                 elif message[0:4].lower() == '!rew':
+                                    
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
@@ -232,6 +233,68 @@ while Running == True:
                                     # parts += [None] * (4 - len(parts)) # Assume we can have max. 4 items.
                                     # Fill in missing entries with None.
                                     # value1, value2, optional_value, optional_value2 = parts
+                                elif message[0:7].lower() == '!create':
+                                    # Parse the command to be added/created
+                                    command, target, action = message.split(', ')
+                                    ex_com, command = command.split(' ')
+                                    command = '!' + command
+                                    c.execute("insert into commands values (:command, :target, :action)",
+                                              {'command': command, 'target': target, 'action': action})
+                                    conn.commit()
+                                    Send_message("Command " + command + " has been added.")
+                                elif message[0:7].lower() == '!update':
+                                    # Parse the command to be added/created
+                                    command, target, action = message.split(', ')
+                                    ex_com, command = command.split(' ')
+                                    command = '!' + command
+                                    c.execute("update commands set action = :action where ex_command = :command",
+                                              {'command': command, 'target': target, 'action': action.lstrip(' ')})
+                                    conn.commit()
+                                    Send_message("Command " + command + " has been updated.")
+                                elif message[0:7].lower() == '!remove':
+                                    # Parse the command to be removed
+                                    ex_com, command = message.split(' ')
+                                    command = '!' + command
+                                    c.execute("delete from commands where ex_command = ?", (command,))
+                                    conn.commit()
+                                    Send_message("Command " + command + " has been removed.")
+                                elif message[0:4].lower() == '!mtc':
+                                    parts = message.split(' ')
+                                    ex_com, strm1, strm2, strm3, strm4 = [parts[i] if i < len(parts) else None for i in range(5)]
+                                    command = '!multi'
+                                    target = ''
+                                    if strm3 == None:
+                                        multi = strm1 + '/' + strm2
+                                    elif strm4 == None:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3
+                                    else:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
+
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " " \
+                                             "or you can access kadgar at http://kadgar.net/live/" + multi
+
+                                    if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
+                                        c.execute("update commands set action = :action where ex_command = :command",
+                                                  {'command': command, 'action': action})
+                                        conn.commit()
+                                    else:
+                                        c.execute("insert into commands values (:command, :target, :action)",
+                                                  {'command': command, 'target': target, 'action': action})
+                                        conn.commit()
+                                    Send_message(action)
+                                elif message.lower() == "!slow":
+                                    if slow == "off":
+                                        Send_message("Engaging Slow Chat Mode...")
+                                        print("Engaging Slow Chat Mode...")
+                                        s.send(("PRIVMSG #" + chan + " :.slow\r\n").encode('UTF-8'))
+                                        slow = 'on'
+                                        continue
+                                    if slow == 'on':
+                                        Send_message("Disengaging Slow Chat Mode...")
+                                        print("Disengaging Slow Chat Mode...")
+                                        s.send(("PRIVMSG #" + chan + " :.slowoff\r\n").encode('UTF-8'))
+                                        slow = 'off'
+                                        continue
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -510,8 +573,6 @@ while Running == True:
                                         chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
                                             f' can take you down.  If you want to accept the fight type !accept or you can !decline.'
                                         pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
-                                        # chatmessage = f'Blast! {username} the proper command is !challenge >target< ' \
-                                        #     f'>risk amount<'
                                 elif message.lower() == "!uptime":
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
@@ -530,7 +591,7 @@ while Running == True:
                                 try:
                                     Send_message(chatmessage)
                                 except:
-                                    print(f'510: {chatmessage}')
+                                    print(f'531: {chatmessage}')
 
                             # Gunter command
                             elif message[0:7].lower() == '!gunter':
@@ -542,7 +603,7 @@ while Running == True:
                                     + ', '.join(commandlist))
 
                             else:
-                                print(f'522: {username}, {message}')
+                                print(f'543: {username}, {message}')
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
                     #
