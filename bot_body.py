@@ -1,4 +1,5 @@
 from random import randint
+from random import choice
 import ast
 import socket
 import json
@@ -30,7 +31,10 @@ def get_user_exp(username):
 
 def ret_char(username):
     char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
-    return ast.literal_eval(char_to_return)
+    if char_to_return == '':
+        return 'None'
+    else:
+        return ast.literal_eval(char_to_return)
 
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
@@ -68,7 +72,6 @@ def challenge_result(user, amount, *args):
     if not args:
         pass
     else:
-        print(*args)
         loser_exp = int(c.execute("select exp from users where uname = ?", (*args,)).fetchone()[0])
         loser_exp -= int(amount)
         if loser_exp < 0:
@@ -198,22 +201,22 @@ while Running == True:
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
                             if username == 'rhyle_':
-                                if message[0:8] == '!adduser':
+                                if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
                                               {'user': new_user.lower(), 'status': user_type})
                                     conn.commit()
-                                elif message[0:8] == '!deluser':
+                                elif message[0:8].lower() == '!deluser':
                                     command, new_user = message.split(' ')
                                     c.execute("delete from users where uname = ?", (new_user.lower(),))
                                     conn.commit()
-                                elif message[0:8] == '!upduser':
+                                elif message[0:8].lower() == '!upduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("""update users
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
-                                elif message[0:4] == '!rew':
+                                elif message[0:4].lower() == '!rew':
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
@@ -300,14 +303,20 @@ while Running == True:
                                                     '!mtc', '!rew'):
                                 chatmessage = message
                                 if message.lower() == '!lurk':
-                                    # TODO: Random Lurk messages
-                                    chatmessage = "It looks like we've lost " + username + " to the twitch void. " \
-                                                    "Hopefully they will find their way back soon!"
+                                    lurk_message = [
+                                        f"It looks like we've lost {username} to the twitch void. Hopefully they will find their way back soon!",
+                                        f"Seems like {username} has gone off to take care of.... business.",
+                                        f"{username} has been eliminated by IOI-655321",
+                                        "Thats no moon!", "ITS A TRAP!", f"{username} left for the greater unknown",
+                                        f"{username.upper()} DID YOU PUT YOUR NAME IN THE HOT CUP?",f"{username.capitalize()} when someone asks " \
+                                            "if you're a god you say yes.", "Well that certainly illustrates the diversity of the word."
+                                    ]
+                                    chatmessage = choice(lurk_message)
                                 elif message.lower() == "!ban":
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                 "good member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
-                                elif message[0:6] == "!chang":
+                                elif message[0:6].lower() == "!chang":
                                     try:
                                         ex_com, race = message.split(" ")
                                         change_char = ret_char(username)
@@ -454,48 +463,74 @@ while Running == True:
                                             chatmessage = ""
                                         else:
                                             chatmessage = f"There is not currently a pending challenge for {username}"
-
                                     del pvp[challenger]
 
+                                elif message.lower() == '!decline':
+                                    for challenger, victim in pvp.items():
+                                        if victim[0] == username:
+                                            chall = ret_char(challenger[0])
+                                            vic = ret_char(victim[0])
 
-                                    # print(amount)
-                                    # chatmessage = 'This command will be used to accepting viewer issued duels in ' \
-                                    #               'the future.  Right now it only gives this message.'
-                                elif message[0:10].lower() == "!challenge":
+                                            chatmessage = f"{str(chall['name']).capitalize()}, " \
+                                                f"{str(vic['name']).capitalize()} has declined your challenge."
+                                    del pvp[challenger]
+
+                                elif message.lower() == "!challenge":
+                                    chatmessage = "This command will allow you to challange another viewer with a " \
+                                        "game character to a quick PVP fight. The proper usage is !challenge username " \
+                                        "amount  Please not that you may not challange for an amount more than your " \
+                                        "current exp.  Current exp can be found on your !char whisper, it updates every " \
+                                        "10 minutes."
+                                elif message[0:11].lower() == "!challenge ":
                                     # TODO: !challenge <target> <risk amount>
                                     try:
                                         ex_com, target, amount = message.split(' ')
-                                        cxp = get_user_exp(username)
+                                    except ValueError:
+                                        Send_message(f'Blast! {username} the proper command is !challenge >target< ' \
+                                            f'>risk amount<')
+                                        continue
 
-                                        absolute_amount = int(amount)
-                                        absolute_amount = abs(absolute_amount)
+                                    cxp = get_user_exp(username)
+                                    challenger = ret_char(username)
+                                    victim = ret_char(target)
 
-                                        if target == username:
-                                            chatmessage = f"Nice try {username}, you can beat yourself on your own time."
-                                        elif absolute_amount > int(cxp):
-                                            chatmessage = f"{username} attempting to wager more exp than you have is " \
-                                                f"not allowed. You may risk only the exp you've earned."
-                                        else:
-                                            chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
-                                                f' can take you down.  If you want to accept the fight type !accept.' \
-                                                f' Don\'t worry though, this command doesn\'t actually do anything at'\
-                                                ' this time.'
-                                            pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
-                                    except:
-                                        chatmessage = f'Blast! {username} the proper command is !challenge >target< ' \
-                                            f'>risk amount<'
+                                    absolute_amount = int(amount)
+                                    absolute_amount = abs(absolute_amount)
+
+                                    if target == username:
+                                        chatmessage = f"Nice try {username}, you can beat yourself on your own time."
+                                    elif victim == 'None' or challenger == 'None':
+                                        chatmessage = f'Sorry {username}, either you or {target} do not currently ' \
+                                            f'have characters for the game. You can use the command !char to either ' \
+                                            f'generate one or get your current character info whispered to you.'
+                                    elif absolute_amount > int(cxp):
+                                        chatmessage = f"{username} attempting to wager more exp than you have is " \
+                                            f"not allowed. You may risk only the exp you've earned."
+                                    else:
+                                        chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
+                                            f' can take you down.  If you want to accept the fight type !accept or you can !decline.'
+                                        pvp[(f'{username.lower()}',f'{time.time()}')] = (f'{target.lower()}', amount)
+                                        # chatmessage = f'Blast! {username} the proper command is !challenge >target< ' \
+                                        #     f'>risk amount<'
                                 elif message.lower() == "!uptime":
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
                                         f'stream uptime.'
                                 else:
-                                    chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                            (chatmessage,))
-                                    chatmessage = chatmessage.fetchone()[0]
+                                    try:
+                                        chatmessage = c.execute("select action from commands where ex_command = ?",
+                                                                (chatmessage,)).fetchone()[0]
+                                    except:
+                                        chatmessage = f'Hello {username} there is not currently a {message} command. ' \
+                                                    f'If you would like to have one created, let me know. Subs take precedence for !commands.'
+                                        # print(f'504: {chatmessage}')
 
                                 # send the assembled chatmessage variable
-                                Send_message(chatmessage)
+                                try:
+                                    Send_message(chatmessage)
+                                except:
+                                    print(f'510: {chatmessage}')
 
                             # Gunter command
                             elif message[0:7].lower() == '!gunter':
@@ -507,14 +542,9 @@ while Running == True:
                                     + ', '.join(commandlist))
 
                             else:
-                                Send_message(f'Hello {username} there is not currently a {message} command. ' \
-                                            f'If you would like to have one created, let me know. Subs take precedence for !commands.')
-                            # else:
-                            #     print("Hit else:")
-                            #     print(username)
-                            #     print(message[0:7])
-                            #     print(list(c.execute("select * from commands")))
-
+                                print(f'522: {username}, {message}')
+                                # Send_message(f'Hello {username} there is not currently a {message} command. ' \
+                                #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
                     #
                     # End of bot processing
                     #

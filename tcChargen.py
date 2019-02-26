@@ -67,8 +67,8 @@ def chat_char(uname):
                    'Steward', 'Targeteer', 'Vampire Hunter', 'Veteran', 'Witch Hunter', 'Wizard Lord'])
 
     # TODO: Randomly generated armor/weapon?
-    armor = 'None'
-    weapon = 'Fists'
+    armor = 'none'
+    weapon = 'fists'
     # name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon
 
     chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'],
