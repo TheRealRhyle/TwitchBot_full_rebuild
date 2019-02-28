@@ -1,5 +1,5 @@
 # TwitchBot_full_rebuild
-This is just a silly little twich bot that I've been hacking together in order to teach myself how to write Python code.
+This is just a silly little twitch bot that I've been hacking together in order to teach myself how to write Python code.
 
 Its pretty basic in comparison to some others I've seen but I've gotten a fair bit of understanding now.  I will refactor it into a new bot at some point in time soon.
 

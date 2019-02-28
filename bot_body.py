@@ -21,7 +21,6 @@ import beastiary
 def Send_message(message):
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
     # print(nick + ": " + message)
-
 def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
@@ -30,20 +29,17 @@ def get_user_exp(username):
     """
     user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
     return user_info[2]
-
 def ret_char(username):
     char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
     if char_to_return == '':
         return 'None'
     else:
         return ast.literal_eval(char_to_return)
-
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?",(change_char, username))
     c.execute("update users set exp = ? where uname = ?",(exp, username))
     conn.commit()
-
 def get_elevated_users(target):
     resp = request.urlopen(f"http://tmi.twitch.tv/group/user/{target}/chatters")
     chatters_json = resp.read().decode("UTF-8")
@@ -55,10 +51,8 @@ def get_elevated_users(target):
     eaccess = set([user for sublist in eusers for user in sublist])
 
     return eaccess
-
 def challenge(challenger, victim, amount):
     pass
-
 def challenge_result(user, amount, *args):
     """
     Used to modify the XP as a result of a pvp challenge.
@@ -84,17 +78,35 @@ def challenge_result(user, amount, *args):
 
     c.execute("update users set exp = ? where uname = ?",(winner_exp, user))
     conn.commit()
-
 def uptime(at_command_time):
     return at_command_time - bot_start
-
 def random_encounter():
     return beastiary.choose_mob()
-
 def shop():
     pass
+def level_up(username, stat):
+    if stat.lower() == 'ws':
+        stat= 'weapon_skill'
+    elif stat.lower() == "bs":
+        stat = 'ballistic_skill'
+    elif stat.lower() == "t":
+        stat = 'toughness'
+    elif stat.lower() == "s":
+        stat = 'strength'
+    else:
+        print('unknown stat')
+        pass
 
-def level_up():
+    cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+    if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
+        gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+        gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+    if cxp >= 100:
+        cxp -= 100
+        gchar_dict[stat] += 5
+        c.execute("update users set exp = ?, gchar = ? where uname = ?",(cxp, str(gchar_dict), username))
+        conn.commit()
+    # print(username, cxp, gchar_dict[stat] + 5)
     pass
 
 # get connection a pointer for sqlite db
@@ -128,7 +140,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-# Send_message(str(social_ad()))
+Send_message(str(social_ad()))
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
@@ -439,6 +451,8 @@ while Running == True:
                                             article = 'an '
                                         elif gchar_dict['race'] == 'dwarf':
                                             gchar_dict['race'] = 'dwarven'
+                                        else:
+                                            chat_race = gchar_dict['race']
 
                                         chatmessage = ""
                                         # chatmessage = f"{username} is {article} " \
@@ -472,10 +486,15 @@ while Running == True:
                                         article = 'a '
                                         if gchar_dict['race'] == 'elf':
                                             gchar_dict['race'] = 'elven'
+                                            chat_race = 'elf'
                                             article = 'an '
                                         elif gchar_dict['race'] == 'dwarf':
+                                            chat_race = 'dwarf'
                                             gchar_dict['race'] = 'dwarven'
-
+                                        else:
+                                            chat_race = gchar_dict['race']
+                                        cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+                                        
                                         # Stores character in SQL
                                         c.execute("""update users
                                                     set gchar = ?
@@ -483,9 +502,22 @@ while Running == True:
                                         conn.commit()
 
                                         # Message to chat and /w to user the character information.
-                                        chatmessage = f"{username} the {str(gchar_dict['race']).capitalize()} has " \
+                                        chatmessage = f"{username} the {chat_race.capitalize()} has " \
                                             f"entered the game."
+
                                         # This is the whisper to user.
+                                        build_whisper = f"{username} {username} is {article}" \
+                                            f"{str(gchar_dict['race']).capitalize()} " \
+                                            f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                            f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                            f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                            f" You are currently using your " \
+                                            f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                            f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                            f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                            f" and armor.  Current available Exp: {cxp}"
+
+                                        Send_message(f"/w {build_whisper}")
                                 elif message.lower() == "!retire":
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
@@ -542,7 +574,6 @@ while Running == True:
                                         else:
                                             chatmessage = f"There is not currently a pending challenge for {username}"
                                     del pvp[challenger]
-
                                 elif message.lower() == '!decline':
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
@@ -552,7 +583,6 @@ while Running == True:
                                             chatmessage = f"{str(chall['name']).capitalize()}, " \
                                                 f"{str(vic['name']).capitalize()} has declined your challenge."
                                     del pvp[challenger]
-
                                 elif message.lower() == "!challenge":
                                     chatmessage = "This command will allow you to challenge another viewer with a " \
                                         "game character to a quick PVP fight. The proper usage is !challenge username " \
@@ -593,6 +623,15 @@ while Running == True:
 
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
                                         f'stream uptime.'
+                                elif "levelup" in message.lower():
+                                    chatmessage = ''
+                                    if len(message) == 8:
+                                        chatmessage = "The proper command for this includes one of the " \
+                                            "four character stats: WS, BS, S, T."
+                                    else:
+                                        excom, stat = message.split(' ')
+                                        level_up(username, stat)
+
                                 else:
                                     try:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
