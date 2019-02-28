@@ -149,6 +149,7 @@ while Running == True:
         if ("PING :" in line):
             if ad_iter == 0:
                 Send_message(str(social_ad()))
+                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
                 print("Random encounter for: " + str(choice(get_active_list())))
                 ad_iter += 1
             s.send(bytes("PONG\r\n", "UTF-8"))

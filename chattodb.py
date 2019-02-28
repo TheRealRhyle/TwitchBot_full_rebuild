@@ -83,7 +83,10 @@ def social_ad():
         'core ruleset is from and old pen and paper table top game called Warhammer ' \
         'Fantasy Roleplay. The game will be a stripped down and modified version of ' \
         'the rules because I do not want to be C&Dd by Games-Workshop or Fantasy ' \
-        'Flight. Game commands !game !char !permadeath !retire !changerace']
+        'Flight. Game commands !game !char !permadeath !retire !changerace',
+    'If you\'re familiar with python and want to offer some suggestions I have a ' \
+        'trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing' \
+        '-rhylebot']
     return random.choice(ads)
 
 if __name__ == "__main__":

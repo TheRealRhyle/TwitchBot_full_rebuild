@@ -1,4 +1,6 @@
 # TwitchBot_full_rebuild
-My personally developed twitch bot.
+This is just a silly little twich bot that I've been hacking together in order to teach myself how to write Python code.
 
-Testing the discord webhook
+Its pretty basic in comparison to some others I've seen but I've gotten a fair bit of understanding now.  I will refactor it into a new bot at some point in time soon.
+
+If you're familiar with python and/or want to offer some suggestions I have a trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing-rhylebot
