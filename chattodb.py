@@ -6,6 +6,7 @@ import time
 import schedule
 from time import sleep
 import socket
+import random
 
 global c
 conn = sqlite3.connect("dxchatbot.db")
@@ -23,6 +24,8 @@ def check_chatters():
         viewerlist.append(userlist['chatters']['moderators'][usr])
     for usr in range(len(userlist['chatters']['vips'])):
         viewerlist.append(userlist['chatters']['vips'][usr])
+    for usr in range(len(userlist['chatters']['broadcaster'])):
+        viewerlist.append(userlist['chatters']['broadcaster'][usr])
 
     ulist = c.execute("select uname from users").fetchall()
     uliststr = str(ulist).replace(",)", ")").replace("(",'').replace(')','')
@@ -49,6 +52,21 @@ def check_chatters():
             # pass
     # return broadcaster
 
+def get_active_list():
+    resp = request.urlopen("http://tmi.twitch.tv/group/user/rhyle_/chatters")
+    chatters_json = resp.read().decode("UTF-8")
+    userlist = json.loads(chatters_json)
+    viewerlist = userlist['chatters']['viewers']
+    # broadcaster = userlist['chatters']['broadcaster'][0]
+
+    for usr in range(len(userlist['chatters']['moderators'])):
+        viewerlist.append(userlist['chatters']['moderators'][usr])
+    for usr in range(len(userlist['chatters']['vips'])):
+        viewerlist.append(userlist['chatters']['vips'][usr])
+    for usr in range(len(userlist['chatters']['broadcaster'])):
+        viewerlist.append(userlist['chatters']['broadcaster'][usr])
+    return viewerlist
+
 def get_chatters():
     print("Getting current chat list.")
     check_chatters()
@@ -57,6 +75,16 @@ def get_chatters():
         schedule.run_pending()
         time.sleep(1)
 
+def social_ad():
+    ads = ["Find me on twitter to get stream updates and notifications when I go live! @rhyle_ twitter.com/rhyle_",
+    'You can join the discord server here discord.gg/qEsfAJS',
+    'You can find my steam profile at this link steamcommunity.com/id/Rhyle/games/',
+    'I am currently working on a semi-interactive chat based role playing game. The ' \
+        'core ruleset is from and old pen and paper table top game called Warhammer ' \
+        'Fantasy Roleplay. The game will be a stripped down and modified version of ' \
+        'the rules because I do not want to be C&Dd by Games-Workshop or Fantasy ' \
+        'Flight. Game commands !game !char !permadeath !retire !changerace']
+    return random.choice(ads)
 
 if __name__ == "__main__":
     print("Started")
@@ -66,4 +94,3 @@ if __name__ == "__main__":
     while 1:
         schedule.run_pending()
         time.sleep(1)
-

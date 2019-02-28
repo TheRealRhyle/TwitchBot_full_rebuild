@@ -8,6 +8,8 @@ import tcChargen
 from urllib import request
 import time
 import datetime
+from chattodb import social_ad, get_active_list
+import beastiary
 
 # TODO:
 # TODO:
@@ -86,6 +88,9 @@ def challenge_result(user, amount, *args):
 def uptime(at_command_time):
     return at_command_time - bot_start
 
+def random_encounter():
+    return beastiary.choose_mob()
+
 def shop():
     pass
 
@@ -123,9 +128,10 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-# Send_message("I'm awake, quit poking me already, try !commands or something.")
+# Send_message(str(social_ad()))
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
+ad_iter = 0
 
 while Running == True:
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -141,7 +147,13 @@ while Running == True:
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
 
         if ("PING :" in line):
+            if ad_iter == 0:
+                Send_message(str(social_ad()))
+                print("Random encounter for: " + str(choice(get_active_list())))
+                ad_iter += 1
             s.send(bytes("PONG\r\n", "UTF-8"))
+            if ad_iter == 2:
+                ad_iter = 0
         else:
             parts = line.split(":")
             # print("Line = " + line)
@@ -177,7 +189,7 @@ while Running == True:
                         user_status = userfetch[0][1]
                     except:
                         user_status = 'user'
-                    # print(user_status)
+                    print(user_status)
                     print(username + " (" + user_status + "): " + message)
 
                     #
@@ -192,7 +204,9 @@ while Running == True:
                     if any(ext in message for ext in TLD):
                         # if any(text in 'www .com http' for text in message):
                         # print(user_status)
-                        if user_status not in ['admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
+                        if username == nick:
+                            pass
+                        elif user_status not in ['admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
                             Send_message(username + " links are not currently allowed.")
                             Send_message("/timeout " + username + " 1")
 
@@ -539,9 +553,9 @@ while Running == True:
                                     del pvp[challenger]
 
                                 elif message.lower() == "!challenge":
-                                    chatmessage = "This command will allow you to challange another viewer with a " \
+                                    chatmessage = "This command will allow you to challenge another viewer with a " \
                                         "game character to a quick PVP fight. The proper usage is !challenge username " \
-                                        "amount  Please not that you may not challange for an amount more than your " \
+                                        "amount  Please not that you may not challenge for an amount more than your " \
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
                                 elif message[0:11].lower() == "!challenge ":

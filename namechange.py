@@ -17,9 +17,9 @@ c = conn.cursor()
 # username='rhyle_'
 # print((change_char))
 
-print(c.execute("select * from users where gchar <> ''").fetchall())
-username = 'ceacelion'
-print(c.execute(f"select exp from users where uname = '{username}'").fetchone()[0])
+print(c.execute("select * from users where uname = 'rhyle_bot'").fetchall())
+# username = 'ceacelion'
+# print(c.execute(f"select exp from users where uname = '{username}'").fetchone()[0])
 # cxp = c.execute(f"select exp from users where uname = {username}")
 
 # c.execute("update users set exp = 200 where uname = 'ceacelion'")
