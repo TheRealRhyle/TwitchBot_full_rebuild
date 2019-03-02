@@ -81,7 +81,32 @@ def challenge_result(user, amount, *args):
 def uptime(at_command_time):
     return at_command_time - bot_start
 def random_encounter():
-    return beastiary.choose_mob()
+    encounter_value = 100
+    encounter_dictionary = beastiary.choose_mob()
+    random_character = ret_char(choice(get_active_list()))
+
+    while random_character == 'None':
+        random_character = ret_char(str(choice(get_active_list())))
+        print(random_character)
+
+    character_roll = (randint(2,100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
+    mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
+
+    if mob_roll > character_roll:
+        loser = random_character['name']
+    elif mob_roll == character_roll:
+        loser = 'either of them.  Beaten and bloodied they each run off to fight another day.'
+    else:
+        loser = encounter_dictionary['name']
+    adj = choice(["walking", "running", "riding"])
+    location = choice(["forest", "town", "desert"])
+    chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
+        f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
+        f'{random_character["name"]} readied his {random_character["weapon"]} against the ' \
+        f'{encounter_dictionary["weapon"]} of the {encounter_dictionary["name"]} the fight' \
+        f' did not end well for {loser}.'
+    return chatmessage
+
 def shop():
     pass
 def level_up(username, stat):
@@ -137,6 +162,7 @@ s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
 # s.send(bytes("ROOMSTATE #rhyle_\r\n", 'UTF-8'))
 
 Running = True
+random_character = 'None'
 readbuffer = ''
 MODT = False
 init_mesage = ''
@@ -160,14 +186,13 @@ while Running == True:
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
 
         if ("PING :" in line):
-            if ad_iter == 0:
-                Send_message(str(social_ad()))
-                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
-                print("Random encounter for: " + str(choice(get_active_list())))
-                print(random_encounter())
-                ad_iter += 1
             s.send(bytes("PONG\r\n", "UTF-8"))
-            if ad_iter == 2:
+            if ad_iter == 0:
+                Send_message(choice([social_ad(),random_encounter()]))
+                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
+                # random_encounter()
+                ad_iter += 1
+            elif ad_iter == 2:
                 ad_iter = 0
         else:
             parts = line.split(":")
@@ -229,7 +254,7 @@ while Running == True:
                     if message[0] == '!':
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
-                            if username == 'rhyle_':
+                            if username.lower() == 'rhyle_':
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
@@ -311,6 +336,9 @@ while Running == True:
                                                   {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
+                                elif message.lower() == '!randomenc':
+                                    Send_message(random_encounter())
+                                    continue
                                 elif message.lower() == "!slow":
                                     if slow == "off":
                                         Send_message("Engaging Slow Chat Mode...")
@@ -392,7 +420,7 @@ while Running == True:
                                 # TODO: Figure out how to get the bot to mod someone
 
                             if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo',
-                                                    '!mtc', '!rew'):
+                                                    '!mtc', '!rew', '!ran'):
                                 chatmessage = message
                                 if message.lower() == '!lurk':
                                     lurk_message = [

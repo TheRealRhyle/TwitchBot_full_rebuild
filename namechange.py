@@ -17,7 +17,7 @@ c = conn.cursor()
 # username='rhyle_'
 # print((change_char))
 
-print(c.execute("select * from users where uname = 'rhyle_bot'").fetchall())
+# print(''.join(str(c.execute("select * from users where gchar != ''").fetchall()).replace('}','}\n')))
 # username = 'ceacelion'
 # print(c.execute(f"select exp from users where uname = '{username}'").fetchone()[0])
 # cxp = c.execute(f"select exp from users where uname = {username}")
@@ -31,7 +31,7 @@ print(c.execute("select * from users where uname = 'rhyle_bot'").fetchall())
 
 # print(*c.execute("select * from users").fetchall(), sep='\n')
 # print(c.execute('select * from streamer').fetchall())
-# print(str(c.execute("select * from users").fetchall()).replace("), (",'\n'))
+print(str(c.execute("select * from users where gchar != ''").fetchall()).replace("), (",'\n'))
 #
 # c.execute("update users set gchar = '' where gchar != ''")
 # conn.commit()
