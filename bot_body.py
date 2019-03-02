@@ -176,7 +176,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message(choice([social_ad(), random_encounter()]))
+Send_message(social_ad())
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
@@ -283,6 +283,9 @@ while Running == True:
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
+                                    if '@' in viewer:
+                                        viewer.replace('@', '')
+
                                     rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
                                                    fetchone()[0])
                                     print(rew_user)
@@ -647,6 +650,9 @@ while Running == True:
                                     # TODO: !challenge <target> <risk amount>
                                     try:
                                         ex_com, target, amount = message.split(' ')
+                                        target = target.lower()
+                                        if '@' in target:
+                                            target = target.replace('@','')
                                     except ValueError:
                                         Send_message(f'Blast! {username} the proper command is !challenge >target< ' \
                                             f'>risk amount<')
@@ -712,7 +718,7 @@ while Running == True:
 
                             else:
                                 print(f'712: {username}, {message}')
-                                print(chatmessage)
+                                # print(chatmessage)
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
                     #
