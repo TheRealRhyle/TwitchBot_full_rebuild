@@ -27,14 +27,16 @@ def get_user_exp(username):
 def ret_char(username):
     try:
         char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
+        print(char_to_return)
     except TypeError:
-        print("User in channel that has not been added to the database yet")
+        print("User in channel that has not been added to the database yet: ", username)
         char_to_return = ''
     finally:
         if char_to_return == '':
             return 'None'
         else:
             return ast.literal_eval(char_to_return)
+
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?",(change_char, username))
@@ -83,11 +85,11 @@ def uptime(at_command_time):
 def random_encounter(*args):
     encounter_value = 100
     encounter_dictionary = bestiary.choose_mob()
-    print(args)
+    user = args[0]
     if not args:
         random_character = ret_char(choice(get_active_list()))
     else:
-        random_character= ret_char(choice(args[0]))
+        random_character= ret_char(user)
 
     while random_character == 'None':
         random_character = ret_char(str(choice(get_active_list())))
@@ -108,10 +110,16 @@ def random_encounter(*args):
 
     adj = choice(["walking", "running", "riding"])
     location = choice(["forest", "town", "desert"])
+    if ' or ' in encounter_dictionary["weapon"]:
+        mob_weapon = encounter_dictionary["weapon"].split(' or ')
+        mob_weapon = choice(mob_weapon)
+    else:
+        mob_weapon = encounter_dictionary["weapon"]
+
     chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
         f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
         f'{random_character["name"]} readied their {random_character["weapon"]} against the ' \
-        f'{encounter_dictionary["weapon"]} of the {encounter_dictionary["name"]} the fight' \
+        f'{mob_weapon} of the {encounter_dictionary["name"]} the fight' \
         f' did not end well for {loser}. {character_roll} vs {mob_roll}'
 
     return chatmessage
