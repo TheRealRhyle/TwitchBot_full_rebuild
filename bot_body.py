@@ -87,8 +87,8 @@ def random_encounter():
 
     while random_character == 'None':
         random_character = ret_char(str(choice(get_active_list())))
-        print(random_character)
 
+    print(random_character)
     character_roll = (randint(2,100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
     mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
@@ -104,7 +104,7 @@ def random_encounter():
         f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
         f'{random_character["name"]} readied his {random_character["weapon"]} against the ' \
         f'{encounter_dictionary["weapon"]} of the {encounter_dictionary["name"]} the fight' \
-        f' did not end well for {loser}.'
+        f' did not end well for {loser}. {character_roll} vs {mob_roll}'
     return chatmessage
 
 def shop():
