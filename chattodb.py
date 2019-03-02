@@ -86,7 +86,10 @@ def social_ad():
         'Flight. Game commands !game !char !permadeath !retire !changerace',
     'If you\'re familiar with python and want to offer some suggestions I have a ' \
         'trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing' \
-        '-rhylebot']
+        '-rhylebot', 
+    "the current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild ' \
+        'if I am not streaming then it should be up to date always check my chat or ' \
+        'join my !discord for up to the commit information"]
     return random.choice(ads)
 
 if __name__ == "__main__":

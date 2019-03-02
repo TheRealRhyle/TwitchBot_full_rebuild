@@ -9,32 +9,32 @@ from urllib import request
 import time
 import datetime
 from chattodb import social_ad, get_active_list
-import beastiary
-
-# TODO:
-# TODO:
-# TODO: For Challenges set a lower limit so characters do not go into the negative.
-# TODO:
-# TODO:
+import bestiary
 
 # Method for sending a message
 def Send_message(message):
+    time.sleep(0.1)
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
     # print(nick + ": " + message)
 def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
     :param username:
-    :return:
+    :return current xp integer:
     """
     user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
     return user_info[2]
 def ret_char(username):
-    char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
-    if char_to_return == '':
-        return 'None'
-    else:
-        return ast.literal_eval(char_to_return)
+    try:
+        char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
+    except TypeError:
+        print("User in channel that has not been added to the database yet")
+        char_to_return = ''
+    finally:
+        if char_to_return == '':
+            return 'None'
+        else:
+            return ast.literal_eval(char_to_return)
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?",(change_char, username))
@@ -80,8 +80,42 @@ def challenge_result(user, amount, *args):
     conn.commit()
 def uptime(at_command_time):
     return at_command_time - bot_start
-def random_encounter():
-    return beastiary.choose_mob()
+def random_encounter(*args):
+    encounter_value = 100
+    encounter_dictionary = bestiary.choose_mob()
+    print(args)
+    if not args:
+        random_character = ret_char(choice(get_active_list()))
+    else:
+        random_character= ret_char(choice(args[0]))
+
+    while random_character == 'None':
+        random_character = ret_char(str(choice(get_active_list())))
+
+    character_roll = (randint(2,100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
+    mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
+
+    if mob_roll > character_roll:
+        loser = random_character['name'].lower()
+    elif mob_roll == character_roll:
+        loser = 'either of them.  Beaten and bloodied they each run off to fight another day.'
+    else:
+        loser = encounter_dictionary['name'].lower()
+        encounter_value += get_user_exp(random_character['name'].lower())
+
+        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+        conn.commit()
+
+    adj = choice(["walking", "running", "riding"])
+    location = choice(["forest", "town", "desert"])
+    chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
+        f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
+        f'{random_character["name"]} readied their {random_character["weapon"]} against the ' \
+        f'{encounter_dictionary["weapon"]} of the {encounter_dictionary["name"]} the fight' \
+        f' did not end well for {loser}. {character_roll} vs {mob_roll}'
+
+    return chatmessage
+
 def shop():
     pass
 def level_up(username, stat):
@@ -108,6 +142,7 @@ def level_up(username, stat):
         conn.commit()
     # print(username, cxp, gchar_dict[stat] + 5)
     pass
+
 
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
@@ -136,11 +171,12 @@ s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
 # s.send(bytes("ROOMSTATE #rhyle_\r\n", 'UTF-8'))
 
 Running = True
+random_character = 'None'
 readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message(str(social_ad()))
+Send_message(social_ad())
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
@@ -155,17 +191,18 @@ while Running == True:
     # TODO API
 
     for line in temp:
-        # action=''
+        # print(line)
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
 
         if ("PING :" in line):
-            if ad_iter == 0:
-                Send_message(str(social_ad()))
-                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
-                print("Random encounter for: " + str(choice(get_active_list())))
-                ad_iter += 1
             s.send(bytes("PONG\r\n", "UTF-8"))
-            if ad_iter == 2:
+            if ad_iter == 0:
+                Send_message(random_encounter())
+                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
+                # random_encounter()
+                ad_iter += 1
+            elif ad_iter == 1:
+                Send_message(choice([social_ad(), random_encounter()]))
                 ad_iter = 0
         else:
             parts = line.split(":")
@@ -194,7 +231,6 @@ while Running == True:
                     # testing for the Ping:Pong crash
                     # print(message)
                     if username == '':
-                        print(message)
                         print('Ping:Pong')
 
                     userfetch = c.execute("select * from users where uname = ?", (username.lower(),)).fetchall()
@@ -227,7 +263,7 @@ while Running == True:
                     if message[0] == '!':
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
-                            if username == 'rhyle_':
+                            if username.lower() == 'rhyle_':
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
@@ -244,10 +280,12 @@ while Running == True:
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
                                 elif message[0:4].lower() == '!rew':
-                                    
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
+                                    if '@' in viewer:
+                                        viewer.replace('@', '')
+
                                     rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
                                                    fetchone()[0])
                                     print(rew_user)
@@ -309,6 +347,13 @@ while Running == True:
                                                   {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
+                                elif ('!randomenc') in message.lower():
+                                    try:
+                                        ex_com, user = message.lower().split(' ')
+                                        Send_message(random_encounter(user))
+                                    except:
+                                        Send_message(random_encounter())
+                                    continue
                                 elif message.lower() == "!slow":
                                     if slow == "off":
                                         Send_message("Engaging Slow Chat Mode...")
@@ -322,6 +367,17 @@ while Running == True:
                                         s.send(("PRIVMSG #" + chan + " :.slowoff\r\n").encode('UTF-8'))
                                         slow = 'off'
                                         continue
+                                elif '!vip' in message.lower():
+                                    ex_com, user = message.lower().split(' ')
+                                    Send_message('/vip ' + user)
+                                elif '!join' in message.lower():
+                                    ex_com, channel = message.split(' ')
+                                    s.send(bytes("JOIN #" + channel + "\r\n", 'UTF-8'))
+                                    message = "Just testing, dont Hz me"
+                                    s.send(("PRIVMSG #" + channel + " :" + message + "\r\n").encode('UTF-8'))
+                                elif '!part' in message.lower():
+                                    ex_com, channel = message.split(' ')
+                                    s.send(bytes("PART #" + channel + "\r\n", 'UTF-8'))
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -389,8 +445,9 @@ while Running == True:
 
                                 # TODO: Figure out how to get the bot to mod someone
 
-                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', '!cre', '!upd', '!gun', '!slo',
-                                                    '!mtc', '!rew'):
+
+                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', \
+                                '!cre', '!upd', '!gun', '!slo', '!mtc', '!rew', '!ran'):
                                 chatmessage = message
                                 if message.lower() == '!lurk':
                                     lurk_message = [
@@ -494,7 +551,7 @@ while Running == True:
                                         else:
                                             chat_race = gchar_dict['race']
                                         cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
-                                        
+
                                         # Stores character in SQL
                                         c.execute("""update users
                                                     set gchar = ?
@@ -593,6 +650,9 @@ while Running == True:
                                     # TODO: !challenge <target> <risk amount>
                                     try:
                                         ex_com, target, amount = message.split(' ')
+                                        target = target.lower()
+                                        if '@' in target:
+                                            target = target.replace('@','')
                                     except ValueError:
                                         Send_message(f'Blast! {username} the proper command is !challenge >target< ' \
                                             f'>risk amount<')
@@ -629,7 +689,7 @@ while Running == True:
                                         chatmessage = "The proper command for this includes one of the " \
                                             "four character stats: WS, BS, S, T."
                                     else:
-                                        excom, stat = message.split(' ')
+                                        ex_com, stat = message.split(' ')
                                         level_up(username, stat)
 
                                 else:
@@ -645,7 +705,7 @@ while Running == True:
                                 try:
                                     Send_message(chatmessage)
                                 except:
-                                    print(f'531: {chatmessage}')
+                                    print(f'700: {chatmessage}')
 
                             # Gunter command
                             elif message[0:7].lower() == '!gunter':
@@ -657,7 +717,8 @@ while Running == True:
                                     + ', '.join(commandlist))
 
                             else:
-                                print(f'543: {username}, {message}')
+                                print(f'712: {username}, {message}')
+                                # print(chatmessage)
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
                     #
