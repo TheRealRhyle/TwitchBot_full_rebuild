@@ -9,13 +9,7 @@ from urllib import request
 import time
 import datetime
 from chattodb import social_ad, get_active_list
-import beastiary
-
-# TODO:
-# TODO:
-# TODO: For Challenges set a lower limit so characters do not go into the negative.
-# TODO:
-# TODO:
+import bestiary
 
 # Method for sending a message
 def Send_message(message):
@@ -25,16 +19,21 @@ def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
     :param username:
-    :return:
+    :return current xp integer:
     """
     user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
     return user_info[2]
 def ret_char(username):
-    char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
-    if char_to_return == '':
-        return 'None'
-    else:
-        return ast.literal_eval(char_to_return)
+    try:
+        char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
+    except TypeError:
+        print("User in channel that has not been added to the database yet")
+        char_to_return = ''
+    finally:
+        if char_to_return == '':
+            return 'None'
+        else:
+            return ast.literal_eval(char_to_return)
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?",(change_char, username))
@@ -82,9 +81,8 @@ def uptime(at_command_time):
     return at_command_time - bot_start
 def random_encounter():
     encounter_value = 100
-    encounter_dictionary = beastiary.choose_mob()
+    encounter_dictionary = bestiary.choose_mob()
     random_character = ret_char(choice(get_active_list()))
-
     while random_character == 'None':
         random_character = ret_char(str(choice(get_active_list())))
 
@@ -93,11 +91,19 @@ def random_encounter():
     mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
     if mob_roll > character_roll:
-        loser = random_character['name']
+        loser = random_character['name'].lower()
     elif mob_roll == character_roll:
         loser = 'either of them.  Beaten and bloodied they each run off to fight another day.'
     else:
-        loser = encounter_dictionary['name']
+        loser = encounter_dictionary['name'].lower()
+        print(random_character['name'].lower())
+        print('Pre +=', get_user_exp(random_character['name'].lower()))
+        encounter_value += get_user_exp(random_character['name'].lower())
+        print('post += ', encounter_value)
+
+        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+        conn.commit()
+
     adj = choice(["walking", "running", "riding"])
     location = choice(["forest", "town", "desert"])
     chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
@@ -105,8 +111,8 @@ def random_encounter():
         f'{random_character["name"]} readied his {random_character["weapon"]} against the ' \
         f'{encounter_dictionary["weapon"]} of the {encounter_dictionary["name"]} the fight' \
         f' did not end well for {loser}. {character_roll} vs {mob_roll}'
-    return chatmessage
 
+    return chatmessage
 def shop():
     pass
 def level_up(username, stat):
@@ -167,7 +173,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message(str(social_ad()))
+Send_message(choice([social_ad(), random_encounter()]))
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
@@ -188,11 +194,12 @@ while Running == True:
         if ("PING :" in line):
             s.send(bytes("PONG\r\n", "UTF-8"))
             if ad_iter == 0:
-                Send_message(choice([social_ad(),random_encounter()]))
+                Send_message(random_encounter())
                 # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
                 # random_encounter()
                 ad_iter += 1
-            elif ad_iter == 2:
+            elif ad_iter == 1:
+                Send_message(choice([social_ad(), random_encounter()]))
                 ad_iter = 0
         else:
             parts = line.split(":")
@@ -271,7 +278,6 @@ while Running == True:
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
                                 elif message[0:4].lower() == '!rew':
-                                    
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
@@ -524,7 +530,7 @@ while Running == True:
                                         else:
                                             chat_race = gchar_dict['race']
                                         cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
-                                        
+
                                         # Stores character in SQL
                                         c.execute("""update users
                                                     set gchar = ?
@@ -659,7 +665,7 @@ while Running == True:
                                         chatmessage = "The proper command for this includes one of the " \
                                             "four character stats: WS, BS, S, T."
                                     else:
-                                        excom, stat = message.split(' ')
+                                        ex_com, stat = message.split(' ')
                                         level_up(username, stat)
 
                                 else:
