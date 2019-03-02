@@ -109,6 +109,7 @@ def level_up(username, stat):
     # print(username, cxp, gchar_dict[stat] + 5)
     pass
 
+
 # get connection a pointer for sqlite db
 conn, c = loader.loading_seq()
 
@@ -163,6 +164,7 @@ while Running == True:
                 Send_message(str(social_ad()))
                 # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
                 print("Random encounter for: " + str(choice(get_active_list())))
+                print(random_encounter())
                 ad_iter += 1
             s.send(bytes("PONG\r\n", "UTF-8"))
             if ad_iter == 2:
