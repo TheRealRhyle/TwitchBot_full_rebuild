@@ -1,0 +1,41 @@
+Melee
+Buckler, 2 gc, SB–4
+Dagger, 1 gc, SB–3
+Demilance (Cavalry Spear), 20 gc, SB
+Flail, 15 gc, SB+1
+Foil, 18 gc, SB–2
+Gauntlet/Knuckle-duster, 1 gc, SB–3
+Great Weapon, 20 gc, SB
+Halberd, 15 gc, SB
+Hand Weapon, 10 gc, SB
+Lance, 15 gc, SB+1
+Main Gauche, 4 gc, SB–3
+Morning Star, 15 gc, SB
+Quarter Staff, 1 gc, SB–2
+Rapier, 18 gc, SB–1
+Shield, 10 gc, SB–2
+Spear, 10 gc, SB
+Sword-breaker, 5 gc, SB–3
+
+ranged:
+Blunderbuss, 70 gc, 3
+Bola, 1 gc, 1
+Bow, 10 gc, 3
+Crossbow, 25 gc, 4
+Crossbow Pistol, 35 gc, 2
+Elfbow, 70 gc, 3
+Firearm, 300 gc, 4
+Hochland Long Rifle, 450 gc, 4
+Javelin, 1 gc, SB–1
+Longbow, 15 gc, 3
+Pistol, 200 gc, 4
+Repeater Crossbow, 100 gc, 2
+Repeater Firearm, 600 gc, 4
+Repeater Pistol, 400 gc, 4
+Shortbow, 7 gc, 3
+Sling, 4 gc, 3
+Spear, 10 gc, SB
+Staff Sling, 6 gc, 4
+Throwing Axe/Hammer, 5 gc, SB–2
+Throwing Dagger/Star, 3 gc, SB–3
+Whip, 2 gc, SB–4

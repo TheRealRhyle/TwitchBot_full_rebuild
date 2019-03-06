@@ -17,12 +17,12 @@ c = conn.cursor()
 # username='rhyle_'
 # print((change_char))
 
+print(c.execute('select * from streamer').fetchall())
 
-username = 'dakwhon'
 # print(c.execute(f"select name, exp from users").fetchall())
 # print(*c.execute("select uname, exp from users where uname = 'rhyle_bot'").fetchall(), sep='\n')
-c.execute("update users set exp = 3475 where uname = 'rhyle_'")
-conn.commit()
+# c.execute("update users set exp = 3475 where uname = 'rhyle_'")
+# conn.commit()
 # cxp = c.execute(f"select exp from users where uname = {username}")
 
 # c.execute("update users set exp = 200 where uname = 'ceacelion'")
