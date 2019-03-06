@@ -17,8 +17,9 @@ c = conn.cursor()
 # username='rhyle_'
 # print((change_char))
 
-print(c.execute('select * from streamer').fetchall())
-
+# c.execute('update users set crowns = 0')
+# conn.commit()
+# print(c.execute('select * from users where gchar = ""').fetchall())
 # print(c.execute(f"select name, exp from users").fetchall())
 # print(*c.execute("select uname, exp from users where uname = 'rhyle_bot'").fetchall(), sep='\n')
 # c.execute("update users set exp = 3475 where uname = 'rhyle_'")
@@ -53,7 +54,7 @@ print(c.execute('select * from streamer').fetchall())
 
 # c.execute("update streamer set nick = 'rhyle_bot' where nick in ('rhyle_bot')")
 # conn.commit()
-# c.execute("""alter table users add gchar text""")
+# c.execute("""alter table users add crowns integer""")
 # conn.commit()
 
 # print(c.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall())

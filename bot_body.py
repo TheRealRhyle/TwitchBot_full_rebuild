@@ -15,7 +15,6 @@ import bestiary
 def Send_message(message):
     time.sleep(0.1)
     s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
-    # print(nick + ": " + message)
 def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
@@ -27,7 +26,7 @@ def get_user_exp(username):
 def ret_char(username):
     try:
         char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
-        print(char_to_return)
+        # print(char_to_return)
     except TypeError:
         print("User in channel that has not been added to the database yet: ", username)
         char_to_return = ''
@@ -85,10 +84,11 @@ def uptime(at_command_time):
 def random_encounter(*args):
     encounter_value = 100
     encounter_dictionary = bestiary.choose_mob()
-    user = args[0]
+
     if not args:
         random_character = ret_char(choice(get_active_list()))
     else:
+        user = args[0]
         random_character= ret_char(user)
 
     while random_character == 'None':
@@ -96,6 +96,20 @@ def random_encounter(*args):
 
     character_roll = (randint(2,100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
     mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
+
+    random_roll = randint(1,101)
+    print("Random Roll: " + str(random_roll))
+    print(random_character['name'] + ' weapon sill: ' + str(random_character['weapon_skill']))
+    if random_roll <= random_character['weapon_skill']:
+        print("this would be a hit")
+        print("Degrees of success: " +str((random_character['weapon_skill'] - random_roll) / 5))
+        if random_character['weapon'] == "Fists":
+            print("Damage would be (SB-4): " + str((random_character['strength']/10)-4))
+    else:
+        print("miss")
+
+
+
 
     if mob_roll > character_roll:
         loser = random_character['name'].lower()
@@ -124,7 +138,9 @@ def random_encounter(*args):
 
     return chatmessage
 
-def shop():
+def shop(username):
+    Send_message('/w ' + username + ' This command is not yet implemented.')
+    chatmessage = ''
     pass
 def level_up(username, stat):
     if stat.lower() == 'ws':
@@ -699,7 +715,9 @@ while Running == True:
                                     else:
                                         ex_com, stat = message.split(' ')
                                         level_up(username, stat)
-
+                                elif message.lower() == "!shop":
+                                    shop(username)
+                                    chatmessage =""
                                 else:
                                     try:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",

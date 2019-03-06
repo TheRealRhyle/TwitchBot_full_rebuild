@@ -34,13 +34,13 @@ def check_chatters():
     for usr in range(len(viewerlist)):
         if viewerlist[usr] not in uliststr:
             # If the viewer does not exist in the database, add them with status viewer
-            c.execute("""insert into users values (?, ?, 0, '')""",(viewerlist[usr], 'viewer'))
+            c.execute("""insert into users values (?, ?, 0, '', 0)""",(viewerlist[usr], 'viewer'))
             conn.commit()
             print("user " + viewerlist[usr] + " has been added to the database")
         else:
             # print(c.execute("select status, exp from users where uname = ?", (str(viewerlist[usr]).lower(),)).fetchone())
             cquery = c.execute("select * from users where uname = ?", (str(viewerlist[usr]).lower(),)).fetchone()
-            if cquery[1] != 'bot':
+            if cquery[1] != 'bot' and viewerlist[usr].lower() != 'rhyle_bot':
                 # try:
                 cxp = cquery[2]
                 cxp += 5
