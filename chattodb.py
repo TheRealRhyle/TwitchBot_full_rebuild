@@ -43,10 +43,12 @@ def check_chatters():
             if cquery[1] != 'bot' and viewerlist[usr].lower() != 'rhyle_bot':
                 # try:
                 cxp = cquery[2]
+                current_crowns = cquery[4]
                 cxp += 5
-                c.execute("update users set exp = ? where uname = ?", (cxp, str(viewerlist[usr]).lower()))
+                current_crowns += 1
+                c.execute("update users set exp = ?, crowns = ? where uname = ?", (cxp, current_crowns, str(viewerlist[usr]).lower()))
                 conn.commit()
-                print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp))
+                print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp) + '\tCurrent crowns: ' + str(current_crowns))
                 # except:
                 #     print('No exp added for ' + cquery[0])
             # pass
@@ -87,7 +89,7 @@ def social_ad():
     'If you\'re familiar with python and want to offer some suggestions I have a ' \
         'trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing' \
         '-rhylebot', 
-    "the current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild ' \
+    "The current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild ' \
         'if I am not streaming then it should be up to date always check my chat or ' \
         'join my !discord for up to the commit information"]
     return random.choice(ads)

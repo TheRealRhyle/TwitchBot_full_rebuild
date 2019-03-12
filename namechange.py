@@ -13,6 +13,19 @@ global c
 conn = sqlite3.connect("dxchatbot.db")
 c = conn.cursor()
 
+# Random Roll: 25
+# tstallis weapon skill: 36
+# this would be a hit
+# Degrees of success: 2.2
+
+
+uname = 'rhyle_'
+
+xp, crowns = c.execute("select exp, crowns from users where uname = ?",(uname,)).fetchone()
+
+print(xp, crowns)
+# print(c.execute("select crowns from users where uname = ?", ("rhyle_",)).fetchone())
+
 # change_char="'name': 'rhyle_', 'race': 'human', 'prof': 'Camp Follower', 'weapon_skill': 36, 'ballistic_skill': 38, 'strength': 26, 'toughness': 45}"
 # username='rhyle_'
 # print((change_char))

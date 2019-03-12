@@ -19,10 +19,10 @@ def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
     :param username:
-    :return current xp integer:
+    :return current xp integer and available crowns:
     """
     user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
-    return user_info[2]
+    return user_info[2], user_info[4]
 def ret_char(username):
     try:
         char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
@@ -35,7 +35,6 @@ def ret_char(username):
             return 'None'
         else:
             return ast.literal_eval(char_to_return)
-
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',(username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?",(change_char, username))
@@ -97,17 +96,28 @@ def random_encounter(*args):
     character_roll = (randint(2,100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
     mob_roll = (randint(2,100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
-    random_roll = randint(1,101)
-    print("Random Roll: " + str(random_roll))
-    print(random_character['name'] + ' weapon sill: ' + str(random_character['weapon_skill']))
-    if random_roll <= random_character['weapon_skill']:
-        print("this would be a hit")
-        print("Degrees of success: " +str((random_character['weapon_skill'] - random_roll) / 5))
-        if random_character['weapon'] == "Fists":
-            print("Damage would be (SB-4): " + str((random_character['strength']/10)-4))
-    else:
-        print("miss")
+    # --------------------------------
+    # BEGIN Random Encounter Rebuild
+    # --------------------------------
 
+    # random_roll = randint(1,101)
+    # print("Random Roll: " + str(random_roll))
+    # print(random_character['name'] + ' weapon skill: ' + str(random_character['weapon_skill']))
+    # if random_roll <= random_character['weapon_skill']:
+    #     print("this would be a hit")
+    #     ranks = int((random_character['weapon_skill'] - random_roll) / 5)
+    #     print("Degrees of success: " +str(ranks))
+    #     if random_character['weapon'] == "Fists":
+    #         dmg = (int(random_character['strength']/10)-4) + ranks
+    #         if dmg < 1:
+    #             dmg = 1
+    #         print("Damage would be (SB-4): " + str(dmg))
+    # else:
+    #     print("miss")
+
+    # --------------------------------
+    # END Random Encounter Rebuild
+    # --------------------------------
 
 
 
@@ -117,7 +127,8 @@ def random_encounter(*args):
         loser = 'either of them.  Beaten and bloodied they each run off to fight another day.'
     else:
         loser = encounter_dictionary['name'].lower()
-        encounter_value += get_user_exp(random_character['name'].lower())
+        exp, gc = get_user_exp(random_character['name'].lower())
+        encounter_value += exp
 
         c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
         conn.commit()
@@ -137,11 +148,40 @@ def random_encounter(*args):
         f' did not end well for {loser}. {character_roll} vs {mob_roll}'
 
     return chatmessage
+def shop(username, *args):
+    import itemlist
+    shoplist = itemlist.load_shop()
+    shop_items = []
+    if not args:
+        shop_message = f"/w {username} Welcome to the shop!  The following commands are necessary for using the shop: " \
+            f"!shop melee or !shop ranged will show you the available weapons.  !shop buy followed by the item you would " \
+            f"like to purchase will allow you to purchase that specific item assuming that you have the available crowns."
+    elif args[0].lower() == 'melee' or args[0].lower() == 'ranged':
+        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if shoplist[item]['type'].lower() == args[0].lower()]
+        shop_message = f"/w {username} The available items are as follows: {shop_items}"
+    elif args[0].lower() == 'buy':
+        shopper = ret_char(username)
+        shopper_xp, shopper_purse = get_user_exp(username)
+        new_weapon = args[1]
+        crown_cost = shoplist[args[1].capitalize()]['cost'].split(' ')
+        print(crown_cost[0], shopper_purse)
 
-def shop(username):
-    Send_message('/w ' + username + ' This command is not yet implemented.')
-    chatmessage = ''
-    pass
+        if int(shopper_purse) >= int(crown_cost[0]):
+            # TODO update character w/ purchased weapon
+            # TODO deduct cost from user data
+            shopper['weapon'] = args[1]
+            c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
+            c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
+            conn.commit()
+            shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
+                f"as though it was made for you."
+        else:
+            Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. " \
+                f"Your current purse is {shopper_purse}.")
+            return
+
+    Send_message(shop_message)
+    # chatmessage = ''
 def level_up(username, stat):
     if stat.lower() == 'ws':
         stat= 'weapon_skill'
@@ -152,8 +192,8 @@ def level_up(username, stat):
     elif stat.lower() == "s":
         stat = 'strength'
     else:
-        print('unknown stat')
-        pass
+        Send_message(f"/w {username} {stat} is an unknown stat.  You may only levelup WS, BS, S, or T.")
+        return
 
     cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
     if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
@@ -164,6 +204,12 @@ def level_up(username, stat):
         gchar_dict[stat] += 5
         c.execute("update users set exp = ?, gchar = ? where uname = ?",(cxp, str(gchar_dict), username))
         conn.commit()
+        whisper = f"/w {username} Your {stat} has been increased by 5 points to {gchar_dict[stat]}"
+        Send_message(whisper)
+    elif cxp < 100:
+        whisper = f"/w {username} Sorry {username} you do not currently have enough experience to " \
+            f"upgrade your character.  Current EXP: {cxp}"
+        Send_message(whisper)
     # print(username, cxp, gchar_dict[stat] + 5)
     pass
 
@@ -524,7 +570,7 @@ while Running == True:
                                                                       (username.lower(),)).fetchone()[0]
                                         gchar_dict = ast.literal_eval(gchar_dict_to_sql)
 
-                                        cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+                                        cxp, crowns = c.execute("select exp, crowns from users where uname = ?",(username,)).fetchone()
                                         # print(gchar_dict)
                                         article = 'a '
                                         if gchar_dict['race'] == 'elf':
@@ -550,7 +596,7 @@ while Running == True:
                                             f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                             f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
                                             f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
-                                            f" and armor.  Current available Exp: {cxp}"
+                                            f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
 
                                         Send_message(f"/w {build_whisper}")
 
@@ -715,8 +761,12 @@ while Running == True:
                                     else:
                                         ex_com, stat = message.split(' ')
                                         level_up(username, stat)
-                                elif message.lower() == "!shop":
-                                    shop(username)
+                                elif "!shop" in message.lower():
+                                    if len(message) == 5:
+                                        shop(username)
+                                    else:
+                                        ex_com, *arg = message.split(' ')
+                                        shop(username, *arg)
                                     chatmessage =""
                                 else:
                                     try:
@@ -731,7 +781,7 @@ while Running == True:
                                 try:
                                     Send_message(chatmessage)
                                 except:
-                                    print(f'700: {chatmessage}')
+                                    print(f'784: {chatmessage}')
 
                             # Gunter command
                             elif message[0:7].lower() == '!gunter':
@@ -743,7 +793,7 @@ while Running == True:
                                     + ', '.join(commandlist))
 
                             else:
-                                print(f'712: {username}, {message}')
+                                print(f'796: {username}, {message}')
                                 # print(chatmessage)
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
