@@ -51,7 +51,7 @@ def check_chatters():
                 print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp) + '\tCurrent crowns: ' + str(current_crowns))
                 # except:
                 #     print('No exp added for ' + cquery[0])
-            # pass
+    print('--------- \n')
     # return broadcaster
 
 def get_active_list():
@@ -89,9 +89,12 @@ def social_ad():
     'If you\'re familiar with python and want to offer some suggestions I have a ' \
         'trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing' \
         '-rhylebot', 
-    "The current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild ' \
-        'if I am not streaming then it should be up to date always check my chat or ' \
-        'join my !discord for up to the commit information"]
+    "The current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild " \
+        "if I am not streaming then it should be up to date always check my chat or " \
+        "join my !discord for up to the commit information",
+    "Don't forget that you can link your Twitch account to your Amazon prime account "\
+        "and sub to your favorite streamers for free once a month!  Here's the link for" \
+        " more info twitch.amazon.com/prime"]
     return random.choice(ads)
 
 if __name__ == "__main__":
