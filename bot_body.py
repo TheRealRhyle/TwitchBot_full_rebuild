@@ -152,12 +152,14 @@ def shop(username, *args):
     import itemlist
     shoplist = itemlist.load_shop()
     shop_items = []
+    shop_message = ''
     if not args:
         shop_message = f"/w {username} Welcome to the shop!  The following commands are necessary for using the shop: " \
-            f"!shop melee or !shop ranged will show you the available weapons.  !shop buy followed by the item you would " \
+            f"!shop melee, ranged, or armor will show you the available weapons.  !shop buy followed by the item you would " \
             f"like to purchase will allow you to purchase that specific item assuming that you have the available crowns."
-    elif args[0].lower() == 'melee' or args[0].lower() == 'ranged':
+    elif args[0].lower() == 'melee' or args[0].lower() == 'ranged' or args[0].lower() == 'armor':
         [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if shoplist[item]['type'].lower() == args[0].lower()]
+        shop_items = str(shop_items).replace('[\'','').replace(']\'','').replace("', '"," ").replace("']", "")
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
     elif args[0].lower() == 'buy':
         shopper = ret_char(username)
@@ -169,12 +171,20 @@ def shop(username, *args):
         if int(shopper_purse) >= int(crown_cost[0]):
             # TODO update character w/ purchased weapon
             # TODO deduct cost from user data
-            shopper['weapon'] = args[1]
-            c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
-            c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
-            conn.commit()
-            shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
-                f"as though it was made for you."
+            if shoplist[new_weapon.capitalize()]['type'] == 'Melee' or shoplist[new_weapon.capitalize()]['type'] == 'Ranged':
+                shopper['weapon'] = args[1]
+                c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
+                c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
+                conn.commit()
+                shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
+                    f"as though it was made for you."
+            elif shoplist[new_weapon.capitalize()]['type'] == 'Armor':
+                shopper['armor'] = args[1]
+                c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
+                c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
+                conn.commit()
+                shop_message = shop_message = f"/w {username} You don your new {args[1]}.  The armor fits " \
+                    f"as though it was made for you."
         else:
             Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. " \
                 f"Your current purse is {shopper_purse}.")
@@ -199,19 +209,25 @@ def level_up(username, stat):
     if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
         gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
         gchar_dict = ast.literal_eval(gchar_dict_to_sql)
-    if cxp >= 100:
+    else:
+        whisper = f"/w {username} {username}, you do not currently have a character, create one with the !char command."
+    
+    if cxp >= 100 and gchar_dict[stat] < 75:
         cxp -= 100
         gchar_dict[stat] += 5
         c.execute("update users set exp = ?, gchar = ? where uname = ?",(cxp, str(gchar_dict), username))
         conn.commit()
         whisper = f"/w {username} Your {stat} has been increased by 5 points to {gchar_dict[stat]}"
-        Send_message(whisper)
+        
+    elif gchar_dict[stat] >= 75:
+        whisper = f"/w {username} Your {stat} has is already maxed out."
     elif cxp < 100:
         whisper = f"/w {username} Sorry {username} you do not currently have enough experience to " \
             f"upgrade your character.  Current EXP: {cxp}"
-        Send_message(whisper)
+    else:
+        whisper = f"/w {username} Something strange happend, please alert Rhyle_.  tell him 'def level_up hit else'."
     # print(username, cxp, gchar_dict[stat] + 5)
-    pass
+    Send_message(whisper)
 
 
 # get connection a pointer for sqlite db
@@ -349,6 +365,12 @@ while Running == True:
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
+                                elif "!givecrowns" in message:
+                                    ex_com, user, amount = message.split(' ')
+                                    gc_user = int(c.execute("select crowns from users where uname = ?", (user.lower(),)).fetchone()[0])
+                                    gc_user += int(amount)
+                                    c.execute("update users set crowns = ? where uname = ?",(gc_user, user.lower()))
+                                    conn.commit()
                                 elif message[0:4].lower() == '!rew':
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
@@ -442,12 +464,16 @@ while Running == True:
                                     Send_message('/vip ' + user)
                                 elif '!join' in message.lower():
                                     ex_com, channel = message.split(' ')
-                                    s.send(bytes("JOIN #" + channel + "\r\n", 'UTF-8'))
+                                    s.send(bytes("JOIN #" + channel.lower() + "\r\n", 'UTF-8'))
+                                    time.sleep(1)
                                     message = "Just testing, dont Hz me"
-                                    s.send(("PRIVMSG #" + channel + " :" + message + "\r\n").encode('UTF-8'))
+                                    s.send(("PRIVMSG #" + channel.lower() + " :" + message + "\r\n").encode('UTF-8'))
                                 elif '!part' in message.lower():
                                     ex_com, channel = message.split(' ')
-                                    s.send(bytes("PART #" + channel + "\r\n", 'UTF-8'))
+                                    message = "Fine, I'm leaving."
+                                    time.sleep(1)
+                                    s.send(("PRIVMSG #" + channel.lower() + " :" + message + "\r\n").encode('UTF-8'))
+                                    s.send(bytes("PART #" + channel.lower() + "\r\n", 'UTF-8'))
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':

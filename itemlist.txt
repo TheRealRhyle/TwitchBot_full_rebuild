@@ -1,7 +1,7 @@
 {'Dagger': {'type': 'Melee', 'cost': '1 gc', 'damage': 'SB-3'}, 
 'Flail': {'type': 'Melee', 'cost': '15 gc', 'damage': 'SB+1'}, 
 'Lance': {'type': 'Melee', 'cost': '15 gc', 'damage': 'SB+1'}, 
-'Great Weapon': {'type': 'Melee', 'cost': '20 gc', 'damage': 'SB'}, 
+'Great-Weapon': {'type': 'Melee', 'cost': '20 gc', 'damage': 'SB'}, 
 'Halberd': {'type': 'Melee', 'cost': '15 gc', 'damage': 'SB'}, 
 'Sword': {'type': 'Melee', 'cost': '10 gc', 'damage': 'SB'}, 
 'Spear': {'type': 'Ranged', 'cost': '10 gc', 'damage': 'SB'}, 
@@ -15,5 +15,8 @@
 'Longbow': {'type': 'Ranged', 'cost': '15 gc', 'damage': '3'}, 
 'Blunderbuss': {'type': 'Ranged', 'cost': '70 gc', 'damage': '3'}, 
 'Sling': {'type': 'Ranged', 'cost': '4 gc', 'damage': '3'}, 
-'Throwing Axe': {'type': 'Ranged', 'cost': '5 gc', 'damage': 'SB-2'}, 
+'Throwing-Axe': {'type': 'Ranged', 'cost': '5 gc', 'damage': 'SB-2'}, 
+'Leather': {'type': 'Armor', 'cost': '25 gc', 'damage': '1 AP'},
+'Mail': {'type': 'Armor', 'cost': '170 gc', 'damage': '3 AP'},
+'Plate': {'type': 'Armor', 'cost': '400 gc', 'damage': '5 AP'}
 }
