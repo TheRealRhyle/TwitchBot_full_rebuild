@@ -22,8 +22,9 @@ c = conn.cursor()
 uname = 'rhyle_'
 
 xp, crowns = c.execute("select exp, crowns from users where uname = ?",(uname,)).fetchone()
-
 print(xp, crowns)
+
+print(c.exe)
 # print(c.execute("select crowns from users where uname = ?", ("rhyle_",)).fetchone())
 
 # change_char="'name': 'rhyle_', 'race': 'human', 'prof': 'Camp Follower', 'weapon_skill': 36, 'ballistic_skill': 38, 'strength': 26, 'toughness': 45}"

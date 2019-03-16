@@ -164,31 +164,39 @@ def shop(username, *args):
     elif args[0].lower() == 'buy':
         shopper = ret_char(username)
         shopper_xp, shopper_purse = get_user_exp(username)
-        new_weapon = args[1]
-        crown_cost = shoplist[args[1].capitalize()]['cost'].split(' ')
-        print(crown_cost[0], shopper_purse)
-
-        if int(shopper_purse) >= int(crown_cost[0]):
-            # TODO update character w/ purchased weapon
-            # TODO deduct cost from user data
-            if shoplist[new_weapon.capitalize()]['type'] == 'Melee' or shoplist[new_weapon.capitalize()]['type'] == 'Ranged':
-                shopper['weapon'] = args[1]
-                c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
-                c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
-                conn.commit()
-                shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
-                    f"as though it was made for you."
-            elif shoplist[new_weapon.capitalize()]['type'] == 'Armor':
-                shopper['armor'] = args[1]
-                c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
-                c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
-                conn.commit()
-                shop_message = shop_message = f"/w {username} You don your new {args[1]}.  The armor fits " \
-                    f"as though it was made for you."
+        print(len(args))
+        if len(args) != 2:
+            shop_message = "I'm sorry, I didnt understand that, please try again."
         else:
-            Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. " \
-                f"Your current purse is {shopper_purse}.")
-            return
+            new_weapon = args[1].lower()
+            if new_weapon not in shoplist:
+                shop_message = "No item exists that with that name, please look at the !shop melee, !shop armor or !shop ranged list again."
+                return
+
+            crown_cost = shoplist[args[1].lower()]['cost'].split(' ')
+            # print(crown_cost[0], shopper_purse)
+
+            if int(shopper_purse) >= int(crown_cost[0]):
+                # TODO update character w/ purchased weapon
+                # TODO deduct cost from user data
+                if shoplist[new_weapon.lower()]['type'] == 'Melee' or shoplist[new_weapon.lower()]['type'] == 'Ranged':
+                    shopper['weapon'] = args[1]
+                    c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
+                    c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
+                    conn.commit()
+                    shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
+                        f"as though it was made for you."
+                elif shoplist[new_weapon.lower()]['type'] == 'Armor':
+                    shopper['armor'] = args[1]
+                    c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))
+                    c.execute("update users set gchar = ? where uname = ?", (str(shopper),username))
+                    conn.commit()
+                    shop_message = shop_message = f"/w {username} You don your new {args[1]}.  The armor fits " \
+                        f"as though it was made for you."
+            else:
+                Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. " \
+                    f"Your current purse is {shopper_purse}.")
+                return
 
     Send_message(shop_message)
     # chatmessage = ''
@@ -253,8 +261,11 @@ s.connect((host, port))
 s.send(bytes('PASS %s\r\n' % oauth, 'UTF-8'))
 s.send(bytes('NICK %s\r\n' % nick, 'UTF-8'))
 s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
-# s.send(bytes("CAP REQ :twitch.tv/tags\r\n", 'UTF-8'))
-# s.send(bytes("ROOMSTATE #rhyle_\r\n", 'UTF-8'))
+# s.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
+# s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
+# s.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
+
+
 
 Running = True
 random_character = 'None'
@@ -291,6 +302,9 @@ while Running == True:
                 Send_message(choice([social_ad(), random_encounter()]))
                 ad_iter = 0
         else:
+            # TODO: botbody line 305, split on whitespace - 
+            # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace# 
+            # parts = line.split(" ",1)
             parts = line.split(":")
             # print("Line = " + line)
             # print("Line = " + line[0])
@@ -324,7 +338,7 @@ while Running == True:
                         user_status = userfetch[0][1]
                     except:
                         user_status = 'user'
-                    print(user_status)
+                    # print(user_status)
                     print(username + " (" + user_status + "): " + message)
 
                     #
@@ -590,10 +604,8 @@ while Running == True:
                                         chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                             f' races: Human, Elf, Dwarf, Halfling.'
                                 elif message.lower() == "!char":
-                                    if c.execute("select gchar from users where uname = ?",
-                                                 (username.lower(),)).fetchone() != ('',):
-                                        gchar_dict_to_sql = c.execute("select gchar from users where uname = ?",
-                                                                      (username.lower(),)).fetchone()[0]
+                                    if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
+                                        gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
                                         gchar_dict = ast.literal_eval(gchar_dict_to_sql)
 
                                         cxp, crowns = c.execute("select exp, crowns from users where uname = ?",(username,)).fetchone()
@@ -767,7 +779,7 @@ while Running == True:
                                         chatmessage = f'Sorry {username}, either you or {target} do not currently ' \
                                             f'have characters for the game. You can use the command !char to either ' \
                                             f'generate one or get your current character info whispered to you.'
-                                    elif absolute_amount > int(cxp):
+                                    elif absolute_amount > int(cxp[0]):
                                         chatmessage = f"{username} attempting to wager more exp than you have is " \
                                             f"not allowed. You may risk only the exp you've earned."
                                     else:
