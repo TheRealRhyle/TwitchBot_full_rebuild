@@ -166,7 +166,7 @@ def shop(username, *args):
         shopper_xp, shopper_purse = get_user_exp(username)
         print(len(args))
         if len(args) != 2:
-            shop_message = "I'm sorry, I didnt understand that, please try again."
+            shop_message = "I'm sorry, I didn't understand that, please try again."
         else:
             new_weapon = args[1].lower()
             if new_weapon not in shoplist:
@@ -604,85 +604,94 @@ while Running == True:
                                         chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                             f' races: Human, Elf, Dwarf, Halfling.'
                                 elif message.lower() == "!char":
-                                    if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
-                                        gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
-                                        gchar_dict = ast.literal_eval(gchar_dict_to_sql)
-
-                                        cxp, crowns = c.execute("select exp, crowns from users where uname = ?",(username,)).fetchone()
-                                        # print(gchar_dict)
-                                        article = 'a '
-                                        if gchar_dict['race'] == 'elf':
-                                            gchar_dict['race'] = 'elven'
-                                            article = 'an '
-                                        elif gchar_dict['race'] == 'dwarf':
-                                            gchar_dict['race'] = 'dwarven'
-                                        else:
-                                            chat_race = gchar_dict['race']
-
-                                        chatmessage = ""
-                                        # chatmessage = f"{username} is {article} " \
-                                        #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
-
-                                        # print(*gchar_dict, sep='\n')
-
-                                        build_whisper = f"{username} {username} is {article}" \
-                                            f"{str(gchar_dict['race']).capitalize()} " \
-                                            f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
-                                            f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                            f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
-                                            f" You are currently using your " \
-                                            f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
-                                            f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                            f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
-                                            f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
-
-                                        Send_message(f"/w {build_whisper}")
-
-                                    else:
-                                        # Generate character using the Character Class
-                                        gchar = tcChargen.chat_char(username)
-
-                                        # Converts the Class to a dictionary
-                                        gchar_dict = gchar.get_char(username)
-
-                                        # Casts the dictionary to a string for storage in SQL
-                                        gchar_dict_to_sql = str(gchar_dict)
-
-                                        article = 'a '
-                                        if gchar_dict['race'] == 'elf':
-                                            gchar_dict['race'] = 'elven'
-                                            chat_race = 'elf'
-                                            article = 'an '
-                                        elif gchar_dict['race'] == 'dwarf':
-                                            chat_race = 'dwarf'
-                                            gchar_dict['race'] = 'dwarven'
-                                        else:
-                                            chat_race = gchar_dict['race']
-                                        cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
-
-                                        # Stores character in SQL
-                                        c.execute("""update users
-                                                    set gchar = ?
-                                                    where uname = ?""", (gchar_dict_to_sql, username.lower()))
+                                    #test if user in database
+                                    try:
+                                        user = c.execute("select * from users where uname = ?",(username.lower(),))
+                                        print(user)
+                                    except:
+                                        c.execute("""insert into users values (?, ?, 0, '', 0)""",(username.lower(), 'viewer'))
                                         conn.commit()
+                                        print(f"user {username} has been added to the database")
+                                    finally:
+                                        if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
+                                            gchar_dict_to_sql = c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+                                            gchar_dict = ast.literal_eval(gchar_dict_to_sql)
 
-                                        # Message to chat and /w to user the character information.
-                                        chatmessage = f"{username} the {chat_race.capitalize()} has " \
-                                            f"entered the game."
+                                            cxp, crowns = c.execute("select exp, crowns from users where uname = ?",(username,)).fetchone()
+                                            # print(gchar_dict)
+                                            article = 'a '
+                                            if gchar_dict['race'] == 'elf':
+                                                gchar_dict['race'] = 'elven'
+                                                article = 'an '
+                                            elif gchar_dict['race'] == 'dwarf':
+                                                gchar_dict['race'] = 'dwarven'
+                                            else:
+                                                chat_race = gchar_dict['race']
 
-                                        # This is the whisper to user.
-                                        build_whisper = f"{username} {username} is {article}" \
-                                            f"{str(gchar_dict['race']).capitalize()} " \
-                                            f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
-                                            f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                            f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
-                                            f" You are currently using your " \
-                                            f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
-                                            f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                            f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
-                                            f" and armor.  Current available Exp: {cxp}"
+                                            chatmessage = ""
+                                            # chatmessage = f"{username} is {article} " \
+                                            #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
 
-                                        Send_message(f"/w {build_whisper}")
+                                            # print(*gchar_dict, sep='\n')
+
+                                            build_whisper = f"{username} {username} is {article}" \
+                                                f"{str(gchar_dict['race']).capitalize()} " \
+                                                f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                                f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                f" You are currently using your " \
+                                                f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                                f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                                f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
+
+                                            Send_message(f"/w {build_whisper}")
+
+                                        else:
+                                            # Generate character using the Character Class
+                                            gchar = tcChargen.chat_char(username)
+
+                                            # Converts the Class to a dictionary
+                                            gchar_dict = gchar.get_char(username)
+
+                                            # Casts the dictionary to a string for storage in SQL
+                                            gchar_dict_to_sql = str(gchar_dict)
+
+                                            article = 'a '
+                                            if gchar_dict['race'] == 'elf':
+                                                gchar_dict['race'] = 'elven'
+                                                chat_race = 'elf'
+                                                article = 'an '
+                                            elif gchar_dict['race'] == 'dwarf':
+                                                chat_race = 'dwarf'
+                                                gchar_dict['race'] = 'dwarven'
+                                            else:
+                                                chat_race = gchar_dict['race']
+                                            cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
+
+                                            # Stores character in SQL
+                                            c.execute("""update users
+                                                        set gchar = ?
+                                                        where uname = ?""", (gchar_dict_to_sql, username.lower()))
+                                            conn.commit()
+
+                                            # Message to chat and /w to user the character information.
+                                            chatmessage = f"{username} the {chat_race.capitalize()} has " \
+                                                f"entered the game."
+
+                                            # This is the whisper to user.
+                                            build_whisper = f"{username} {username} is {article}" \
+                                                f"{str(gchar_dict['race']).capitalize()} " \
+                                                f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                                f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                f" You are currently using your " \
+                                                f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                                f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                                f" and armor.  Current available Exp: {cxp}"
+
+                                            Send_message(f"/w {build_whisper}")
                                 elif message.lower() == "!retire":
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
@@ -826,12 +835,15 @@ while Running == True:
                                 commandlist = list(c.execute("select ex_command from commands"))
                                 for itr in range(len(commandlist)):
                                     commandlist[itr] = commandlist[itr][0]
+                                for item in ["!lurk", "!ban", "!change", "!char", "!retire", "!permadeath", \
+                                    "!challenge", "!uptime", "!levelup", "!shop", "!gunter"]:
+                                    commandlist.append(item)
                                 Send_message(
                                     "You've found the (not so) hidden command list " + username + ". Command list: "
                                     + ', '.join(commandlist))
 
                             else:
-                                print(f'796: {username}, {message}')
+                                print(f'846: {username}, {message}')
                                 # print(chatmessage)
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
