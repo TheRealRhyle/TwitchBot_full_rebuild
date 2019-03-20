@@ -363,7 +363,7 @@ while Running == True:
                     if message[0] == '!':
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
-                            if username.lower() == 'rhyle_':
+                            if username.lower() in ['rhyle_', 'katiequixotic']:
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)",
