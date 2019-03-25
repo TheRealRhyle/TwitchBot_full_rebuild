@@ -614,7 +614,7 @@ while Running == True:
                                     #test if user in database
                                     try:
                                         user = c.execute("select * from users where uname = ?",(username.lower(),))
-                                        print(user)
+                                        print(list(user))
                                     except:
                                         c.execute("""insert into users values (?, ?, 0, '', 0)""",(username.lower(), 'viewer'))
                                         conn.commit()
@@ -635,24 +635,36 @@ while Running == True:
                                             else:
                                                 chat_race = gchar_dict['race']
 
+                                            if gchar_dict['prof'] == 'peasant':
+                                                build_whisper = f"{username} {username} is {article}" \
+                                                    f"{str(gchar_dict['race']).capitalize()} " \
+                                                    f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                                    f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                    f"This is a generic assigned character.  You can !permadeath and then !char " \
+                                                    f"in order to get one that is not a Human Peasant." \
+                                                    f"Current available Exp: {cxp} Purse: {crowns}" \
+
+                                                Send_message(f"/w {build_whisper}")
+                                            else:
+                                                # chatmessage = f"{username} is {article} " \
+                                                #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
+
+                                                # print(*gchar_dict, sep='\n')
+
+                                                build_whisper = f"{username} {username} is {article}" \
+                                                    f"{str(gchar_dict['race']).capitalize()} " \
+                                                    f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
+                                                    f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
+                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                    f" You are currently using your " \
+                                                    f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
+                                                    f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
+                                                    f" upgrade either you can !shop to spend your corwns to purchase new weapons" \
+                                                    f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
+
+                                                Send_message(f"/w {build_whisper}")
                                             chatmessage = ""
-                                            # chatmessage = f"{username} is {article} " \
-                                            #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
-
-                                            # print(*gchar_dict, sep='\n')
-
-                                            build_whisper = f"{username} {username} is {article}" \
-                                                f"{str(gchar_dict['race']).capitalize()} " \
-                                                f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
-                                                f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
-                                                f" You are currently using your " \
-                                                f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
-                                                f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
-                                                f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
-
-                                            Send_message(f"/w {build_whisper}")
 
                                         else:
                                             # Generate character using the Character Class
@@ -674,6 +686,7 @@ while Running == True:
                                                 gchar_dict['race'] = 'dwarven'
                                             else:
                                                 chat_race = gchar_dict['race']
+
                                             cxp = c.execute("select exp from users where uname = ?",(username,)).fetchone()[0]
 
                                             # Stores character in SQL
@@ -695,7 +708,7 @@ while Running == True:
                                                 f" You are currently using your " \
                                                 f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                 f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                                f" upgrade either you can !shop to spend your Exp to purchase new weapons" \
+                                                f" upgrade either you can !shop to spend your crowns to purchase new weapons" \
                                                 f" and armor.  Current available Exp: {cxp}"
 
                                             Send_message(f"/w {build_whisper}")
@@ -703,7 +716,7 @@ while Running == True:
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
                                     chatmessage = "Hello " + username + ", this command is being worked on at the " \
-                                                                        "moment, please check back soon(tm)."
+                                        "moment, please check back soon(tm)."
                                 elif message.lower() == "!permadeath":
                                     # TODO: Permadeath command should just wipe the gchar data from the user table for
                                     # TODO: the command user.

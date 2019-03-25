@@ -7,6 +7,7 @@ import schedule
 from time import sleep
 import socket
 import random
+import tcChargen
 
 global c
 conn = sqlite3.connect("dxchatbot.db")
@@ -31,15 +32,27 @@ def check_chatters():
     uliststr = str(ulist).replace(",)", ")").replace("(",'').replace(')','')
 
     # for each user returned in the viewer list check to see if they already exist in the database
+    # print(uliststr)
     for usr in range(len(viewerlist)):
-        if viewerlist[usr] not in uliststr:
+        viewer = "'" + viewerlist[usr] + "'"
+        if viewer not in uliststr:
             # If the viewer does not exist in the database, add them with status viewer
-            c.execute("""insert into users values (?, ?, 0, '', 0)""",(viewerlist[usr], 'viewer'))
+
+            # Also assign a base character.
+            base_char = tcChargen.base_char(viewerlist[usr])
+            base_char_dict = base_char.get_char(viewerlist[usr])
+            gchar_dict_to_sql = str(base_char_dict)
+            c.execute("""insert into users values (?, ?, 0, ?, 0)""",(viewerlist[usr], 'viewer', gchar_dict_to_sql))
             conn.commit()
             print("user " + viewerlist[usr] + " has been added to the database")
         else:
             # print(c.execute("select status, exp from users where uname = ?", (str(viewerlist[usr]).lower(),)).fetchone())
+
             cquery = c.execute("select * from users where uname = ?", (str(viewerlist[usr]).lower(),)).fetchone()
+
+            # if cquery == None:
+            #     pass
+
             if cquery[1] != 'bot' and viewerlist[usr].lower() != 'rhyle_bot':
                 # try:
                 cxp = cquery[2]
@@ -50,7 +63,7 @@ def check_chatters():
                 conn.commit()
                 print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp) + '\tCurrent crowns: ' + str(current_crowns))
                 # except:
-                #     print('No exp added for ' + cquery[0])
+                # print('No exp added for ' + cquery[0])
     print('--------- \n')
     # return broadcaster
 

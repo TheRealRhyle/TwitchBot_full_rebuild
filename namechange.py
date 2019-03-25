@@ -21,23 +21,26 @@ c = conn.cursor()
 
 uname = 'rhyle_'
 
-xp, crowns = c.execute("select exp, crowns from users where uname = ?",(uname,)).fetchone()
-print(xp, crowns)
+# xp, crowns = c.execute("select exp, crowns from users where uname = ?",(uname,)).fetchone()
+# print(xp, crowns)
 
-print(c.exe)
+
 # print(c.execute("select crowns from users where uname = ?", ("rhyle_",)).fetchone())
 
 # change_char="'name': 'rhyle_', 'race': 'human', 'prof': 'Camp Follower', 'weapon_skill': 36, 'ballistic_skill': 38, 'strength': 26, 'toughness': 45}"
 # username='rhyle_'
 # print((change_char))
 
-# c.execute('update users set crowns = 0')
+# print(c.execute("select * from users where uname = 'norkdorf'").fetchall())
+# c.execute('delete from users where uname = "rhyle_"')
 # conn.commit()
+# print(c.execute("select * from users where uname = 'rhyle_'").fetchone())
+
 # print(c.execute('select * from users where gchar = ""').fetchall())
 # print(c.execute(f"select name, exp from users").fetchall())
 # print(*c.execute("select uname, exp from users where uname = 'rhyle_bot'").fetchall(), sep='\n')
-# c.execute("update users set exp = 3475 where uname = 'rhyle_'")
-# conn.commit()
+c.execute("update users set exp = 3475, status = 'broadcaster'  where uname = 'rhyle_'")
+conn.commit()
 # cxp = c.execute(f"select exp from users where uname = {username}")
 
 # c.execute("update users set exp = 200 where uname = 'ceacelion'")

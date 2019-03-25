@@ -27,6 +27,16 @@ class Character:
     #     return f"""{self.name} is a {self.race} {self.prof} who has {self.ws} weapon skill, {self.bs} ballistic skill,
     #     and {self.s} strength, and {self.t} toughness."""
 
+def base_char(uname):
+    race = 'human'
+    stats_dict = {'WS': 20, 'BS': 20, 'S': 20, 'T': 20}
+    prof = 'peasant'
+    armor = 'none'
+    weapon = 'fists'
+    chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'],
+                         armor, weapon)
+    return chatchar
+
 def chat_char(uname):
     race = choice(['dwarf', 'elf', 'halfling', 'human'])
     stats_dict = {'WS': 0, 'BS': 0, 'S': 0, 'T': 0}
@@ -66,7 +76,6 @@ def chat_char(uname):
                    'Pistolier', 'Politician', 'Priest', 'Racketeer', 'Scholar', 'Scout', 'Sea Captain', 'Sergeant', 'Spy',
                    'Steward', 'Targeteer', 'Vampire Hunter', 'Veteran', 'Witch Hunter', 'Wizard Lord'])
 
-    # TODO: Randomly generated armor/weapon?
     armor = 'none'
     weapon = 'fists'
     # name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon
