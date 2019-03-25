@@ -12,9 +12,12 @@ from chattodb import social_ad, get_active_list
 import bestiary
 
 # Method for sending a message
-def Send_message(message):
+def Send_message(message, *args):
     time.sleep(0.1)
-    s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
+    if not args:
+        s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
+    else:
+        s.send(("PRIVMSG #" + args[0] + " :" + message + "\r\n").encode('UTF-8'))
 def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
@@ -245,12 +248,13 @@ conn, c = loader.loading_seq()
 streamr = c.execute('select * from streamer').fetchall()
 streamr = list(streamr[0])
 host, nick, port, oauth, readbuffer = streamr
-TLD = ['.com', '.org', '.net', '.int', '.edu', '.gov', '.mil', '.arpa', '.top', '.loan', '.xyz', '.club', '.online',
-       '.vip', '.win', '.shop', '.ltd', '.men', '.site', '.work', '.stream', '.bid', '.wang', '.app', '.review',
-       '.space', '.ooo', '.website', '.live', '.tech', '.life', '.blog', '.download', '.link', '.today', '.guru',
-       '.news', '.tokyo', '.london', '.nyc', '.berlin', '.amsterdam', '.hamburg', '.boston', '.paris', '.kiwi',
-       '.vegas', '.moscow', '.miami', '.istanbul', '.scot', '.melbourne', '.sydney', '.quebec', '.brussels',
-       '.capetown', '.rio', '.tv']
+TLD = ['.com', '.org', '.net', '.int', '.edu', '.gov', '.mil', '.arpa', '.top', '.loan', \
+            '.xyz', '.club', '.online', '.vip', '.win', '.shop', '.ltd', '.men', '.site', \
+            '.work', '.stream', '.bid', '.wang', '.app', '.review', '.space', '.ooo', \
+            '.website', '.live', '.tech', '.life', '.blog', '.download', '.link', '.today', \
+            '.guru', '.news', '.tokyo', '.london', '.nyc', '.berlin', '.amsterdam', '.hamburg', \
+            '.boston', '.paris', '.kiwi', '.vegas', '.moscow', '.miami', '.istanbul', '.scot', \
+            '.melbourne', '.sydney', '.quebec', '.brussels', '.capetown', '.rio', '.tv']
 
 # Set the channel to join for testing purposes:
 chan = "rhyle_"
@@ -325,6 +329,9 @@ while Running == True:
                 init_message = 'init_done'
                 usernamesplit = parts[1].split("!")
                 username = usernamesplit[0]
+                chan_name = []
+                if "PRIVMSG" in parts[1]:
+                    chan_name = (parts[1].split('#'))[1]
 
                 # Only works after twitch is done announcing stuff (MODT = Message of the day)
                 if MODT:
