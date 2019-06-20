@@ -28,7 +28,7 @@ def get_user_exp(username):
     return user_info[2], user_info[4]
 def ret_char(username):
     try:
-        char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
+        char_to_return = c.execute("select gchar from users where uname = ? and status != 'bot'",(username,)).fetchone()[0]
         # print(char_to_return)
     except TypeError:
         print("User in channel that has not been added to the database yet: ", username)
@@ -89,6 +89,7 @@ def random_encounter(*args):
 
     if not args:
         random_character = ret_char(choice(get_active_list()))
+        
     else:
         user = args[0]
         random_character= ret_char(user)
@@ -399,8 +400,7 @@ while Running == True:
                                     if '@' in viewer:
                                         viewer.replace('@', '')
 
-                                    rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).
-                                                   fetchone()[0])
+                                    rew_user = int(c.execute("select exp from users where uname = ?",(viewer.lower(),)).fetchone()[0])
                                     print(rew_user)
                                     rew_user += int(amount)
                                     print(rew_user)
@@ -495,6 +495,13 @@ while Running == True:
                                     time.sleep(1)
                                     s.send(("PRIVMSG #" + channel.lower() + " :" + message + "\r\n").encode('UTF-8'))
                                     s.send(bytes("PART #" + channel.lower() + "\r\n", 'UTF-8'))
+                                elif '!so ' in message.lower():
+                                    ex_com, user = message.split(' ')
+                                    shoutout = [
+                                        f"Big shout out to {user}!  Give them some love here and go follow their channel at https://www.twitch.tv/{user.lower()} so you can get updates when they go live!",
+                                        f"Go check out {user} at https://www.twitch.tv/{user.lower()} and check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer.",
+                                        f"A wild {user.proper()} has appeared, prepare for battle!"]
+                                    Send_message(choice(shoutout))
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -522,8 +529,8 @@ while Running == True:
                                     c.execute("delete from commands where ex_command = ?", (command,))
                                     conn.commit()
                                     Send_message("Command " + command + " has been removed.")
-                                elif message[0:4].lower() == '!mtc':
-                                    parts = message.split(' ')
+                                elif message[0:4].lower() == '!mtc':  # This needs to be removed or changed as Multitwitch/Kadgar
+                                    parts = message.split(' ')        # no longer give credit to the toher streamers.
                                     ex_com, strm1, strm2, strm3, strm4 = [parts[i] if i < len(parts) else None for i in range(5)]
                                     command = '!multi'
                                     target = ''
@@ -560,11 +567,11 @@ while Running == True:
                                         slow = 'off'
                                         continue
 
-                                # TODO: Figure out how to get the bot to mod someone
+                            # TODO: Figure out how to get the bot to mod someone
 
 
-                            if message[0:4] not in ('!upd', '!del', '!add', '!rem', \
-                                '!cre', '!upd', '!gun', '!slo', '!mtc', '!rew', '!ran'):
+                            if message[0:3] not in ('!up', '!de', '!ad', '!re', \
+                                '!cr', '!up', '!gu', '!sl', '!mt', '!re', '!ra', '!vi', '!so'):
                                 chatmessage = message
                                 if message.lower() == '!lurk':
                                     lurk_message = [

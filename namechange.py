@@ -19,11 +19,13 @@ c = conn.cursor()
 # Degrees of success: 2.2
 
 
-uname = 'rhyle_'
-
 # xp, crowns = c.execute("select exp, crowns from users where uname = ?",(uname,)).fetchone()
 # print(xp, crowns)
 
+print(str(c.execute("select * from users where uname = 'lurxx'").fetchall()).replace("),","),\n"))
+# c.execute("delete from users where gchar = ''")
+# conn.commit()
+# print(str(c.execute("select * from users where gchar = ''").fetchall()).replace("),","),\n"))
 
 # print(c.execute("select crowns from users where uname = ?", ("rhyle_",)).fetchone())
 
@@ -39,8 +41,8 @@ uname = 'rhyle_'
 # print(c.execute('select * from users where gchar = ""').fetchall())
 # print(c.execute(f"select name, exp from users").fetchall())
 # print(*c.execute("select uname, exp from users where uname = 'rhyle_bot'").fetchall(), sep='\n')
-c.execute("update users set exp = 3475, status = 'broadcaster'  where uname = 'rhyle_'")
-conn.commit()
+# c.execute("update users set exp = 38270, status = 'broadcaster'  where uname = 'rhyle_'")
+# conn.commit()
 # cxp = c.execute(f"select exp from users where uname = {username}")
 
 # c.execute("update users set exp = 200 where uname = 'ceacelion'")
