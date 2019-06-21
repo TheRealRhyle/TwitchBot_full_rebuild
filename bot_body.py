@@ -28,7 +28,9 @@ def get_user_exp(username):
     return user_info[2], user_info[4]
 def ret_char(username):
     try:
-        char_to_return = c.execute("select gchar from users where uname = ? and status != 'bot'",(username,)).fetchone()[0]
+        char_to_return = c.execute("select gchar from users where uname = ?",(username,)).fetchone()[0]
+        if c.execute("select status from users where uname = ?",(username,)).fetchone()[0] == 'bot':
+            char_to_return = ''
         # print(char_to_return)
     except TypeError:
         print("User in channel that has not been added to the database yet: ", username)
