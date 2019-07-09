@@ -23,10 +23,10 @@ c = conn.cursor()
 # print(xp, crowns)
 
 # print(str(c.execute("select * from users where uname = 'lurxx'").fetchall()).replace("),","),\n"))
-username = 'lurxx'
-char_to_return = c.execute("select status from users where uname = ?",(username,)).fetchone()[0]
+username = c.execute('select * from streamer').fetchall()
+# char_to_return = c.execute("select status from users where uname = ?",(username,)).fetchone()[0]
 
-print(char_to_return)
+print(username)
 # c.execute("delete from users where gchar = ''")
 # conn.commit()
 # print(str(c.execute("select * from users where gchar = ''").fetchall()).replace("),","),\n"))

@@ -309,10 +309,12 @@ while Running == True:
                 Send_message(choice([social_ad(), random_encounter()]))
                 ad_iter = 0
         else:
-            # TODO: botbody line 305, split on whitespace - 
-            # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace# 
-            # parts = line.split(" ",1)
+            # TODO: botbody line 305, split on whitespace -
+            # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace#
+            # parts = line.split(" ", 1)
             parts = line.split(":")
+            # for attr in parts:
+            #     print(attr)
             # print("Line = " + line)
             # print("Line = " + line[0])
             # print("Parts = " + str(parts))
@@ -331,6 +333,8 @@ while Running == True:
                 # Sets the username variable to the actual username
                 init_message = 'init_done'
                 usernamesplit = parts[1].split("!")
+                # for i in usernamesplit:
+                #     print("username = " + i)
                 username = usernamesplit[0]
                 chan_name = []
                 if "PRIVMSG" in parts[1]:
@@ -376,8 +380,8 @@ while Running == True:
                             if username.lower() in ['rhyle_', 'katiequixotic']:
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
-                                    c.execute("insert into users values (:user , :status)",
-                                              {'user': new_user.lower(), 'status': user_type})
+                                    c.execute("insert into users values (:user , :status)", \
+                                        {'user': new_user.lower(), 'status': user_type})
                                     conn.commit()
                                 elif message[0:8].lower() == '!deluser':
                                     command, new_user = message.split(' ')
@@ -829,7 +833,7 @@ while Running == True:
 
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
                                         f'stream uptime.'
-                                elif "levelup" in message.lower():
+                                elif "!levelup" in message.lower():
                                     chatmessage = ''
                                     if len(message) == 8:
                                         chatmessage = "The proper command for this includes one of the " \
