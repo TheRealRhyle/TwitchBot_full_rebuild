@@ -1,0 +1,3 @@
+Educational: cea7bc0c-75a5-4446-8743-6db031b71550
+Programming: a59f1e4e-257b-4bd0-90c7-189c3efbf917
+Software Development: 6f86127d-6051-4a38-94bb-f7b475dde109

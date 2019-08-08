@@ -12,10 +12,7 @@ def OAuth():
     except Exception as e:
         return None
 
-oauth = OAuth()
-api = tweepy.API(oauth)
-
-# api.update_status('This is a test, this is just a test.  If this was not a test I would say something else.')
-mentions = api.mentions_timeline()
-mentions[0].__dict__
-print (mentions[0].author)
+def send_tweet(tweet_txt):
+    oauth = OAuth()
+    api = tweepy.API(oauth)
+    api.update_status(tweet_txt)

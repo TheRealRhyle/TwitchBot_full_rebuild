@@ -10,6 +10,8 @@ import time
 import datetime
 from chattodb import social_ad, get_active_list
 import bestiary
+import twitter
+import myTwitch
 
 # Method for sending a message
 def Send_message(message, *args):
@@ -93,7 +95,7 @@ def random_encounter(*args):
         random_character = ret_char(choice(get_active_list()))
         
     else:
-        user = args[0]
+        user = args[0].strip('\r\n')
         random_character= ret_char(user)
 
     while random_character == 'None':
@@ -159,27 +161,29 @@ def shop(username, *args):
     shoplist = itemlist.load_shop()
     shop_items = []
     shop_message = ''
+
     if not args:
         shop_message = f"/w {username} Welcome to the shop!  The following commands are necessary for using the shop: " \
             f"!shop melee, ranged, or armor will show you the available weapons.  !shop buy followed by the item you would " \
             f"like to purchase will allow you to purchase that specific item assuming that you have the available crowns."
-    elif args[0].lower() == 'melee' or args[0].lower() == 'ranged' or args[0].lower() == 'armor':
-        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if shoplist[item]['type'].lower() == args[0].lower()]
+    # elif 'melee' in args[0].lower().strip('\r').strip('\n') or 'ranged' in args[0].lower().strip('\r').strip('\n') or 'armor' in args[0].lower().strip('\r').strip('\n'):
+    elif args[0].lower().strip('\r\n') == 'melee' or args[0].lower().strip('\r\n') == 'ranged' or args[0].lower().strip('\r\n') == 'armor':
+        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if args[0].lower().strip('\r\n') in shoplist[item]['type'].lower()]
         shop_items = str(shop_items).replace('[\'','').replace(']\'','').replace("', '"," ").replace("']", "")
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
-    elif args[0].lower() == 'buy':
+    elif 'buy' in args[0].lower():
         shopper = ret_char(username)
         shopper_xp, shopper_purse = get_user_exp(username)
         print(len(args))
         if len(args) != 2:
             shop_message = "I'm sorry, I didn't understand that, please try again."
         else:
-            new_weapon = args[1].lower()
+            new_weapon = args[1].lower().strip('\r\n')
             if new_weapon not in shoplist:
                 shop_message = "No item exists that with that name, please look at the !shop melee, !shop armor or !shop ranged list again."
                 return
 
-            crown_cost = shoplist[args[1].lower()]['cost'].split(' ')
+            crown_cost = shoplist[args[1].lower().strip('\r\n')]['cost'].split(' ')
             # print(crown_cost[0], shopper_purse)
 
             if int(shopper_purse) >= int(crown_cost[0]):
@@ -203,7 +207,6 @@ def shop(username, *args):
                 Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. " \
                     f"Your current purse is {shopper_purse}.")
                 return
-
     Send_message(shop_message)
     # chatmessage = ''
 def level_up(username, stat):
@@ -261,17 +264,17 @@ TLD = ['.com', '.org', '.net', '.int', '.edu', '.gov', '.mil', '.arpa', '.top', 
 
 # Set the channel to join for testing purposes:
 chan = "rhyle_"
+# chan = 'commanderpulsar'
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
 s.connect((host, port))
 s.send(bytes('PASS %s\r\n' % oauth, 'UTF-8'))
 s.send(bytes('NICK %s\r\n' % nick, 'UTF-8'))
+s.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
+s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
+s.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
 s.send(bytes("JOIN #" + chan + "\r\n", 'UTF-8'))
-# s.send(bytes('CAP REQ :twitch.tv/membership\r\n', 'UTF-8'))
-# s.send(bytes('CAP REQ :twitch.tv/tags\r\n', 'UTF-8'))
-# s.send(bytes('CAP REQ :twitch.tv/commands\r\n', 'UTF-8'))
-
 
 
 Running = True
@@ -316,26 +319,43 @@ while Running == True:
             # for attr in parts:
             #     print(attr)
             # print("Line = " + line)
-            # print("Line = " + line[0])
+            # print("Parts index 0 = " + parts[0])
+            # print("Parts index 1 = " + parts[1])
+            # try: 
+            #     print("Parts index 2 = " + parts[2])
+            # except:
+            #     pass
+            # try: 
+            #     print("Parts index 3 = " + parts[3])
+            # except:
+            #     pass
+            
             # print("Parts = " + str(parts))
 
             if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1] and "PING" not in parts[0]:
                 try:
                     # Sets the message variable to the actual message sent
-                    # message = ': '.join(parts[2:])
-                    if 'http' in parts[2]:
-                        message = ':'.join(parts[2:])
+                    message = ': '.join(parts[2:])
+                    if 'http' in parts[3]:
+                        message = ':'.join(parts[3:])
                     else:
-                        message = parts[2][:len(parts[2]) - 1]
+                        message = parts[3][:len(parts[3]) - 1]
 
                 except:
-                    message = ""
+                    pass
+                    # message = ""
+
+                # print(message)
                 # Sets the username variable to the actual username
                 init_message = 'init_done'
-                usernamesplit = parts[1].split("!")
+                usernamesplit = parts[0].split(";")
                 # for i in usernamesplit:
                 #     print("username = " + i)
-                username = usernamesplit[0]
+
+                if '@badge-info=' in usernamesplit[0]:
+                    username = usernamesplit[3].split('=')[1].lower()
+                
+                # username = usernamesplit[0]
                 chan_name = []
                 if "PRIVMSG" in parts[1]:
                     chan_name = (parts[1].split('#'))[1]
@@ -344,8 +364,8 @@ while Running == True:
                 if MODT:
                     # testing for the Ping:Pong crash
                     # print(message)
-                    if username == '':
-                        print('Ping:Pong')
+                    # if username == '':
+                    #     print('Ping:Pong')
 
                     userfetch = c.execute("select * from users where uname = ?", (username.lower(),)).fetchall()
                     try:
@@ -353,7 +373,9 @@ while Running == True:
                     except:
                         user_status = 'user'
                     # print(user_status)
-                    print(username + " (" + user_status + "): " + message)
+                    if "twitch.tv" not in username:
+                        print(username + " (" + user_status + "): " + message)
+                    # if username != None:
 
                     #
                     # The bulk of the processing goes down here!
@@ -367,17 +389,20 @@ while Running == True:
                     if any(ext in message for ext in TLD):
                         # if any(text in 'www .com http' for text in message):
                         # print(user_status)
-                        if username == nick:
+                        if username.lower() == nick.lower():
                             pass
-                        elif user_status not in ['admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
+                        elif user_status not in ['broadcaster', 'admins', 'global_mods', 'moderators', 'subs', 'fots', 'vips', 'staff']:
                             Send_message(username + " links are not currently allowed.")
-                            Send_message("/timeout " + username + " 1")
+                            # Send_message("/timeout " + username + " 1")
 
                     # Command processing
                     if message[0] == '!':
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands
-                            if username.lower() in ['rhyle_', 'katiequixotic']:
+                            if username.lower() in ['rhyle_', 'ceacelion', 'commanderpulsar']:
+                                if '!goaway' in message.lower():
+                                    Send_message("Shutting down now.")
+                                    Running = False
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(' ')
                                     c.execute("insert into users values (:user , :status)", \
@@ -388,7 +413,7 @@ while Running == True:
                                     c.execute("delete from users where uname = ?", (new_user.lower(),))
                                     conn.commit()
                                 elif message[0:8].lower() == '!upduser':
-                                    command, new_user, user_type = message.split(' ')
+                                    command, new_user, user_type = message.split(' ').replace('\r','')
                                     c.execute("""update users
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
@@ -469,6 +494,7 @@ while Running == True:
                                 elif ('!randomenc') in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
+                                        print(user)
                                         Send_message(random_encounter(user))
                                     except:
                                         Send_message(random_encounter())
@@ -493,21 +519,31 @@ while Running == True:
                                     ex_com, channel = message.split(' ')
                                     s.send(bytes("JOIN #" + channel.lower() + "\r\n", 'UTF-8'))
                                     time.sleep(1)
-                                    message = "Just testing, dont Hz me"
-                                    s.send(("PRIVMSG #" + channel.lower() + " :" + message + "\r\n").encode('UTF-8'))
+                                    s.send(("PRIVMSG #" + channel.lower() + " :Just testing, dont Hz me\r\n").encode('UTF-8'))
                                 elif '!part' in message.lower():
                                     ex_com, channel = message.split(' ')
                                     message = "Fine, I'm leaving."
                                     time.sleep(1)
-                                    s.send(("PRIVMSG #" + channel.lower() + " :" + message + "\r\n").encode('UTF-8'))
+                                    s.send(("PRIVMSG #" + channel.lower() + " :Fine, I'm leaving.\r\n").encode('UTF-8'))
                                     s.send(bytes("PART #" + channel.lower() + "\r\n", 'UTF-8'))
                                 elif '!so ' in message.lower():
                                     ex_com, user = message.split(' ')
                                     shoutout = [
                                         f"Big shout out to {user}!  Give them some love here and go follow their channel at https://www.twitch.tv/{user.lower()} so you can get updates when they go live!",
                                         f"Go check out {user} at https://www.twitch.tv/{user.lower()} and check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer.",
-                                        f"A wild {user.proper()} has appeared, prepare for battle!"]
+                                        f"A wild {user.title()} has appeared, prepare for battle!"]
                                     Send_message(choice(shoutout))
+                                elif '!st ' in message.lower():
+                                    ex_com, tweet = message.split(' ', 1)
+                                    if len(tweet) <= 280:
+                                        twitter.send_tweet(tweet)
+                                    else:
+                                        Send_message("Sorry boss, that tweet is too long.")
+                                elif '!su ' in message.lower():
+                                    ex_com, update_info = message.split(' ', 1)
+                                    myTwitch.update_twitch(update_info)
+                                elif '!testing' in message.lower():
+                                    myTwitch.get_status()
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -575,11 +611,11 @@ while Running == True:
 
                             # TODO: Figure out how to get the bot to mod someone
 
-
-                            if message[0:3] not in ('!up', '!de', '!ad', '!re', \
-                                '!cr', '!up', '!gu', '!sl', '!mt', '!re', '!ra', '!vi', '!so'):
-                                chatmessage = message
-                                if message.lower() == '!lurk':
+                            if message[:3] not in ('!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!re', '!ra', '!vi', '!so', '!st', '!su'):
+                                chatmessage = message.strip()
+                                if '!lurk' in message.lower():
+                                    print(message)
+                                    print(chatmessage)
                                     lurk_message = [
                                         f"It looks like we've lost {username} to the twitch void. Hopefully they will find their way back soon!",
                                         f"Seems like {username} has gone off to take care of.... business.",
@@ -589,7 +625,7 @@ while Running == True:
                                             "if you're a god you say yes.", "Well that certainly illustrates the diversity of the word."
                                     ]
                                     chatmessage = choice(lurk_message)
-                                elif message.lower() == "!ban":
+                                elif "!ban" in message.lower():
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                                 "good member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
@@ -623,7 +659,7 @@ while Running == True:
                                     except:
                                         chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                             f' races: Human, Elf, Dwarf, Halfling.'
-                                elif message.lower() == "!char":
+                                elif "!char" in  message.lower():
                                     #test if user in database
                                     try:
                                         user = c.execute("select * from users where uname = ?",(username.lower(),))
@@ -673,7 +709,7 @@ while Running == True:
                                                     f" You are currently using your " \
                                                     f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                     f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
-                                                    f" upgrade either you can !shop to spend your corwns to purchase new weapons" \
+                                                    f" upgrade either you can !shop to spend your crowns to purchase new weapons" \
                                                     f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
 
                                                 Send_message(f"/w {build_whisper}")
@@ -725,12 +761,12 @@ while Running == True:
                                                 f" and armor.  Current available Exp: {cxp}"
 
                                             Send_message(f"/w {build_whisper}")
-                                elif message.lower() == "!retire":
+                                elif "!retire" in message.lower():
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
                                     chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                         "moment, please check back soon(tm)."
-                                elif message.lower() == "!permadeath":
+                                elif "!permadeath" in message.lower():
                                     # TODO: Permadeath command should just wipe the gchar data from the user table for
                                     # TODO: the command user.
                                     try:
@@ -742,7 +778,7 @@ while Running == True:
                                     except:
                                         chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                                                         "moment, please check back soon(tm)."
-                                elif message.lower() == "!accept":
+                                elif "!accept" in message.lower():
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
                                             chall = ret_char(challenger[0])
@@ -781,7 +817,7 @@ while Running == True:
                                         else:
                                             chatmessage = f"There is not currently a pending challenge for {username}"
                                     del pvp[challenger]
-                                elif message.lower() == '!decline':
+                                elif '!decline' in message.lower():
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
                                             chall = ret_char(challenger[0])
@@ -851,7 +887,7 @@ while Running == True:
                                 else:
                                     try:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                                (chatmessage,)).fetchone()[0]
+                                                                (chatmessage.strip(),)).fetchone()[0]
                                     except:
                                         chatmessage = f'Hello {username} there is not currently a {message} command. ' \
                                                     f'If you would like to have one created, let me know. Subs take precedence for !commands.'
@@ -876,7 +912,8 @@ while Running == True:
                                     + ', '.join(commandlist))
 
                             else:
-                                print(f'846: {username}, {message}')
+                                pass
+                                # print(f'846: {username}, {message}')
                                 # print(chatmessage)
                                 # Send_message(f'Hello {username} there is not currently a {message} command. ' \
                                 #             f'If you would like to have one created, let me know. Subs take precedence for !commands.')
