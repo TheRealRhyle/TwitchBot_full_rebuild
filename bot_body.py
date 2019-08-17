@@ -113,10 +113,10 @@ def random_encounter(*args):
     # print(random_character['name'] + ' weapon skill: ' + str(random_character['weapon_skill']))
     # if random_roll <= random_character['weapon_skill']:
     #     print("this would be a hit")
-    #     ranks = int((random_character['weapon_skill'] - random_roll) / 5)
-    #     print("Degrees of success: " +str(ranks))
+    #     raises = int((random_character['weapon_skill'] - random_roll) / 5)
+    #     print("Degrees of success: " +str(raises))
     #     if random_character['weapon'] == "Fists":
-    #         dmg = (int(random_character['strength']/10)-4) + ranks
+    #         dmg = (int(random_character['strength']/10)-4) + raises
     #         if dmg < 1:
     #             dmg = 1
     #         print("Damage would be (SB-4): " + str(dmg))
@@ -210,13 +210,13 @@ def shop(username, *args):
     Send_message(shop_message)
     # chatmessage = ''
 def level_up(username, stat):
-    if stat.lower() == 'ws':
+    if stat.lower().replace('\r\n','') == 'ws':
         stat= 'weapon_skill'
-    elif stat.lower() == "bs":
+    elif stat.lower().replace('\r\n','') == "bs":
         stat = 'ballistic_skill'
-    elif stat.lower() == "t":
+    elif stat.lower().replace('\r\n','') == "t":
         stat = 'toughness'
-    elif stat.lower() == "s":
+    elif stat.lower().replace('\r\n','') == "s":
         stat = 'strength'
     else:
         Send_message(f"/w {username} {stat} is an unknown stat.  You may only levelup WS, BS, S, or T.")
@@ -315,7 +315,9 @@ while Running == True:
             # TODO: botbody line 305, split on whitespace -
             # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace#
             # parts = line.split(" ", 1)
-            parts = line.split(":")
+            # print(line)
+            parts = line.split(":", 2)
+
             # for attr in parts:
             #     print(attr)
             # print("Line = " + line)
@@ -413,7 +415,7 @@ while Running == True:
                                     c.execute("delete from users where uname = ?", (new_user.lower(),))
                                     conn.commit()
                                 elif message[0:8].lower() == '!upduser':
-                                    command, new_user, user_type = message.split(' ').replace('\r','')
+                                    command, new_user, user_type = message.replace('\r','').split(' ')
                                     c.execute("""update users
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
@@ -533,6 +535,13 @@ while Running == True:
                                         f"Go check out {user} at https://www.twitch.tv/{user.lower()} and check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer.",
                                         f"A wild {user.title()} has appeared, prepare for battle!"]
                                     Send_message(choice(shoutout))
+                                elif '!hlso ' in message.lower():
+                                    ex_com, user = message.split(' ')
+                                    haunted_legion = [
+                                        f'You really should go check out @{user}.  They are a member of the Haunted Legion and one of the streamers that I enjoy watching.',
+                                        f'Oh no!  It\'s @{user} the Haunted Legion member!  They are probably here to haunt my stream!',
+                                    ]
+                                    Send_message(choice(haunted_legion))
                                 elif '!st ' in message.lower():
                                     ex_com, tweet = message.split(' ', 1)
                                     if len(tweet) <= 280:
@@ -611,7 +620,7 @@ while Running == True:
 
                             # TODO: Figure out how to get the bot to mod someone
 
-                            if message[:3] not in ('!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!re', '!ra', '!vi', '!so', '!st', '!su'):
+                            if message[:3] not in ('!hl','!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!re', '!ra', '!vi', '!so', '!st', '!su'):
                                 chatmessage = message.strip()
                                 if '!lurk' in message.lower():
                                     print(message)
@@ -869,13 +878,14 @@ while Running == True:
 
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
                                         f'stream uptime.'
-                                elif "!levelup" in message.lower():
+                                elif "!levelup" in message.lower().replace('\r\n',''):
                                     chatmessage = ''
-                                    if len(message) == 8:
+                                    print(len(message.lower().replace('\r\n','')))
+                                    if len(message) <= 9:
                                         chatmessage = "The proper command for this includes one of the " \
                                             "four character stats: WS, BS, S, T."
                                     else:
-                                        ex_com, stat = message.split(' ')
+                                        ex_com, stat = message.replace('\r\n','').split(' ')
                                         level_up(username, stat)
                                 elif "!shop" in message.lower():
                                     if len(message) == 5:
