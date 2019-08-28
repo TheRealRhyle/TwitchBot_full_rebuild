@@ -389,6 +389,7 @@ while Running == True:
                     # Link detection and timeout
                     # if any(word in 'some one long two phrase three' for word in list_):
                     if any(ext in message for ext in TLD):
+                        print("Line 392: " + str(message))
                         # if any(text in 'www .com http' for text in message):
                         # print(user_status)
                         if username.lower() == nick.lower():
