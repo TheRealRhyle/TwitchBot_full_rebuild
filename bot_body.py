@@ -57,7 +57,6 @@ def ret_char(username):
             "select gchar from users where uname = ?", (username,)).fetchone()[0]
         if c.execute("select status from users where uname = ?", (username,)).fetchone()[0] == 'bot':
             char_to_return = ''
-        # print(char_to_return)
     except TypeError:
         print("User in channel that has not been added to the database yet: ", username)
         char_to_return = ''
@@ -71,8 +70,7 @@ def ret_char(username):
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',
                         (username,)).fetchone()[0])-100
-    c.execute("update users set gchar = ? where uname = ?",
-              (change_char, username))
+    c.execute("update users set gchar = ? where uname = ?", (change_char, username))
     c.execute("update users set exp = ? where uname = ?", (exp, username))
     conn.commit()
 
@@ -180,8 +178,7 @@ def random_encounter(*args):
         exp, gc = get_user_exp(random_character['name'].lower())
         encounter_value += exp
 
-        c.execute("update users set exp = ? where uname = ?",
-                  (encounter_value, random_character['name'].lower()))
+        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
         conn.commit()
 
     adj = choice(["walking", "running", "riding"])
@@ -213,8 +210,7 @@ def shop(username, *args):
             f"like to purchase will allow you to purchase that specific item assuming that you have the available crowns."
     # elif 'melee' in args[0].lower().strip('\r').strip('\n') or 'ranged' in args[0].lower().strip('\r').strip('\n') or 'armor' in args[0].lower().strip('\r').strip('\n'):
     elif args[0].lower().strip('\r\n') == 'melee' or args[0].lower().strip('\r\n') == 'ranged' or args[0].lower().strip('\r\n') == 'armor':
-        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}")
-         for item in shoplist if args[0].lower().strip('\r\n') in shoplist[item]['type'].lower()]
+        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if args[0].lower().strip('\r\n') in shoplist[item]['type'].lower()]
         shop_items = str(shop_items).replace('[\'', '').replace(
             ']\'', '').replace("', '", " ").replace("']", "")
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
@@ -284,8 +280,7 @@ def level_up(username, stat):
     if cxp >= 100 and gchar_dict[stat] < 75:
         cxp -= 100
         gchar_dict[stat] += 5
-        c.execute("update users set exp = ?, gchar = ? where uname = ?",
-                  (cxp, str(gchar_dict), username))
+        c.execute("update users set exp = ?, gchar = ? where uname = ?", (cxp, str(gchar_dict), username))
         conn.commit()
         whisper = f"/w {username} Your {stat} has been increased by 5 points to {gchar_dict[stat]}"
 
@@ -370,7 +365,7 @@ while Running == True:
                 Send_message(choice([social_ad(), random_encounter()]))
                 ad_iter = 0
         else:
-            # TODO: botbody line 305, split on whitespace -
+            # TODO botbody line 305, split on whitespace -
             # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace#
             # parts = line.split(" ", 1)
             # print(line)
@@ -431,7 +426,7 @@ while Running == True:
                 if "PRIVMSG" in parts[1]:
                     chan_name = (parts[1].split('#'))[1]
 
-                # Only works after twitch is done announcing stuff (MODT = Message of the day)
+                # Only works after twitch is done announcing stuff (MOTD = Message of the day)
                 if MODT:
                     # testing for the Ping:Pong crash
                     # print(message)
@@ -471,7 +466,7 @@ while Running == True:
                     # Command processing
                     if message[0] == '!':
                         if username != '':
-                            # TODO: Mod, Broadcaster, FOTS, VIP Commands
+                            # TODO Mod, Broadcaster, FOTS, VIP Commands.
                             if username.lower() in ['rhyle_', 'ceacelion', 'commanderpulsar']:
                                 if '!goaway' in message.lower():
                                     Send_message("Shutting down now.")
@@ -479,13 +474,11 @@ while Running == True:
                                 if message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(
                                         ' ')
-                                    c.execute("insert into users values (:user , :status)",
-                                              {'user': new_user.lower(), 'status': user_type})
+                                    c.execute("insert into users values (:user , :status)", {'user': new_user.lower(), 'status': user_type})
                                     conn.commit()
                                 elif '!raid ' in message and len(message)>7:
                                     chatmessage, username = message.split(" ")
-                                    chatmessage = c.execute("select action from commands where ex_command = ?",
-                                                                (chatmessage.strip(''),)).fetchone()[0]
+                                    chatmessage = c.execute("select action from commands where ex_command = ?",(chatmessage.strip(''),)).fetchone()[0]
                                     Send_message(chatmessage, username)
                                     continue
                                 elif message[0:8].lower() == '!deluser':
@@ -919,38 +912,32 @@ while Running == True:
                                             chall = ret_char(challenger[0])
                                             vic = ret_char(victim[0])
 
-                                            Send_message(f"{str(chall['name']).capitalize()}, "
-                                                         f"{str(vic['name']).capitalize()} has accepted your challenge.  Prepare for "
-                                                         f"combat!")
+                                            Send_message(f"{str(chall['name']).capitalize()}, {str(vic['name']).capitalize()} has accepted your challenge.  Prepare for combat!")
                                             time.sleep(1)
                                             victim_random = randint(2, 100)
                                             vic_roll = (
                                                 vic['weapon_skill'] + victim_random) - chall['toughness']
                                             if vic_roll < 0:
                                                 vic_roll = 0
-                                            Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} "
-                                                         f"(({vic['weapon_skill']} + {victim_random})-{chall['toughness']}) ({vic_roll})")
+                                            Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} (({vic['weapon_skill']} + {victim_random})-{chall['toughness']}) ({vic_roll})")
                                             time.sleep(1)
                                             challenger_random = randint(2, 100)
                                             chall_roll = (
                                                 chall['weapon_skill'] + challenger_random) - vic['toughness']
                                             if chall_roll < 0:
                                                 chall_roll = 0
-                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} "
-                                                         f"(({chall['weapon_skill']} + {challenger_random}) - {vic['toughness']}) ({chall_roll})")
+                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} (({chall['weapon_skill']} + {challenger_random}) - {vic['toughness']}) ({chall_roll})")
                                             time.sleep(1)
 
                                             if vic_roll > chall_roll:
-                                                Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and '
-                                                             f'earned! {amount} exp.')
+                                                Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and earned! {amount} exp.')
                                                 challenge_result(
                                                     victim[0], amount, challenger[0])
                                             elif vic_roll == chall_roll:
                                                 Send_message(
                                                     f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
                                             else:
-                                                Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning '
-                                                             f'themselves {amount}')
+                                                Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning themselves {amount}')
                                                 challenge_result(
                                                     challenger[0], amount)
                                             chatmessage = ""
@@ -973,7 +960,6 @@ while Running == True:
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
                                 elif message[0:11].lower() == "!challenge ":
-                                    # TODO: !challenge <target> <risk amount>
                                     try:
                                         ex_com, target, amount = message.split(
                                             ' ')
@@ -981,8 +967,7 @@ while Running == True:
                                         if '@' in target:
                                             target = target.replace('@', '')
                                     except ValueError:
-                                        Send_message(f'Blast! {username} the proper command is !challenge >target< '
-                                                     f'>risk amount<')
+                                        Send_message(f'Blast! {username} the proper command is !challenge >target< >risk amount<')
                                         continue
 
                                     cxp = get_user_exp(username)
