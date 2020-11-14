@@ -3,3 +3,4 @@
 __py*/*
 .vscode/*
 twittercreds.*
+*.db
