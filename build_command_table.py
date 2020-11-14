@@ -29,6 +29,10 @@ c = conn.cursor()
 
 # c.execute("""delete from users where uname = 'zangeru13'""")
 # conn.commit()
+if (c.execute("""select gchar from users where uname='rhyle_'""").fetchone() == ("",)):
+    print("not")
+else:
+    print(c.execute("""select gchar from users where uname='rhyle_'""").fetchone())
 
 # ulist = c.execute("""select * from users""").fetchall()
 # print(ulist)
@@ -47,10 +51,10 @@ c = conn.cursor()
 # conn.commit()
 
 
-tab = c.execute('select * from commands').fetchall()
-print(len(tab))
-for i in range(len(tab)):
-    print(tab[i])
+# tab = c.execute('select * from streamer').fetchall()
+# print(len(tab))
+# for i in range(len(tab)):
+#     print(tab[i])
 #
 # c.execute("""update commands
 #     set action = 'Find me on twitter to get stream updates and notifications when I go live! @dxstreaming twitter.com/dxstreaming'
