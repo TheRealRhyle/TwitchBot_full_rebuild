@@ -235,14 +235,11 @@ def shop(username, *args):
             # print(crown_cost[0], shopper_purse)
 
             if int(shopper_purse) >= int(crown_cost[0]):
-                # TODO update character w/ purchased weapon
-                # TODO deduct cost from user data
                 if shoplist[new_weapon.lower()]['type'] == 'Melee' or shoplist[new_weapon.lower()]['type'] == 'Ranged':
                     shopper['weapon'] = args[1]
                     c.execute("update users set crowns = ? where uname = ?", (int(
                         shopper_purse) - int(crown_cost[0]), username))
-                    c.execute("update users set gchar = ? where uname = ?",
-                              (str(shopper), username))
+                    c.execute("update users set gchar = ? where uname = ?", (str(shopper), username))
                     conn.commit()
                     shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
                         f"as though it was made for you."
@@ -250,14 +247,12 @@ def shop(username, *args):
                     shopper['armor'] = args[1]
                     c.execute("update users set crowns = ? where uname = ?", (int(
                         shopper_purse) - int(crown_cost[0]), username))
-                    c.execute("update users set gchar = ? where uname = ?",
-                              (str(shopper), username))
+                    c.execute("update users set gchar = ? where uname = ?", (str(shopper), username))
                     conn.commit()
                     shop_message = shop_message = f"/w {username} You don your new {args[1]}.  The armor fits " \
                         f"as though it was made for you."
             else:
-                Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. "
-                             f"Your current purse is {shopper_purse}.")
+                Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. Your current purse is {shopper_purse}.")
                 return
     Send_message(shop_message)
     # chatmessage = ''
@@ -369,7 +364,6 @@ while Running == True:
             s.send(bytes("PONG\r\n", "UTF-8"))
             if ad_iter == 0:
                 Send_message(random_encounter())
-                # //TODO: Exclude known bots - https://trello.com/c/fmeBaOuW/1-exclude-known-bots
                 # random_encounter()
                 ad_iter += 1
             elif ad_iter == 1:
@@ -593,7 +587,6 @@ while Running == True:
                                 elif ('!randomenc') in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
-                                        print(user)
                                         Send_message(random_encounter(user))
                                     except:
                                         Send_message(random_encounter())
@@ -1043,9 +1036,9 @@ while Running == True:
                                     #     # song_request.sr(code)
                                     #     playlist_maker.add_to_playlist(code)
                                     #     chatmessage = ""
-                                elif "!skip" in message.lower():
-                                    song_request.skip()
-                                    chatmessage = ""
+                                # elif "!skip" in message.lower():
+                                #     song_request.skip()
+                                #     chatmessage = ""
 
                                 else:
                                     try:
@@ -1068,8 +1061,7 @@ while Running == True:
                                     c.execute("select ex_command from commands"))
                                 for itr in range(len(commandlist)):
                                     commandlist[itr] = commandlist[itr][0]
-                                for item in ["!lurk", "!ban", "!change", "!char", "!retire", "!permadeath",
-                                             "!challenge", "!uptime", "!levelup", "!shop", "!gunter"]:
+                                for item in ["!lurk", "!ban", "!change", "!char", "!retire", "!permadeath", "!challenge", "!uptime", "!levelup", "!shop", "!gunter"]:
                                     commandlist.append(item)
                                 Send_message(
                                     "You've found the (not so) hidden command list " +

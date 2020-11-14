@@ -29,8 +29,6 @@ def shop(username, *args):
             # print(crown_cost[0], shopper_purse)
 
             if int(shopper_purse) >= int(crown_cost[0]):
-                # TODO update character w/ purchased weapon
-                # TODO deduct cost from user data
                 if shoplist[new_weapon.lower()]['type'] == 'Melee' or shoplist[new_weapon.lower()]['type'] == 'Ranged':
                     shopper['weapon'] = args[1]
                     c.execute("update users set crowns = ? where uname = ?",(int(shopper_purse) - int(crown_cost[0]), username))

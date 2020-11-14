@@ -13,11 +13,15 @@ def choose_mob():
     #     else:
     #         creature_type = main_dict['Normal']
     #     print(creature_type)
-    return main_dict[random.choice(list(main_dict)[10:])]
+    return main_dict[random.choice(list(main_dict)[8:])]
 
 
 if __name__ == "__main__":
-    print(choose_mob())
+    xname = ""
+    while xname != "Banshee":
+        x = choose_mob()
+        xname = x['name']
+        print(f"{xname}")
 
 # creature_type = main_dict[random.choice(list(main_dict)[:8])]
 # creature_type = main_dict[random.choice()]
