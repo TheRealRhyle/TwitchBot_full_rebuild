@@ -1,5 +1,6 @@
 from random import randint
 from random import choice
+import math
 import ast
 import socket
 import json
@@ -18,17 +19,22 @@ import playlist_maker
 
 # Method for sending a message
 def Send_message(message, *args):
-    time.sleep(0.1)
+    time.sleep(0.2)
 
     if " ^user " in message:
-        print("Message: ", message)
-        print(args[0])
+        # print("Message: ", message)
+        # print(args[0])
         message = message.replace(" ^user ", " " + str(args[0]) + " ")
         args = []
 
+    if " ^user.upper " in message:
+        # print("Message: ", message)
+        # print(args[0])
+        message = message.replace(" ^user.upper", " " + str(args[0]).upper() + " ")
+        args = []
     if "^target" in message:
-        print("Message:", message)
-        print(args[0])
+        # print("Message:", message)
+        # print(args[0])
         message = message.replace("^target", str(args[0]))
         args = []
     args = []
@@ -130,6 +136,7 @@ def uptime(at_command_time):
 def random_encounter(*args):
     encounter_value = 100
     encounter_dictionary = bestiary.choose_mob()
+    hit_location = 0
 
     if not args:
         random_character = ret_char(choice(get_active_list()))
@@ -141,43 +148,86 @@ def random_encounter(*args):
     while random_character == 'None':
         random_character = ret_char(str(choice(get_active_list())))
 
-    character_roll = (randint(
-        2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
-    mob_roll = (randint(2, 100) +
-                int(encounter_dictionary['ws'])) - random_character['toughness']
+    # character_roll = (randint(2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
+    # mob_roll = (randint(2, 100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
     # --------------------------------
     # BEGIN Random Encounter Rebuild
     # --------------------------------
 
-    # random_roll = randint(1,101)
-    # print("Random Roll: " + str(random_roll))
-    # print(random_character['name'] + ' weapon skill: ' + str(random_character['weapon_skill']))
-    # if random_roll <= random_character['weapon_skill']:
-    #     print("this would be a hit")
-    #     raises = int((random_character['weapon_skill'] - random_roll) / 5)
-    #     print("Degrees of success: " +str(raises))
-    #     if random_character['weapon'] == "Fists":
-    #         dmg = (int(random_character['strength']/10)-4) + raises
-    #         if dmg < 1:
-    #             dmg = 1
-    #         print("Damage would be (SB-4): " + str(dmg))
-    # else:
-    #     print("miss")
+    # --------------------------------
+    # WFRP Roll rules: Need to roll UNDER your WS/BS.  For each full
+    # 10% you beat your chance by, you achieve one degree of success.
+    # Roll to hit using percentile dice. Use Weapon Skill for melee
+    # attacks and Ballistic Skill for ranged attacks. If the player rolls
+    # equal to or less than the character’s Weapon Skill or Ballistic
+    # Skill (as appropriate), a hit is scored.
+    # --------------------------------
 
+    character_roll = (randint(2, 100))
+    character_ws = random_character['weapon_skill']
+
+    print(f'Character: {character_roll} : {character_ws}')
+    if character_roll > character_ws:
+        character_gos = -1
+    elif character_roll == character_ws:
+        character_gos = 0
+    else:
+        hit_location = str(character_roll)[::-1]
+        character_gos = math.floor((character_ws - character_roll) / 10)
+
+    mob_roll = (randint(2, 100))
+    mob_ws = int(encounter_dictionary['ws'])
+    print(f'Mob: {mob_roll} : {mob_ws}')
+    if mob_roll > mob_ws:
+        mob_gos = -1
+    elif mob_roll == mob_ws:
+        mob_gos = 0
+    else:
+        hit_location = str(mob_roll)[::-1]
+        mob_gos = math.floor((mob_ws - mob_roll) / 10)
+
+    # --------------------------------
+    # Determine Hit Location. If a hit is scored the player determines
+    # where the blow has landed. Take the attack roll, reverse the order
+    # of the percentile dice (an attack roll of 37, for example, would
+    # hit location 73), and consult the following chart:
+    # hIT loCaTIon
+    # % roll Location
+    # 01-15 Head, 16-35 Right Arm, 36-55 Left Arm, 56-80 Body, 81-90 Right Leg, 91-00 Left Leg
+    # --------------------------------
+    print(hit_location)
+    if len(str(hit_location)) == 0:
+        hit_location = hit_location * 10
+        
+    if int(hit_location) in range(0, 15):
+        hit = "head"
+    elif int(hit_location) in range(16, 35):
+        hit = "right arm"
+    elif int(hit_location) in range(36, 55):
+        hit = "left arm"
+    elif int(hit_location) in range(56, 80):
+        hit = "body"
+    elif int(hit_location) in range(81, 90):
+        hit = "right leg"
+    elif int(hit_location) in range(91, 100):
+        hit = "left leg"
+    else:
+        hit="Debug"
+
+    print(hit)
     # --------------------------------
     # END Random Encounter Rebuild
     # --------------------------------
 
-    if mob_roll > character_roll:
+    if mob_gos > character_gos:
         loser = random_character['name'].lower()
-    elif mob_roll == character_roll:
-        loser = 'either of them.  Beaten and bloodied they each run off to fight another day.'
+    elif mob_gos == character_gos and mob_gos != -1:
+        loser = 'Beaten and bloodied they each ran off to fight another day.'
     else:
         loser = encounter_dictionary['name'].lower()
         exp, gc = get_user_exp(random_character['name'].lower())
         encounter_value += exp
-
         c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
         conn.commit()
 
@@ -192,10 +242,15 @@ def random_encounter(*args):
     chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
         f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
         f'{random_character["name"]} readied their {random_character["weapon"]} against the ' \
-        f'{mob_weapon} of the {encounter_dictionary["name"]} the fight' \
-        f' did not end well for {loser}. {character_roll} vs {mob_roll}'
+        f'{mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
+    
+    if len(loser) > 15:
+        chatmessage2 = f'{loser}'
+    else:
+        chatmessage2 = f'{loser} was struck in the {hit} but managed to flee before a fatal blow was landed.'
+        # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
 
-    return chatmessage
+    return chatmessage, chatmessage2
 
 
 def shop(username, *args):
@@ -331,7 +386,7 @@ readbuffer = ''
 MODT = False
 init_mesage = ''
 slow = 'off'
-Send_message(social_ad())
+Send_message(social_ad(),"")
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
@@ -339,8 +394,7 @@ ad_iter = 0
 # Clear Currently playing file
 with open('songrequest\\current_song.txt', 'w') as cs:
     cs.write('')
-
-
+starttime = datetime.datetime.now()
 while Running == True:
 
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -354,15 +408,24 @@ while Running == True:
     for line in temp:
         # print(line)
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
-
         if ("PING :" in line):
             s.send(bytes("PONG\r\n", "UTF-8"))
+            currentTime = datetime.datetime.now()
+            secondsDelta = currentTime - starttime
+            print(secondsDelta.seconds / 60)
+            # print((currentTime - starttime) / 60)
+            # if (((currentTime - starttime) / 60) >= 5):
+            #     starttime = currentTime
             if ad_iter == 0:
-                Send_message(random_encounter())
+                sm1, sm2 = random_encounter()
+                Send_message(sm1)
+                Send_message(sm2)
                 # random_encounter()
                 ad_iter += 1
             elif ad_iter == 1:
-                Send_message(choice([social_ad(), random_encounter()]))
+                sm1, sm2 = choice([(social_ad(),""), random_encounter()])
+                Send_message(sm1)
+                Send_message(sm2)
                 ad_iter = 0
         else:
             # TODO botbody line 305, split on whitespace -
@@ -467,7 +530,9 @@ while Running == True:
                     if message[0] == '!':
                         if username != '':
                             # TODO Mod, Broadcaster, FOTS, VIP Commands.
-                            if username.lower() in ['rhyle_', 'ceacelion', 'commanderpulsar']:
+                            
+                            # Broadcaster
+                            if username.lower() in ['rhyle_']:
                                 if '!goaway' in message.lower():
                                     Send_message("Shutting down now.")
                                     Running = False
@@ -476,11 +541,6 @@ while Running == True:
                                         ' ')
                                     c.execute("insert into users values (:user , :status)", {'user': new_user.lower(), 'status': user_type})
                                     conn.commit()
-                                elif '!raid ' in message and len(message)>7:
-                                    chatmessage, username = message.split(" ")
-                                    chatmessage = c.execute("select action from commands where ex_command = ?",(chatmessage.strip(''),)).fetchone()[0]
-                                    Send_message(chatmessage, username)
-                                    continue
                                 elif message[0:8].lower() == '!deluser':
                                     command, new_user = message.split(' ')
                                     c.execute(
@@ -493,20 +553,12 @@ while Running == True:
                                             set status = ?
                                             where uname = ?""", (user_type, new_user.lower(),))
                                     conn.commit()
-                                elif "!givecrowns" in message:
-                                    ex_com, user, amount = message.split(' ')
-                                    gc_user = int(c.execute(
-                                        "select crowns from users where uname = ?", (user.lower(),)).fetchone()[0])
-                                    gc_user += int(amount)
-                                    c.execute(
-                                        "update users set crowns = ? where uname = ?", (gc_user, user.lower()))
-                                    conn.commit()
                                 elif message[0:4].lower() == '!rew':
                                     parts = message.split(' ', 3)
                                     parts += '' * (3 - len(parts))
                                     ex_com, viewer, amount = parts
                                     if '@' in viewer:
-                                        viewer.replace('@', '')
+                                        viewer.replace("@", "")
 
                                     rew_user = int(c.execute(
                                         "select exp from users where uname = ?", (viewer.lower(),)).fetchone()[0])
@@ -577,13 +629,6 @@ while Running == True:
                                                   {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
-                                elif ('!randomenc') in message.lower():
-                                    try:
-                                        ex_com, user = message.lower().split(' ')
-                                        Send_message(random_encounter(user))
-                                    except:
-                                        Send_message(random_encounter())
-                                    continue
                                 elif message.lower() == "!slow":
                                     if slow == "off":
                                         Send_message(
@@ -601,9 +646,40 @@ while Running == True:
                                             ("PRIVMSG #" + chan + " :.slowoff\r\n").encode('UTF-8'))
                                         slow = 'off'
                                         continue
-                                elif '!vip' in message.lower():
-                                    ex_com, user = message.lower().split(' ')
-                                    Send_message('/vip ' + user)
+                                elif '!raiderinfo ' in message:
+                                    chatmessage, username = message.replace('\r', '').split(' ')
+                                    print(myTwitch.get_raider_id(username))
+                                elif '!raid ' in message and len(message)>7:
+                                    chatmessage, username = message.split(" ")
+                                    chatmessage = c.execute("select action from commands where ex_command = ?",(chatmessage.strip(''),)).fetchone()[0]
+                                    Send_message(chatmessage, username)
+                                    chatmessage = c.execute("select action from commands where ex_command = '!raidcall'").fetchone()[0]
+                                    Send_message(chatmessage, username)
+                                    continue
+                                elif '!raidcall' in message:
+                                    chatmessage = message
+                                    chatmessage = c.execute("select action from commands where ex_command = ?", (chatmessage.strip('\r'),)).fetchone()[0]
+                                    Send_message(chatmessage, username)
+                                    continue
+                                elif "!givecrowns" in message:
+                                    ex_com, user, amount = message.split(' ')
+                                    gc_user = int(c.execute(
+                                        "select crowns from users where uname = ?", (user.lower(),)).fetchone()[0])
+                                    gc_user += int(amount)
+                                    c.execute(
+                                        "update users set crowns = ? where uname = ?", (gc_user, user.lower()))
+                                    conn.commit()
+                                elif '!randomenc' in message.lower():
+                                    try:
+                                        ex_com, user = message.lower().split(' ')
+                                        sm1, sm2 = random_encounter(user)
+                                        Send_message(sm1)
+                                        Send_message(sm2)
+                                    except:
+                                        sm1, sm2 = random_encounter()
+                                        Send_message(sm1)
+                                        Send_message(sm2)
+                                    continue
                                 elif '!join' in message.lower():
                                     ex_com, channel = message.split(' ')
                                     s.send(
@@ -620,19 +696,23 @@ while Running == True:
                                     s.send(
                                         bytes("PART #" + channel.lower() + "\r\n", 'UTF-8'))
                                 elif '!so ' in message.lower():
-                                    ex_com, user = message.split(' ')
+                                    ex_com, user = message.replace('\r', '').split(' ')
+                                    if ('@' in user):
+                                        user = user.replace("@", "")
                                     shoutout = [
-                                        f"Big shout out to {user.title()}!  Give them some love here and go follow their channel at https://www.twitch.tv/{user.lower()} so you can get updates when they go live!",
-                                        f"Go check out {user.title()} at https://www.twitch.tv/{user.lower()} and check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer.",
-                                        f"A wild {user.title()} has appeared, prepare for battle!"]
+                                        f"Big shout out to {user}! Give them some love here and go follow their channel at https://www.twitch.tv/{user.lower()} so you can get updates when they go live!",
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer.",
+                                        f"A wild {myTwitch.get_raider_id(user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})"]
                                     Send_message(choice(shoutout))
-                                elif '!hlso ' in message.lower():
-                                    ex_com, user = message.split(' ')
-                                    haunted_legion = [
-                                        f'You really should go check out @{user}.  They are a member of the Haunted Legion and one of the streamers that I enjoy watching.',
-                                        f'Oh no!  It\'s @{user} the Haunted Legion member!  They are probably here to haunt my stream!',
+                                elif '!lt3 ' in message.lower():
+                                    ex_com, user = message.replace('\r', '').split(' ')
+                                    if ('@' in user):
+                                        user = user.replace("@", "")
+                                    lessthan3 = [
+                                        f'You really should go check out {user} sometime (https://www.twitch.tv/{user.lower()}). They are a member of the Less than 3 streaming community and one of the streamers that I enjoy watching.',
+                                        f'Oooh, look its {user}! Show them some love and kindness in the chat! Also check out their page at (https://www.twitch.tv/{user.lower()})'
                                     ]
-                                    Send_message(choice(haunted_legion))
+                                    Send_message(choice(lessthan3))
                                 elif '!st ' in message.lower():
                                     ex_com, tweet = message.split(' ', 1)
                                     if len(tweet) <= 280:
@@ -665,8 +745,7 @@ while Running == True:
                                         ', ')
                                     ex_com, command = command.split(' ')
                                     command = '!' + command
-                                    c.execute("update commands set action = :action where ex_command = :command",
-                                              {'command': command, 'target': target, 'action': action.lstrip(' ')})
+                                    c.execute("update commands set action = :action where ex_command = :command", {'command': command, 'target': target, 'action': action.lstrip(' ')})
                                     conn.commit()
                                     Send_message(
                                         "Command " + command + " has been updated.")
@@ -816,16 +895,11 @@ while Running == True:
                                                     f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
                                                     f"This is a generic assigned character.  You can !permadeath and then !char " \
                                                     f"in order to get one that is not a Human Peasant." \
-                                                    f"Current available Exp: {cxp} Purse: {crowns}" \
+                                                    f"Current available Exp: {cxp} Crown Purse: {crowns}" \
 
                                                 Send_message(
                                                     f"/w {build_whisper}")
                                             else:
-                                                # chatmessage = f"{username} is {article} " \
-                                                #     f"{str(gchar_dict['race']).capitalize()} {gchar_dict['prof']}"
-
-                                                # print(*gchar_dict, sep='\n')
-
                                                 build_whisper = f"{username} {username} is {article}" \
                                                     f"{str(gchar_dict['race']).capitalize()} " \
                                                     f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
@@ -835,7 +909,7 @@ while Running == True:
                                                     f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                     f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
                                                     f" upgrade either you can (!)shop to spend your crowns to purchase new weapons" \
-                                                    f" and armor.  Current available Exp: {cxp} Purse: {crowns}"
+                                                    f" and armor.  Current available Exp: {cxp} Crown Purse: {crowns}"
 
                                                 Send_message(
                                                     f"/w {build_whisper}")

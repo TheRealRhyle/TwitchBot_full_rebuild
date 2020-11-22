@@ -91,23 +91,15 @@ def get_chatters():
         time.sleep(1)
 
 def social_ad():
-    ads = ["Find me on twitter to get stream updates and notifications when I go live! @rhyle_ twitter.com/rhyle_",
+    ads = ['Find me on twitter to get stream updates and notifications when I go live! @rhyle_ twitter.com/rhyle_',
     'You can join the discord server here discord.gg/qEsfAJS',
     'You can find my steam profile at this link steamcommunity.com/id/Rhyle/games/',
-    'I am currently working on a semi-interactive chat based role playing game. The ' \
-        'core ruleset is from and old pen and paper table top game called Warhammer ' \
-        'Fantasy Roleplay. The game will be a stripped down and modified version of ' \
-        'the rules because I do not want to be C&Dd by Games-Workshop or Fantasy ' \
-        'Flight. Game commands !game !char !permadeath !retire !changerace',
-    'If you\'re familiar with python and want to offer some suggestions I have a ' \
-        'trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing' \
-        '-rhylebot', 
-    "The current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild " \
-        "if I am not streaming then it should be up to date always check my chat or " \
-        "join my !discord for up to the commit information",
-    "Don't forget that you can link your Twitch account to your Amazon prime account "\
-        "and sub to your favorite streamers for free once a month!  Here's the link for" \
-        " more info twitch.amazon.com/prime"]
+    'I am currently working on a semi-interactive chat based role playing game. The core ruleset is from and old pen and paper table top game called Warhammer Fantasy Roleplay. The game will be a stripped down and modified version of the rules because I do not want to be C&Dd by Games-Workshop or Fantasy Flight. Game commands !game !char !permadeath !retire !changerace',
+    'If you\'re familiar with python and want to offer some suggestions I have a trello board setup for this bot at https://trello.com/b/CyeWbpNT/existing-rhylebot', 
+    'The current project is here https://github.com/TheRealRhyle/TwitchBot_full_rebuild if I am not streaming then it should be up to date always check my chat or join my !discord for up to the commit information',
+    'Don\'t forget that you can link your Twitch account to your Amazon prime account and sub to your favorite streamers for free once a month! Here\'s the link for more info twitch.amazon.com/prime',
+    'Please remember that Twitch doesn\'t count a view if you have the video paused or the sound muted. If you came all this way to show some support, why not make sure it counts? If you don\'t want the sound on try muting the tab itself instead of the vid. All of your love and support is always appreciated!'
+    ]
     return random.choice(ads)
 
 if __name__ == "__main__":

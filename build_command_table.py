@@ -1,4 +1,6 @@
 import sqlite3
+import ast
+import random
 
 global conn
 global c
@@ -29,10 +31,10 @@ c = conn.cursor()
 
 # c.execute("""delete from users where uname = 'zangeru13'""")
 # conn.commit()
-if (c.execute("""select gchar from users where uname='rhyle_'""").fetchone() == ("",)):
-    print("not")
-else:
-    print(c.execute("""select gchar from users where uname='rhyle_'""").fetchone())
+# if (c.execute("""select gchar from users where uname='rhyle_'""").fetchone() == ("",)):
+#     print("not")
+# else:
+#     print(c.execute("""select gchar from users where uname='rhyle_'""").fetchone())
 
 # ulist = c.execute("""select * from users""").fetchall()
 # print(ulist)
@@ -78,3 +80,14 @@ else:
 #
 # print(command_count)
 #
+with open('beastdict.txt', 'r') as f:
+    main_dict = f.read()
+    main_dict = ast.literal_eval(main_dict)
+
+
+for key in main_dict:
+    # c.execute("""insert into users values ('Zangeru13','fots')""")
+    # print((str(main_dict[key])))
+    # print(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
+    c.execute(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
+    conn.commit()
