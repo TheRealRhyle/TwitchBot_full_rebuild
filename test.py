@@ -1,3 +1,6 @@
-x = 43
+x = ["apple", "orange", "car"]
 
-print(str(x)[::-1])
+print(", ".join(x))
+
+
+apple, orange, car

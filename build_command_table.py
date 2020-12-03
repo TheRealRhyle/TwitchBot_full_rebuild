@@ -17,6 +17,10 @@ c = conn.cursor()
 # ('subs', []) - custom
 # ('fots', []) - custom
 
+
+viewer = '13thfaerie'
+print(c.execute("select exp from users where uname = ?", (viewer.lower(),)).fetchone()[0])
+
 # c.execute("""create table users (
 #                 uname text,
 #                 status text)""")
@@ -80,14 +84,14 @@ c = conn.cursor()
 #
 # print(command_count)
 #
-with open('beastdict.txt', 'r') as f:
-    main_dict = f.read()
-    main_dict = ast.literal_eval(main_dict)
+# with open('beastdict.txt', 'r') as f:
+#     main_dict = f.read()
+#     main_dict = ast.literal_eval(main_dict)
 
 
-for key in main_dict:
-    # c.execute("""insert into users values ('Zangeru13','fots')""")
-    # print((str(main_dict[key])))
-    # print(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
-    c.execute(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
-    conn.commit()
+# for key in main_dict:
+#     # c.execute("""insert into users values ('Zangeru13','fots')""")
+#     # print((str(main_dict[key])))
+#     # print(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
+#     c.execute(f"""insert into mobs values ("{str(key).lower()}","{str(main_dict[key])}")""")
+#     conn.commit()
