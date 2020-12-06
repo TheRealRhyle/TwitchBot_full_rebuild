@@ -1,14 +1,14 @@
-from random import randint
-from random import choice
+from random import randint, choice
 import math
 import ast
 import socket
 import json
+from urllib import request
+import datetime
+import time
+
 import loader
 import tcChargen
-from urllib import request
-import time
-import datetime
 from chattodb import social_ad, get_active_list
 import bestiary
 import twitter
@@ -167,7 +167,7 @@ def random_encounter(*args):
     character_roll = (randint(2, 100))
     character_ws = random_character['weapon_skill']
 
-    print(f'Character: {character_roll} : {character_ws}')
+    print(f'Character: {character_ws} : {character_roll}')
     if character_roll > character_ws:
         character_gos = -1
     elif character_roll == character_ws:
@@ -178,7 +178,7 @@ def random_encounter(*args):
 
     mob_roll = (randint(2, 100))
     mob_ws = int(encounter_dictionary['ws'])
-    print(f'Mob: {mob_roll} : {mob_ws}')
+    print(f'Mob: {mob_ws}:{mob_roll}')
     if mob_roll > mob_ws:
         mob_gos = -1
     elif mob_roll == mob_ws:
@@ -196,7 +196,7 @@ def random_encounter(*args):
     # % roll Location
     # 01-15 Head, 16-35 Right Arm, 36-55 Left Arm, 56-80 Body, 81-90 Right Leg, 91-00 Left Leg
     # --------------------------------
-    print(hit_location)
+    print("hit location: " + str(hit_location))
     if len(str(hit_location)) == 0:
         hit_location = hit_location * 10
         
@@ -215,7 +215,7 @@ def random_encounter(*args):
     else:
         hit="Debug"
 
-    print(hit)
+    print("Hit: " + hit)
     # --------------------------------
     # END Random Encounter Rebuild
     # --------------------------------
@@ -247,9 +247,11 @@ def random_encounter(*args):
     if len(loser) > 15:
         chatmessage2 = f'{loser}'
     else:
-        chatmessage2 = f'{loser} was struck in the {hit} but managed to flee before a fatal blow was landed.'
+        lossmessage = [f'{loser} was struck in the {hit} but managed to flee before a fatal blow was landed.',
+            f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
+        chatmessage2 = choice(lossmessage)
         # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
-
+    
     return chatmessage, chatmessage2
 
 
@@ -390,11 +392,13 @@ Send_message(social_ad(),"")
 bot_start = datetime.datetime.now().replace(microsecond=0)
 pvp = {}
 ad_iter = 0
+autoShoutOut = ['rhyle_', 'rhyle_bot']
 
 # Clear Currently playing file
 with open('songrequest\\current_song.txt', 'w') as cs:
     cs.write('')
 starttime = datetime.datetime.now()
+
 while Running == True:
 
     readbuffer = s.recv(1024).decode("UTF-8")
@@ -527,6 +531,16 @@ while Running == True:
                     #         # Send_message("/timeout " + username + " 1")
 
                     # Command processing
+                    if username.lower() in get_elevated_users(chan) and username not in autoShoutOut:
+                        shoutout = [
+                            f"Big shout out to {username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
+                            f"Go check out {username} they were last streaming {myTwitch.get_raider_id(username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
+                            f"A wild {myTwitch.get_raider_id(username)} has appeared, prepare for battle! {username}, I choose you! (https://www.twitch.tv/{username.lower()})",
+                            f"According to @13thfaerie: 'potato' which I think means: go check out {username}, last streaming: {myTwitch.get_raider_id(username)}. (https://www.twitch.tv/{username.lower()})"]
+                        Send_message(choice(shoutout))
+                        autoShoutOut.append(username)
+                                
+
                     if message[0] == '!':
                         if username != '':
                             # TODO Mod, Broadcaster, FOTS, VIP Commands.
@@ -930,16 +944,19 @@ while Running == True:
                                         f"It looks like we've lost {username} to the twitch void. Hopefully they will find their way back soon!",
                                         f"Seems like {username} has gone off to take care of.... business.",
                                         f"{username} has been eliminated by IOI-655321",
-                                        "Thats no moon!", "ITS A TRAP!", f"{username.title()} left for the greater unknown",
-                                        f"{username.upper()} DID YOU PUT YOUR NAME IN THE HOT CUP?", f"{username.capitalize()} when someone asks if you're a god you say yes.",
-                                        "Well that certainly illustrates the diversity of the word."
+                                        "Thats no moon!",
+                                        "ITS A TRAP!",
+                                        f"{username.title()} left for the greater unknown",
+                                        f"{username.upper()} DID YOU PUT YOUR NAME IN THE HOT CUP?",
+                                        f"{username.title()} when someone asks if you're a god you say yes.",
+                                        "'Well that certainly illustrates the diversity of the word.' - Connor",
+                                        "'IM MAKIN WAFFLES!!!' - Donkey"
                                     ]
                                     chatmessage = choice(lurk_message)
                                 elif "!ban" in message.lower():
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                         "good member of the community and has requested to be banned."
-                                    Send_message(
-                                        "/ban " + username + " Self exile")
+                                    Send_message("/ban " + username + " Self exile")
                                 elif "!change" in message.lower():
                                     try:
                                         ex_com, race = message.strip('\r').split(" ")

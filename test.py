@@ -1,6 +1,9 @@
+
+from random import randint as random
+
 x = ["apple", "orange", "car"]
 
 print(", ".join(x))
 
 
-apple, orange, car
+print(random(1,100))

@@ -1,8 +1,6 @@
 import os
 import sqlite3
-
 import installer
-
 
 def loaddb():
     conn = sqlite3.connect("dxchatbot.db")
