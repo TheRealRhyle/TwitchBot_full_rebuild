@@ -7,7 +7,7 @@ import schedule
 from time import sleep
 import socket
 import random
-import tcChargen
+from wfrpgame import tcChargen
 
 global c
 conn = sqlite3.connect("dxchatbot.db")

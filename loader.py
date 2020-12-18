@@ -41,7 +41,7 @@ def loading_seq():
     conn = sqlite3.connect("dxchatbot.db")
     c = conn.cursor()
     lst = c.execute("select * from streamer").fetchall()
-    varsx = ['chathost', 'botnick', 'port', 'pwd','readbuffer']
+    varsx = ['chathost', 'botnick', 'port', 'pwd','readbuffer', 'ClientID', 'Token']
     lst = list(lst[0])
     dictaf = dict(zip(varsx, lst))
 

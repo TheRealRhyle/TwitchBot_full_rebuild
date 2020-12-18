@@ -8,13 +8,13 @@ import datetime
 import time
 
 import loader
-import tcChargen
+from wfrpgame import tcChargen, bestiary
+from utils import twitter
 from chattodb import social_ad, get_active_list
-import bestiary
-import twitter
 import myTwitch
 # import song_request
 # import playlist_maker
+
 
 
 # Method for sending a message
@@ -226,7 +226,7 @@ def random_encounter(*args):
         loser = 'Beaten and bloodied they each ran off to fight another day.'
     else:
         loser = encounter_dictionary['name'].lower()
-        exp, gc = get_user_exp(random_character['name'].lower())
+        exp, _ = get_user_exp(random_character['name'].lower())
         encounter_value += exp
         c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
         conn.commit()
@@ -256,7 +256,7 @@ def random_encounter(*args):
 
 
 def shop(username, *args):
-    import itemlist
+    from wfrpgame import itemlist
     shoplist = itemlist.load_shop()
     shop_items = []
     shop_message = ''
@@ -273,7 +273,7 @@ def shop(username, *args):
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
     elif 'buy' in args[0].lower():
         shopper = ret_char(username)
-        shopper_xp, shopper_purse = get_user_exp(username)
+        _, shopper_purse = get_user_exp(username)
         print(len(args))
         if len(args) != 2:
             shop_message = "I'm sorry, I didn't understand that, please try again."
@@ -312,6 +312,7 @@ def shop(username, *args):
 
 
 def level_up(username, stat):
+    gchar_dict = None
     if stat.lower().replace('\r\n', '') == 'ws':
         stat = 'weapon_skill'
     elif stat.lower().replace('\r\n', '') == "bs":
@@ -358,7 +359,7 @@ conn, c = loader.loading_seq()
 # get connection info from db
 streamr = c.execute('select * from streamer').fetchall()
 streamr = list(streamr[0])
-host, nick, port, oauth, readbuffer = streamr
+host, nick, port, oauth, readbuffer, ClientID, Token = streamr
 TLD = ['.com', '.org', '.net', '.int', '.edu', '.gov', '.mil', '.arpa', '.top', '.loan',
        '.xyz', '.club', '.online', '.vip', '.win', '.shop', '.ltd', '.men', '.site',
        '.work', '.stream', '.bid', '.wang', '.app', '.review', '.space', '.ooo',
@@ -405,9 +406,9 @@ while Running == True:
     temp = str(readbuffer).split("\n")
     readbuffer = temp.pop()
 
-    # TODO Get user list
-    # TODO Async
-    # TODO API
+    # TODO: Get user list
+    # TODO: Async
+    # TODO: API
 
     for line in temp:
         # print(line)
@@ -432,7 +433,7 @@ while Running == True:
                 Send_message(sm2)
                 ad_iter = 0
         else:
-            # TODO botbody line 305, split on whitespace -
+            # TODO: botbody line 305, split on whitespace -
             # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace#
             # parts = line.split(" ", 1)
             # print(line)
@@ -455,6 +456,7 @@ while Running == True:
             # print("Parts = " + str(parts))
 
             if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1] and "PING" not in parts[0]:
+                message = None
                 try:
                     # Sets the message variable to the actual message sent
                     message = ': '.join(parts[2:])
@@ -499,7 +501,7 @@ while Running == True:
                     # print(message)
                     # if username == '':
                     #     print('Ping:Pong')
-
+                    
                     userfetch = c.execute(
                         "select * from users where uname = ?", (username.lower(),)).fetchall()
                     try:
@@ -517,7 +519,7 @@ while Running == True:
                     if message.lower() == '':
                         continue
 
-                    # TODO Setup some better handling / identification for link handling.
+                    # TODO: Setup some better handling / identification for link handling.
                     # Link detection and timeout
                     # if any(ext in message for ext in TLD):
                     #     print("Line 457: " + str(message))
@@ -534,16 +536,16 @@ while Running == True:
                     if username.lower() in get_elevated_users(chan) and username not in autoShoutOut:
                         shoutout = [
                             f"Big shout out to {username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
-                            f"Go check out {username} they were last streaming {myTwitch.get_raider_id(username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
-                            f"A wild {myTwitch.get_raider_id(username)} has appeared, prepare for battle! {username}, I choose you! (https://www.twitch.tv/{username.lower()})",
-                            f"According to @13thfaerie: 'potato' which I think means: go check out {username}, last streaming: {myTwitch.get_raider_id(username)}. (https://www.twitch.tv/{username.lower()})"]
+                            f"Go check out {username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
+                            f"A wild {myTwitch.get_raider_id(ClientID, oauth, username)} has appeared, prepare for battle! {username}, I choose you! (https://www.twitch.tv/{username.lower()})",
+                            f"According to @13thfaerie: 'potato' which I think means: go check out {username}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, username)}. (https://www.twitch.tv/{username.lower()})"]
                         Send_message(choice(shoutout))
                         autoShoutOut.append(username)
                                 
 
                     if message[0] == '!':
                         if username != '':
-                            # TODO Mod, Broadcaster, FOTS, VIP Commands.
+                            # TODO: Mod, Broadcaster, FOTS, VIP Commands.
                             
                             # Broadcaster
                             if username.lower() in ['rhyle_']:
@@ -586,7 +588,7 @@ while Running == True:
                                         continue
                                 elif '!raiderinfo ' in message:
                                     chatmessage, username = message.replace('\r', '').split(' ')
-                                    print(myTwitch.get_raider_id(username))
+                                    print(myTwitch.get_raider_id(ClientID, oauth, username))
                                 elif '!raid ' in message and len(message)>7:
                                     chatmessage, username = message.split(" ")
                                     chatmessage = c.execute("select action from commands where ex_command = ?",(chatmessage.strip(''),)).fetchone()[0]
@@ -609,7 +611,7 @@ while Running == True:
                                         bytes("JOIN #" + channel.lower() + "\r\n", 'UTF-8'))
                                     time.sleep(1)
                                     s.send(
-                                        ("PRIVMSG #" + channel.lower() + " :Just testing, dont Hz me\r\n").encode('UTF-8'))
+                                        ("PRIVMSG #" + channel.lower() + " :Just testing, don't Hz me\r\n").encode('UTF-8'))
                                 elif '!part' in message.lower():
                                     ex_com, channel = message.split(' ')
                                     message = "Fine, I'm leaving."
@@ -624,7 +626,7 @@ while Running == True:
                                         user = user.replace("@", "")
                                     lessthan3 = [
                                         f'You really should go check out {user} sometime (https://www.twitch.tv/{user.lower()}). They are a member of the Less than 3 streaming community and one of the streamers that I enjoy watching.',
-                                        f'Oooh, look its {user}! Show them some love and kindness in the chat! Also check out their page at (https://www.twitch.tv/{user.lower()})'
+                                        f'Ooh, look its {user}! Show them some love and kindness in the chat! Also check out their page at (https://www.twitch.tv/{user.lower()})'
                                     ]
                                     Send_message(choice(lessthan3))
                                 elif '!st ' in message.lower():
@@ -637,9 +639,9 @@ while Running == True:
                                             "Sorry boss, that tweet is too long.")
                                 elif '!title ' in message.lower():
                                     ex_com, update_info = message.split(' ', 1)
-                                    myTwitch.update_twitch(update_info)
+                                    myTwitch.update_twitch(ClientID, oauth, update_info)
                                 elif '!testing1' in message.lower():
-                                    myTwitch.get_status()
+                                    myTwitch.get_status(ClientID, oauth)
                                 elif message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -671,7 +673,7 @@ while Running == True:
                                     Send_message(
                                         "Command " + command + " has been removed.")
                                 elif message[0:4].lower() == '!mtc':
-                                    # no longer give credit to the toher streamers.
+                                    # no longer give credit to the other streamers.
                                     parts = message.split(' ')
                                     ex_com, strm1, strm2, strm3, strm4 = [
                                         parts[i] if i < len(parts) else None for i in range(5)]
@@ -719,9 +721,9 @@ while Running == True:
                                         user = user.replace("@", "")
                                     shoutout = [
                                         f"Big shout out to {user}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{user.lower()})",
-                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
-                                        f"A wild {myTwitch.get_raider_id(user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
-                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(user)}. (https://www.twitch.tv/{user.lower()})"]
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
+                                        f"A wild {myTwitch.get_raider_id(ClientID, oauth, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
+                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, user)}. (https://www.twitch.tv/{user.lower()})"]
                                     Send_message(choice(shoutout))
                                 elif '!randomenc' in message.lower():
                                     try:
@@ -820,7 +822,7 @@ while Running == True:
                                     Send_message(
                                         "Command " + command + " has been removed.")
                                 elif message[0:4].lower() == '!mtc':
-                                    # no longer give credit to the toher streamers.
+                                    # no longer give credit to the other streamers.
                                     parts = message.split(' ')
                                     ex_com, strm1, strm2, strm3, strm4 = [
                                         parts[i] if i < len(parts) else None for i in range(5)]
@@ -868,9 +870,9 @@ while Running == True:
                                         user = user.replace("@", "")
                                     shoutout = [
                                         f"Big shout out to {user}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{user.lower()})",
-                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
-                                        f"A wild {myTwitch.get_raider_id(user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
-                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(user)}. (https://www.twitch.tv/{user.lower()})"]
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
+                                        f"A wild {myTwitch.get_raider_id(ClientID, oauth, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
+                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, user)}. (https://www.twitch.tv/{user.lower()})"]
                                     Send_message(choice(shoutout))
                                 elif '!randomenc' in message.lower():
                                     try:
@@ -924,16 +926,15 @@ while Running == True:
                                     else:
                                         multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
 
-                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " " \
-                                             "or you can access kadgar at http://kadgar.net/live/" + multi
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " "                                              "or you can access kadgar at http://kadgar.net/live/" + multi
 
                                     if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
                                         c.execute("update commands set action = :action where ex_command = :command",
-                                                  {'command': command, 'action': action})
+                                                {'command': command, 'action': action})
                                         conn.commit()
                                     else:
                                         c.execute("insert into commands values (:command, :target, :action)",
-                                                  {'command': command, 'target': target, 'action': action})
+                                                {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
                                 
@@ -944,18 +945,14 @@ while Running == True:
                                         f"It looks like we've lost {username} to the twitch void. Hopefully they will find their way back soon!",
                                         f"Seems like {username} has gone off to take care of.... business.",
                                         f"{username} has been eliminated by IOI-655321",
-                                        "Thats no moon!",
-                                        "ITS A TRAP!",
                                         f"{username.title()} left for the greater unknown",
-                                        f"{username.upper()} DID YOU PUT YOUR NAME IN THE HOT CUP?",
-                                        f"{username.title()} when someone asks if you're a god you say yes.",
-                                        "'Well that certainly illustrates the diversity of the word.' - Connor",
-                                        "'IM MAKIN WAFFLES!!!' - Donkey"
+                                        f"{username.upper()} DID YOU PUT YOUR NAME IN THE CHALICE OF BURNING?",
+                                        f"{username.title()} when someone asks if you're a god you say yes."
                                     ]
                                     chatmessage = choice(lurk_message)
                                 elif "!ban" in message.lower():
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
-                                        "good member of the community and has requested to be banned."
+                                        "productive member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
                                 elif "!change" in message.lower():
                                     try:
@@ -1117,6 +1114,39 @@ while Running == True:
                                     except:
                                         chatmessage = "Hello " + username + ", this command is being worked on at the " \
                                             "moment, please check back soon(tm)."
+                                elif message[0:11].lower() == "!challenge ":
+                                    amount = None
+                                    try:
+                                        ex_com, target, amount = message.split(
+                                            ' ')
+                                        target = target.lower()
+                                        if '@' in target:
+                                            target = target.replace('@', '')
+                                    except ValueError:
+                                        Send_message(f'Blast! {username} the proper command is !challenge >target< >risk amount<')
+                                        continue
+
+                                    cxp = get_user_exp(username)
+                                    challenger = ret_char(username)
+                                    victim = ret_char(target)
+
+                                    absolute_amount = int(amount)
+                                    absolute_amount = abs(absolute_amount)
+
+                                    if target == username:
+                                        chatmessage = f"Nice try {username}, you can beat yourself on your own time."
+                                    elif victim == 'None' or challenger == 'None':
+                                        chatmessage = f'Sorry {username}, either you or {target} do not currently ' \
+                                            f'have characters for the game. You can use the command !char to either ' \
+                                            f'generate one or get your current character info whispered to you.'
+                                    elif absolute_amount > int(cxp[0]):
+                                        chatmessage = f"{username} attempting to wager more exp than you have is " \
+                                            f"not allowed. You may risk only the exp you've earned."
+                                    else:
+                                        chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
+                                            f' can take you down.  If you want to accept the fight type !accept or you can !decline.'
+                                        pvp[(f'{username.lower()}', f'{time.time()}')] = (
+                                            f'{target.lower()}', amount)
                                 elif "!accept" in message.lower():
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
@@ -1170,38 +1200,7 @@ while Running == True:
                                         "amount  Please not that you may not challenge for an amount more than your " \
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
-                                elif message[0:11].lower() == "!challenge ":
-                                    try:
-                                        ex_com, target, amount = message.split(
-                                            ' ')
-                                        target = target.lower()
-                                        if '@' in target:
-                                            target = target.replace('@', '')
-                                    except ValueError:
-                                        Send_message(f'Blast! {username} the proper command is !challenge >target< >risk amount<')
-                                        continue
-
-                                    cxp = get_user_exp(username)
-                                    challenger = ret_char(username)
-                                    victim = ret_char(target)
-
-                                    absolute_amount = int(amount)
-                                    absolute_amount = abs(absolute_amount)
-
-                                    if target == username:
-                                        chatmessage = f"Nice try {username}, you can beat yourself on your own time."
-                                    elif victim == 'None' or challenger == 'None':
-                                        chatmessage = f'Sorry {username}, either you or {target} do not currently ' \
-                                            f'have characters for the game. You can use the command !char to either ' \
-                                            f'generate one or get your current character info whispered to you.'
-                                    elif absolute_amount > int(cxp[0]):
-                                        chatmessage = f"{username} attempting to wager more exp than you have is " \
-                                            f"not allowed. You may risk only the exp you've earned."
-                                    else:
-                                        chatmessage = f'hey @{target}, {username} has wagered {str(absolute_amount)} exp that they' \
-                                            f' can take you down.  If you want to accept the fight type !accept or you can !decline.'
-                                        pvp[(f'{username.lower()}', f'{time.time()}')] = (
-                                            f'{target.lower()}', amount)
+                                
                                 elif message.lower() == "!uptime":
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
