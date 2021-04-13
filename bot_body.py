@@ -210,7 +210,7 @@ def random_encounter(*args):
         hit = "body"
     elif int(hit_location) in range(81, 90):
         hit = "right leg"
-    elif int(hit_location) in range(91, 100):
+    elif int(hit_location) in range(91, 101):
         hit = "left leg"
     else:
         hit="Debug"
@@ -640,8 +640,14 @@ while Running == True:
                                 elif '!title ' in message.lower():
                                     ex_com, update_info = message.split(' ', 1)
                                     myTwitch.update_twitch(ClientID, oauth, update_info)
-                                elif '!testing1' in message.lower():
-                                    myTwitch.get_status(ClientID, oauth)
+                                elif '!beanlist' in message.lower():
+                                    ex_com, poopie_head, bean = message.split(' ')
+                                    try:
+                                        poopie_head = poopie_head.replace("@","")
+                                    except:
+                                        pass
+                                    with open ("F:\Google Drive\Stream Assets\Bean list.txt", "a") as bean_list:
+                                        bean_list.write(f'{poopie_head}: {bean}\n')
                                 elif message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -789,6 +795,20 @@ while Running == True:
                                                   {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
+                                elif '!ded' in message.lower():
+                                    with open("F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                        lines = cfile.readlines()
+                                        cfile.seek(0)
+                                        cfile.truncate()
+                                        for line in lines:
+                                            if "Death Counter:" in line:
+                                                you_died = line.split(": ")
+                                                you_died = int(you_died[1])
+                                                you_died += 1
+                                                line = f"Death Counter: {you_died}"
+                                            cfile.write(line)
+                                        
+
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -937,8 +957,22 @@ while Running == True:
                                                 {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
-                                
-                            if message[:3].lower() not in ('!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                                elif '!ded' in message.lower():
+                                    with open("F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                        lines = cfile.readlines()
+                                        cfile.seek(0)
+                                        cfile.truncate()
+                                        for line in lines:
+                                            if "Death Counter:" in line:
+                                                you_died = line.split(": ")
+                                                you_died = int(you_died[1])
+                                                you_died += 1
+                                                line = f"Death Counter: {you_died}"
+                                            cfile.write(line)
+                                        
+
+
+                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
