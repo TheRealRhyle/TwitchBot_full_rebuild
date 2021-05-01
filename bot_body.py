@@ -431,6 +431,8 @@ while Running == True:
                 sm1, sm2 = choice([(social_ad(),""), random_encounter()])
                 Send_message(sm1)
                 Send_message(sm2)
+                ad_iter += 1
+            elif ad_iter == 2:
                 ad_iter = 0
         else:
             # TODO: botbody line 305, split on whitespace -
@@ -535,10 +537,10 @@ while Running == True:
                     # Command processing
                     if username.lower() in get_elevated_users(chan) and username not in autoShoutOut:
                         shoutout = [
-                            f"Big shout out to {username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
-                            f"Go check out {username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
-                            f"A wild {myTwitch.get_raider_id(ClientID, oauth, username)} has appeared, prepare for battle! {username}, I choose you! (https://www.twitch.tv/{username.lower()})",
-                            f"According to @13thfaerie: 'potato' which I think means: go check out {username}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, username)}. (https://www.twitch.tv/{username.lower()})"]
+                            f"Big shout out to @{username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
+                            f"Go check out @{username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
+                            f"A wild {myTwitch.get_raider_id(ClientID, oauth, username)} has appeared, prepare for battle! @{username}, I choose you! (https://www.twitch.tv/{username.lower()})",
+                            f"According to @13thfaerie: 'potato' which I think means: go check out @{username}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, username)}. (https://www.twitch.tv/{username.lower()})"]
                         Send_message(choice(shoutout))
                         autoShoutOut.append(username)
                                 
