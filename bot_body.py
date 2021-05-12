@@ -136,7 +136,8 @@ def uptime(at_command_time):
 def random_encounter(*args):
     encounter_value = 100
     encounter_dictionary = bestiary.choose_mob()
-    hit_location = 0
+    hit_location, c_hit_location, m_hit_location = 0, 0, 0
+    loser = ''
 
     if not args:
         random_character = ret_char(choice(get_active_list()))
@@ -173,8 +174,9 @@ def random_encounter(*args):
     elif character_roll == character_ws:
         character_gos = 0
     else:
-        hit_location = str(character_roll)[::-1]
+        c_hit_location = str(character_roll)[::-1]
         character_gos = math.floor((character_ws - character_roll) / 10)
+    print(f'Character Successes: {character_gos}')
 
     mob_roll = (randint(2, 100))
     mob_ws = int(encounter_dictionary['ws'])
@@ -184,8 +186,28 @@ def random_encounter(*args):
     elif mob_roll == mob_ws:
         mob_gos = 0
     else:
-        hit_location = str(mob_roll)[::-1]
+        m_hit_location = str(mob_roll)[::-1]
         mob_gos = math.floor((mob_ws - mob_roll) / 10)
+    print(f'Monster Successes: {mob_gos}')
+
+    if (character_gos > mob_gos) and (character_gos >= 0):
+        hit_location = c_hit_location
+        loser = encounter_dictionary['name'].lower()
+        exp, _ = get_user_exp(random_character['name'].lower())
+        encounter_value += exp
+        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+        conn.commit()
+        print('Point: Character!')
+    elif (character_gos == mob_gos) and (character_gos >= 0):
+        hit_location = c_hit_location
+        loser = 'Beaten and bloodied they each ran off to fight another day.'
+        print('Point: Both!')
+    elif (character_gos < mob_gos) and (mob_gos >= 0):
+        hit_location = m_hit_location
+        loser = random_character['name'].lower()
+        print('Point: Mob!')
+    else:
+        print("BOTH MISS")
 
     # --------------------------------
     # Determine Hit Location. If a hit is scored the player determines
@@ -220,16 +242,16 @@ def random_encounter(*args):
     # END Random Encounter Rebuild
     # --------------------------------
 
-    if mob_gos > character_gos:
-        loser = random_character['name'].lower()
-    elif mob_gos == character_gos and mob_gos != -1:
-        loser = 'Beaten and bloodied they each ran off to fight another day.'
-    else:
-        loser = encounter_dictionary['name'].lower()
-        exp, _ = get_user_exp(random_character['name'].lower())
-        encounter_value += exp
-        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
-        conn.commit()
+    # if mob_gos > character_gos:
+    #     loser = random_character['name'].lower()
+    # elif mob_gos == character_gos and mob_gos != -1:
+    #     loser = 'Beaten and bloodied they each ran off to fight another day.'
+    # else:
+    #     loser = encounter_dictionary['name'].lower()
+    #     exp, _ = get_user_exp(random_character['name'].lower())
+    #     encounter_value += exp
+    #     c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+    #     conn.commit()
 
     adj = choice(["walking", "running", "riding"])
     location = choice(["forest", "town", "desert"])
@@ -244,10 +266,12 @@ def random_encounter(*args):
         f'{random_character["name"]} readied their {random_character["weapon"]} against the ' \
         f'{mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
     
-    if len(loser) > 15:
+    if len(loser) > 17:
         chatmessage2 = f'{loser}'
     else:
-        lossmessage = [f'{loser} was struck in the {hit} but managed to flee before a fatal blow was landed.',
+        if (loser != random_character["name"]):
+            loser = "the " + loser
+        lossmessage = [f'{loser.title()} was struck in the {hit} but managed to flee before a fatal blow was landed.',
             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         chatmessage2 = choice(lossmessage)
         # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
@@ -643,13 +667,20 @@ while Running == True:
                                     ex_com, update_info = message.split(' ', 1)
                                     myTwitch.update_twitch(ClientID, oauth, update_info)
                                 elif '!beanlist' in message.lower():
-                                    ex_com, poopie_head, bean = message.split(' ')
+                                    try:
+                                        ex_com, poopie_head, bean = message.split(' ')
+                                    except:
+                                        with open("F:\Google Drive\Stream Assets\Bean list.txt", "r") as bean_list:
+                                            lines = bean_list.readlines()
+                                            for line in lines:
+                                                print(line)
                                     try:
                                         poopie_head = poopie_head.replace("@","")
+                                        with open ("F:\Google Drive\Stream Assets\Bean list.txt", "a") as bean_list:
+                                            bean_list.write(f'\n{poopie_head}: {bean}')
                                     except:
                                         pass
-                                    with open ("F:\Google Drive\Stream Assets\Bean list.txt", "a") as bean_list:
-                                        bean_list.write(f'{poopie_head}: {bean}\n')
+                                    
                                 elif message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -736,6 +767,8 @@ while Running == True:
                                 elif '!randomenc' in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
+                                        if ('@' in user):
+                                            user = user.replace("@","")
                                         sm1, sm2 = random_encounter(user)
                                         Send_message(sm1)
                                         Send_message(sm2)
