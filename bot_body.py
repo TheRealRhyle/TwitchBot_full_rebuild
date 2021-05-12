@@ -665,6 +665,7 @@ while Running == True:
                                             "Sorry boss, that tweet is too long.")
                                 elif '!title ' in message.lower():
                                     ex_com, update_info = message.split(' ', 1)
+                                    # "select * from users where uname = ?", (username.lower(),)).fetchall()
                                     myTwitch.update_twitch(ClientID, oauth, update_info)
                                 elif '!beanlist' in message.lower():
                                     try:

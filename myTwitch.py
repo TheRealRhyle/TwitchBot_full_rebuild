@@ -4,8 +4,8 @@ import loader
 
 def update_twitch(ClientID, OAuth, update_info):
     url = 'https://api.twitch.tv/kraken/channels/38847203'
-    headers = {'Client-ID':othercreds.ClientId, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':othercreds.OAuth }
+    headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
     title, category = update_info.split("; ")
     title = title.replace(" ", "+")
     category = category.replace(" ", "%20").replace("&","%26").replace("\r",'')
@@ -28,7 +28,8 @@ def get_current_tags(ClientID, OAuth):
     url = 'https://api.twitch.tv/helix/streams/tags?broadcaster_id=38847203'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
         'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
-    r = requests.get(url = url, headers = headers)
+    # r = requests.get(url = url, headers = headers)
+    requests.get(url = url, headers = headers)
     # print(r.text)
 
 def set_tags(ClientID, OAuth):
@@ -38,7 +39,8 @@ def set_tags(ClientID, OAuth):
             'Scope':'user:edit+user:read:email+user:edit:broadcast'}
     tags = '{"tag_ids": ["cea7bc0c-75a5-4446-8743-6db031b71550","a59f1e4e-257b-4bd0-90c7-189c3efbf917", \
         "6f86127d-6051-4a38-94bb-f7b475dde109"]}'
-    r = requests.put(url=url, headers=headers, data=tags)
+    # r = requests.put(url=url, headers=headers, data=tags)
+    requests.put(url=url, headers=headers, data=tags)
     
 def get_raider_id(ClientID, OAuth, raider):
     url = f'https://api.twitch.tv/kraken/users?login={raider}'
