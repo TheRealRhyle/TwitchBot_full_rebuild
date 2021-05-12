@@ -619,7 +619,7 @@ while Running == True:
                                     chatmessage, username = message.split(" ")
                                     chatmessage = c.execute("select action from commands where ex_command = ?",(chatmessage.strip(''),)).fetchone()[0]
                                     Send_message(chatmessage, username)
-                                    chatmessage = c.execute("select action from commands where ex_command = '!raidcall'").fetchone()[0]
+                                    chatmessage = c.execute("select action from commands where ex_command = '!calls'").fetchone()[0]
                                     Send_message(chatmessage, username)
                                     continue
                                 elif '!raidcall' in message:
