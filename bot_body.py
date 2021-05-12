@@ -1061,9 +1061,7 @@ while Running == True:
                                 elif "!char" in message.lower():
                                     # test if user in database
                                     try:
-                                        user = c.execute(
-                                            "select * from users where uname = ?", (username.lower(),))
-
+                                        user = c.execute("select * from users where uname = ?", (username.lower(),))
                                     except:
                                         c.execute(
                                             """insert into users values (?, ?, 0, '', 0)""", (username.lower(), 'viewer'))
