@@ -670,13 +670,13 @@ while Running == True:
                                     try:
                                         ex_com, poopie_head, bean = message.split(' ')
                                     except:
-                                        with open("F:\Google Drive\Stream Assets\Bean list.txt", "r") as bean_list:
+                                        with open(r"F:\Google Drive\Stream Assets\Bean list.txt", "r") as bean_list:
                                             lines = bean_list.readlines()
                                             for line in lines:
                                                 print(line)
                                     try:
                                         poopie_head = poopie_head.replace("@","")
-                                        with open ("F:\Google Drive\Stream Assets\Bean list.txt", "a") as bean_list:
+                                        with open (r"F:\Google Drive\Stream Assets\Bean list.txt", "a") as bean_list:
                                             bean_list.write(f'\n{poopie_head}: {bean}')
                                     except:
                                         pass
@@ -831,7 +831,7 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
                                 elif '!ded' in message.lower():
-                                    with open("F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                    with open(r"F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
                                         lines = cfile.readlines()
                                         cfile.seek(0)
                                         cfile.truncate()
@@ -993,7 +993,7 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
                                 elif '!ded' in message.lower():
-                                    with open("F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                    with open(r"F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
                                         lines = cfile.readlines()
                                         cfile.seek(0)
                                         cfile.truncate()
