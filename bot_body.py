@@ -168,7 +168,7 @@ def random_encounter(*args):
     character_roll = (randint(2, 100))
     character_ws = random_character['weapon_skill']
 
-    print(f'Character: {character_ws} : {character_roll}')
+    # print(f'Character: {character_ws} : {character_roll}')
     if character_roll > character_ws:
         character_gos = -1
     elif character_roll == character_ws:
@@ -176,11 +176,11 @@ def random_encounter(*args):
     else:
         c_hit_location = str(character_roll)[::-1]
         character_gos = math.floor((character_ws - character_roll) / 10)
-    print(f'Character Successes: {character_gos}')
+    # print(f'Character Successes: {character_gos}')
 
     mob_roll = (randint(2, 100))
     mob_ws = int(encounter_dictionary['ws'])
-    print(f'Mob: {mob_ws}:{mob_roll}')
+    # print(f'Mob: {mob_ws}:{mob_roll}')
     if mob_roll > mob_ws:
         mob_gos = -1
     elif mob_roll == mob_ws:
@@ -188,7 +188,7 @@ def random_encounter(*args):
     else:
         m_hit_location = str(mob_roll)[::-1]
         mob_gos = math.floor((mob_ws - mob_roll) / 10)
-    print(f'Monster Successes: {mob_gos}')
+    # print(f'Monster Successes: {mob_gos}')
 
     if (character_gos > mob_gos) and (character_gos >= 0):
         hit_location = c_hit_location
@@ -197,17 +197,18 @@ def random_encounter(*args):
         encounter_value += exp
         c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
         conn.commit()
-        print('Point: Character!')
+        # print('Point: Character!')
     elif (character_gos == mob_gos) and (character_gos >= 0):
         hit_location = c_hit_location
         loser = 'Beaten and bloodied they each ran off to fight another day.'
-        print('Point: Both!')
+        # print('Point: Both!')
     elif (character_gos < mob_gos) and (mob_gos >= 0):
         hit_location = m_hit_location
         loser = random_character['name'].lower()
-        print('Point: Mob!')
+        # print('Point: Mob!')
     else:
-        print("BOTH MISS")
+        pass
+        # print("BOTH MISS")
 
     # --------------------------------
     # Determine Hit Location. If a hit is scored the player determines
@@ -218,7 +219,7 @@ def random_encounter(*args):
     # % roll Location
     # 01-15 Head, 16-35 Right Arm, 36-55 Left Arm, 56-80 Body, 81-90 Right Leg, 91-00 Left Leg
     # --------------------------------
-    print("hit location: " + str(hit_location))
+    # print("hit location: " + str(hit_location))
     if len(str(hit_location)) == 0:
         hit_location = hit_location * 10
         
@@ -237,7 +238,7 @@ def random_encounter(*args):
     else:
         hit="Debug"
 
-    print("Hit: " + hit)
+    # print("Hit: " + hit)
     # --------------------------------
     # END Random Encounter Rebuild
     # --------------------------------
