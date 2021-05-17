@@ -271,7 +271,7 @@ def random_encounter(*args):
         chatmessage2 = f'{loser}'
     else:
         if (loser != random_character["name"]):
-            loser = "the " + loser
+            loser = "the " + encounter_dictionary["name"]
         lossmessage = [f'{loser.title()} was struck in the {hit} but managed to flee before a fatal blow was landed.',
             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         chatmessage2 = choice(lossmessage)
