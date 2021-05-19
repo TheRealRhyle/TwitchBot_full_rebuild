@@ -1009,7 +1009,7 @@ while Running == True:
                                         
 
 
-                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!re', '!go', '!cr', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!re', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
@@ -1269,7 +1269,6 @@ while Running == True:
                                         "amount  Please not that you may not challenge for an amount more than your " \
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
-                                
                                 elif message.lower() == "!uptime":
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
@@ -1300,10 +1299,6 @@ while Running == True:
                                     #     # song_request.sr(code)
                                     #     playlist_maker.add_to_playlist(code)
                                     #     chatmessage = ""
-                                # elif "!skip" in message.lower():
-                                #     song_request.skip()
-                                #     chatmessage = ""
-
                                 else:
                                     try:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
@@ -1331,7 +1326,6 @@ while Running == True:
                                     "You've found the (not so) hidden command list " +
                                     username + ". Command list: "
                                     + ', '.join(commandlist))
-
                             else:
                                 pass
                                 # print(f'846: {username}, {message}')
