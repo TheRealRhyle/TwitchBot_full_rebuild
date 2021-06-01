@@ -54,8 +54,7 @@ def get_user_exp(username):
     """
     user_info = c.execute(
         "select * from users where uname = ?", (username,)).fetchone()
-    return user_info[2], user_info[4]
-
+    return user_info[2], user_info[4], user_info[5]
 
 def ret_char(username):
     try:
@@ -134,7 +133,11 @@ def uptime(at_command_time):
 
 
 def random_encounter(*args):
+    from wfrpgame import itemlist
+    shoplist = itemlist.load_shop()
+
     encounter_value = 100
+    c_wins = 1
     encounter_dictionary = bestiary.choose_mob()
     hit_location, c_hit_location, m_hit_location = 0, 0, 0
     loser = ''
@@ -165,6 +168,15 @@ def random_encounter(*args):
     # Skill (as appropriate), a hit is scored.
     # --------------------------------
 
+    character_weapon = random_character['weapon']
+    try:
+        print(shoplist[character_weapon])
+        if shoplist[character_weapon]['damage'] == "SB":
+            print(math.floor((random_character['strength'])/10))
+    except:
+        print(character_weapon)
+
+
     character_roll = (randint(2, 100))
     character_ws = random_character['weapon_skill']
 
@@ -193,9 +205,10 @@ def random_encounter(*args):
     if (character_gos > mob_gos) and (character_gos >= 0):
         hit_location = c_hit_location
         loser = encounter_dictionary['name'].lower()
-        exp, _ = get_user_exp(random_character['name'].lower())
+        exp, _, wins = get_user_exp(random_character['name'].lower())
         encounter_value += exp
-        c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+        c_wins += wins
+        c.execute("update users set exp = ?, wins = ? where uname = ?", (encounter_value, c_wins, random_character['name'].lower()))
         conn.commit()
         # print('Point: Character!')
     elif (character_gos == mob_gos) and (character_gos >= 0):
@@ -298,7 +311,7 @@ def shop(username, *args):
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
     elif 'buy' in args[0].lower():
         shopper = ret_char(username)
-        _, shopper_purse = get_user_exp(username)
+        _, shopper_purse, _ = get_user_exp(username)
         print(len(args))
         if len(args) != 2:
             shop_message = "I'm sorry, I didn't understand that, please try again."
@@ -506,6 +519,7 @@ while Running == True:
 
                 # TODO: Convert PARTS to a dictionary
                 if (len(usernamesplit) > 3):
+                    # TODO There is a bug here when someone gets timed out the bot crashes.  Fix it.
                     if 'display-name' in str(usernamesplit[3]):
                         username = usernamesplit[3].split('=')[1].lower()
                     elif 'display-name' in str(usernamesplit[2]):
@@ -682,7 +696,6 @@ while Running == True:
                                             bean_list.write(f'\n{poopie_head}: {bean}')
                                     except:
                                         pass
-                                    
                                 elif message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -844,7 +857,12 @@ while Running == True:
                                                 you_died += 1
                                                 line = f"Death Counter: {you_died}"
                                             cfile.write(line)
-                                        
+                                elif '!reset' in message.lower():
+                                    c.execute(
+                                        "update users set wins = 0 where wins > 0"
+                                    )
+                                    conn.commit()
+                                    Send_message('The leaderboard has been RESET')
 
 
                             elif username.lower() in get_elevated_users(chan):
@@ -1025,6 +1043,7 @@ while Running == True:
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                         "productive member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
+                                    Send_message("/unban " + username)
                                 elif "!change" in message.lower():
                                     try:
                                         ex_com, race = message.strip('\r').split(" ")
