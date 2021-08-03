@@ -1027,7 +1027,7 @@ while Running == True:
                                         
 
 
-                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!re', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [

@@ -61,7 +61,7 @@ def check_chatters():
                 current_crowns += 1
                 c.execute("update users set exp = ?, crowns = ? where uname = ?", (cxp, current_crowns, str(viewerlist[usr]).lower()))
                 conn.commit()
-                print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp) + '\tCurrent crowns: ' + str(current_crowns))
+                print(cquery[0] + ' has earned experience for being here.  Current XP: ' + str(cxp) + '    Current crowns: ' + str(current_crowns))
                 # except:
                 # print('No exp added for ' + cquery[0])
     print('--------- \n')
