@@ -12,6 +12,7 @@ from wfrpgame import tcChargen, bestiary
 from utils import twitter
 from chattodb import social_ad, get_active_list
 import myTwitch
+import wfrpgame
 # import song_request
 # import playlist_maker
 
@@ -45,7 +46,6 @@ def Send_message(message, *args):
         s.send(("PRIVMSG #" + args[0] + " :" +
                 message + "\r\n").encode('UTF-8'))
 
-
 def get_user_exp(username):
     """
     Will get the user details for the database and return them as a dictionary
@@ -71,14 +71,12 @@ def ret_char(username):
         else:
             return ast.literal_eval(char_to_return)
 
-
 def change_race(username, change_char):
     exp = int(c.execute('select exp from users where uname = ?',
                         (username,)).fetchone()[0])-100
     c.execute("update users set gchar = ? where uname = ?", (change_char, username))
     c.execute("update users set exp = ? where uname = ?", (exp, username))
     conn.commit()
-
 
 def get_elevated_users(target):
     resp = request.urlopen(
@@ -93,10 +91,8 @@ def get_elevated_users(target):
 
     return eaccess
 
-
 def challenge(challenger, victim, amount):
     pass
-
 
 def challenge_result(user, amount, *args):
     """
@@ -127,10 +123,8 @@ def challenge_result(user, amount, *args):
     c.execute("update users set exp = ? where uname = ?", (winner_exp, user))
     conn.commit()
 
-
 def uptime(at_command_time):
     return at_command_time - bot_start
-
 
 def random_encounter(*args):
     from wfrpgame import itemlist
@@ -292,7 +286,6 @@ def random_encounter(*args):
     
     return chatmessage, chatmessage2
 
-
 def shop(username, *args):
     from wfrpgame import itemlist
     shoplist = itemlist.load_shop()
@@ -347,7 +340,6 @@ def shop(username, *args):
                 return
     Send_message(shop_message)
     # chatmessage = ''
-
 
 def level_up(username, stat):
     gchar_dict = None
@@ -858,12 +850,29 @@ while Running == True:
                                                 line = f"Death Counter: {you_died}"
                                             cfile.write(line)
                                 elif '!reset' in message.lower():
+                                    parts = message.split(' ')
+                                    ex_com, person_to_reset = parts
+                                    reset_character = str(tcChargen.base_char(person_to_reset.strip('\r')).__dict__)
+                                    person_to_reset = person_to_reset.strip('\r')
+                                    # c.execute('update users set gchar = ? where uname = ?',(gchar, character['name']))
+                                    # conn.commit()
                                     c.execute(
-                                        "update users set wins = 0 where wins > 0"
+                                        'update users set gchar = ?, wins = 0 where uname = ?',(reset_character, person_to_reset)
                                     )
                                     conn.commit()
-                                    Send_message('The leaderboard has been RESET')
-
+                                    # c.execute(
+                                    #     "update users set wins = 0 where wins > 0"
+                                    # )
+                                    # conn.commit()
+                                    # Send_message('The leaderboard has been RESET')
+                                elif '!eom' in message.lower():
+                                    for user in c.execute("select * from users where status = 'viewer'").fetchall():
+                                        # print(user[0])
+                                        update_user = str(tcChargen.base_char(user[0]))
+                                        c.execute(
+                                            'update users set gchar = ?, wins = 0 where uname = ?',(update_user, user[0])
+                                        )
+                                    conn.commit()
 
                             elif username.lower() in get_elevated_users(chan):
                                 if message[0:7].lower() == '!create':
@@ -1025,7 +1034,6 @@ while Running == True:
                                                 line = f"Death Counter: {you_died}"
                                             cfile.write(line)
                                         
-
 
                             if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()

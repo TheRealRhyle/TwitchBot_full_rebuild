@@ -18,7 +18,7 @@ class Character:
         self.armor = armor
         self.weapon = weapon
 
-    def get_char(self,name):
+    def get_char(self, name):
         char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
                       'toughness':'', 'armor':'','weapon':''}
         char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t, self.armor, self.weapon]
@@ -28,14 +28,18 @@ class Character:
     #     and {self.s} strength, and {self.t} toughness."""
 
 def base_char(uname):
-    race = 'human'
-    stats_dict = {'WS': 20, 'BS': 20, 'S': 20, 'T': 20}
-    prof = 'peasant'
-    armor = 'none'
-    weapon = 'fists'
-    chatchar = Character(uname, race, prof, stats_dict['WS'], stats_dict['BS'], stats_dict['S'], stats_dict['T'],
-                         armor, weapon)
-    return chatchar
+    char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
+                      'toughness':'', 'armor':'','weapon':''}
+    char_ = [uname, 'human', 'peasant', 20, 20, 20,20, 'none', 'fists']
+    return dict(zip(char_dict, char_))
+    # race = 'human'
+    # stats_dict = {'weapon_skill': 20, 'ballistic_skill': 20, 'strength': 20,  'toughness': 20}
+    # prof = 'peasant'
+    # armor = 'none'
+    # weapon = 'fists'
+    # chatchar = Character(uname, race, prof, stats_dict['weapon_skill'], stats_dict['ballistic_skill'], stats_dict['strength'], stats_dict['toughness'],
+    #                      armor, weapon)
+    # return chatchar
 
 def chat_char(uname):
     race = choice(['dwarf', 'elf', 'halfling', 'human'])

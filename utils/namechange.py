@@ -28,6 +28,8 @@ c = conn.cursor()
 
 print((c.execute("select * from users").fetchall()))
 
+
+
 # print(len(c.execute("select * from users").fetchall()))
 
 # for user in c.execute("select * from users").fetchall():
