@@ -1,0 +1,5 @@
+Setup Django
+Create a character template
+Get Django to read from and write to the database where the characters are.
+Cut out mor from the bot_body
+look into mapping commands to fucntions
