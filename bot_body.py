@@ -7,9 +7,10 @@ from urllib import request
 import datetime
 import time
 
+
 import loader
 from wfrpgame import tcChargen, bestiary
-from utils import twitter
+from utils import twitter, commands
 from chattodb import social_ad, get_active_list
 import myTwitch
 import wfrpgame
@@ -447,7 +448,7 @@ while Running == True:
             s.send(bytes("PONG\r\n", "UTF-8"))
             currentTime = datetime.datetime.now()
             secondsDelta = currentTime - starttime
-            print(secondsDelta.seconds / 60)
+            # print(secondsDelta.seconds / 60)
             # print((currentTime - starttime) / 60)
             # if (((currentTime - starttime) / 60) >= 5):
             #     starttime = currentTime
@@ -566,7 +567,7 @@ while Running == True:
                     #         # Send_message("/timeout " + username + " 1")
 
                     # Command processing
-                    if username.lower() in get_elevated_users(chan) and username not in autoShoutOut:
+                    if username.lower() in commands.get_elevated_users(chan) and username not in autoShoutOut:
                         shoutout = [
                             f"Big shout out to @{username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
                             f"Go check out @{username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
@@ -577,6 +578,11 @@ while Running == True:
                                 
 
                     if message[0] == '!':
+                        
+                        # REFACTORING EVERYTHING AFTER THIS LINE OUT OF BOT_BODY!
+                        # 
+                        # commands.commands(username, message)
+
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands.
                             
