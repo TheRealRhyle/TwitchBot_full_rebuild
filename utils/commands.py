@@ -6,10 +6,8 @@ def get_elevated_users(target):
     """ Supply this function with the name of your twitch channel to return a list of
     users who are VIPs, Mods, or the Broadcaster.  Essentially returns anyone with
     elevated channel rights.
-
     Args:
         target (string): Your twitch channel name
-
     Returns:
         {set}: Users who have elevated rights.
     """
@@ -27,7 +25,6 @@ def get_elevated_users(target):
 def commands(username, message):
     """Takes in the username and the message to parse
     will return the results of the command.
-
     Args:
         username (string): The name of the person who issued the command.
         message (string): The command string.

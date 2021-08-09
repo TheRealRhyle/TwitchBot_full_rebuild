@@ -21,7 +21,7 @@ import wfrpgame
 
 # Method for sending a message
 def Send_message(message, *args):
-    time.sleep(0.2)
+    time.sleep(0.3)
 
     if " ^user " in message:
         # print("Message: ", message)
@@ -130,6 +130,7 @@ def uptime(at_command_time):
 def random_encounter(*args):
     from wfrpgame import itemlist
     shoplist = itemlist.load_shop()
+    base_damage = 0
 
     encounter_value = 100
     c_wins = 1
@@ -222,6 +223,7 @@ def random_encounter(*args):
         # print('Point: Both!')
     elif (character_gos < mob_gos) and (mob_gos >= 0):
         hit_location = m_hit_location
+        base_damage += mob_gos
         loser = random_character['name'].lower()
         # print('Point: Mob!')
     else:
@@ -290,7 +292,9 @@ def random_encounter(*args):
     else:
         if (loser != random_character["name"]):
             loser = "the " + encounter_dictionary["name"]
-            damage = f" for {base_damage} wounds,"
+            damage = f" for {base_damage} wounds, "
+        else:
+            damage = f">>>> This needs to be fixed. <<<<, "
         lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         chatmessage2 = choice(lossmessage)
@@ -589,6 +593,7 @@ while Running == True:
                                 
 
                     if message[0] == '!':
+                        message = message.strip('\r')
                         
                         # REFACTORING EVERYTHING AFTER THIS LINE OUT OF BOT_BODY!
                         # 
@@ -842,7 +847,7 @@ while Running == True:
                                         )
                                     conn.commit()
 
-                            if message[:3].lower() not in ('!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!cm', '!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
@@ -1077,7 +1082,7 @@ while Running == True:
                                                 Send_message(
                                                     f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
                                             else:
-                                                Send_message(f'{challenger[0]} has bested his victim, {victim[0]}, earning themselves {amount}')
+                                                Send_message(f'{challenger[0]} has bested their victim, {victim[0]}, earning themselves {amount}')
                                                 challenge_result(
                                                     challenger[0], amount)
                                             chatmessage = ""
@@ -1145,7 +1150,7 @@ while Running == True:
                                     print(f'1026: {chatmessage}')
 
                             # Gunter command
-                            elif message[0:7].lower() == '!gunter':
+                            elif message.lower() == '!gunter' or message.lower() == "!cmd":
                                 commandlist = list(
                                     c.execute("select ex_command from commands"))
                                 for itr in range(len(commandlist)):
