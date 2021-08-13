@@ -133,6 +133,7 @@ def random_encounter(*args):
     base_damage = 0
 
     encounter_value = 100
+    robbers = .10
     c_wins = 1
     encounter_dictionary = bestiary.choose_mob()
     hit_location, c_hit_location, m_hit_location = 0, 0, 0
@@ -148,6 +149,7 @@ def random_encounter(*args):
     while random_character == 'None':
         random_character = ret_char(str(choice(get_active_list())))
 
+    crowns = c.execute("select crowns from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
     # character_roll = (randint(2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
     # mob_roll = (randint(2, 100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
@@ -208,6 +210,7 @@ def random_encounter(*args):
     # print(f'Monster Successes: {mob_gos}')
 
     if (character_gos > mob_gos) and (character_gos >= 0):
+        # Viewer wins!
         hit_location = c_hit_location
         base_damage += character_gos
         loser = encounter_dictionary['name'].lower()
@@ -216,16 +219,23 @@ def random_encounter(*args):
         c_wins += wins
         c.execute("update users set exp = ?, wins = ? where uname = ?", (encounter_value, c_wins, random_character['name'].lower()))
         conn.commit()
-        # print('Point: Character!')
     elif (character_gos == mob_gos) and (character_gos >= 0):
+        # Draw
         hit_location = c_hit_location
         loser = 'Beaten and bloodied they each ran off to fight another day.'
         # print('Point: Both!')
     elif (character_gos < mob_gos) and (mob_gos >= 0):
+        # Random monster wins
         hit_location = m_hit_location
         base_damage += mob_gos
         loser = random_character['name'].lower()
-        # print('Point: Mob!')
+        if encounter_dictionary["name"] in ["Pickpocket", "Bandit", "Footpad"]:
+            print("You might want to check your purse after that encounter.")
+            new_crowns = int(crowns[0] - (crowns[0] * robbers))
+            c.execute("update users set crowns = ? where uname = ?", (new_crowns, random_character['name'].lower()))
+            conn.commit()
+            
+        
     else:
         pass
         # print("BOTH MISS")
@@ -294,7 +304,7 @@ def random_encounter(*args):
             loser = "the " + encounter_dictionary["name"]
             damage = f" for {base_damage} wounds, "
         else:
-            damage = f">>>> This needs to be fixed. <<<<, "
+            damage = f" for {base_damage} wounds, "
         lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         chatmessage2 = choice(lossmessage)
@@ -601,8 +611,8 @@ while Running == True:
 
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands.
-                            
-                            if username.lower() in get_elevated_users(chan):
+                            print(username)
+                            if username.lower() in get_elevated_users(chan) and username.lower() != "rhyle_":
                                 if message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -846,6 +856,166 @@ while Running == True:
                                             'update users set gchar = ?, wins = 0 where uname = ?',(update_user, user[0])
                                         )
                                     conn.commit()
+                                # =====
+                                elif message[0:7].lower() == '!create':
+                                    # Parse the command to be added/created
+                                    command, target, action = message.split(
+                                        ', ')
+                                    ex_com, command = command.split(' ')
+                                    command = '!' + command
+                                    c.execute("insert into commands values (:command, :target, :action)",
+                                              {'command': command, 'target': target, 'action': action})
+                                    conn.commit()
+                                    Send_message(
+                                        "Command " + command + " has been added.")
+                                elif message[0:7].lower() == '!update':
+                                    # Parse the command to be added/created
+                                    command, target, action = message.split(
+                                        ', ')
+                                    ex_com, command = command.split(' ')
+                                    command = '!' + command
+                                    c.execute("update commands set action = :action where ex_command = :command", {'command': command, 'target': target, 'action': action.lstrip(' ')})
+                                    conn.commit()
+                                    Send_message(
+                                        "Command " + command + " has been updated.")
+                                elif message[0:7].lower() == '!remove':
+                                    # Parse the command to be removed
+                                    ex_com, command = message.split(' ')
+                                    command = '!' + command
+                                    c.execute(
+                                        "delete from commands where ex_command = ?", (command,))
+                                    conn.commit()
+                                    Send_message(
+                                        "Command " + command + " has been removed.")
+                                elif message[0:4].lower() == '!mtc':
+                                    # no longer give credit to the other streamers.
+                                    parts = message.split(' ')
+                                    ex_com, strm1, strm2, strm3, strm4 = [
+                                        parts[i] if i < len(parts) else None for i in range(5)]
+                                    command = '!multi'
+                                    target = ''
+                                    if strm3 == None:
+                                        multi = strm1 + '/' + strm2
+                                    elif strm4 == None:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3
+                                    else:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
+
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " " \
+                                             "or you can access kadgar at http://kadgar.net/live/" + multi
+
+                                    if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
+                                        c.execute("update commands set action = :action where ex_command = :command",
+                                                  {'command': command, 'action': action})
+                                        conn.commit()
+                                    else:
+                                        c.execute("insert into commands values (:command, :target, :action)",
+                                                  {'command': command, 'target': target, 'action': action})
+                                        conn.commit()
+                                    Send_message(action)
+                                elif message.lower() == "!slow":
+                                    if slow == "off":
+                                        Send_message(
+                                            "Engaging Slow Chat Mode...")
+                                        print("Engaging Slow Chat Mode...")
+                                        s.send(("PRIVMSG #" + chan +
+                                                " :.slow\r\n").encode('UTF-8'))
+                                        slow = 'on'
+                                        continue
+                                    if slow == 'on':
+                                        Send_message(
+                                            "Disengaging Slow Chat Mode...")
+                                        print("Disengaging Slow Chat Mode...")
+                                        s.send(
+                                            ("PRIVMSG #" + chan + " :.slowoff\r\n").encode('UTF-8'))
+                                        slow = 'off'
+                                        continue
+                                elif '!so ' in message.lower():
+                                    ex_com, user = message.replace('\r', '').split(' ')
+                                    if ('@' in user):
+                                        user = user.replace("@", "")
+                                    shoutout = [
+                                        f"Big shout out to {user}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{user.lower()})",
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
+                                        f"A wild {myTwitch.get_raider_id(ClientID, oauth, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
+                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, user)}. (https://www.twitch.tv/{user.lower()})"]
+                                    Send_message(choice(shoutout))
+                                elif '!randomenc' in message.lower():
+                                    try:
+                                        ex_com, user = message.lower().split(' ')
+                                        sm1, sm2 = random_encounter(user)
+                                        Send_message(sm1)
+                                        Send_message(sm2)
+                                    except:
+                                        sm1, sm2 = random_encounter()
+                                        Send_message(sm1)
+                                        Send_message(sm2)
+                                    continue
+                                elif "!givecrowns" in message:
+                                    ex_com, viewer, amount = message.split(' ')
+                                    if '@' in viewer:
+                                        viewer = viewer.strip('@')
+                                    gc_user = int(c.execute(
+                                        "select crowns from users where uname = ?", (viewer.lower(),)).fetchone()[0])
+                                    gc_user += int(amount)
+                                    c.execute(
+                                        "update users set crowns = ? where uname = ?", (gc_user, viewer.lower()))
+                                    conn.commit()
+                                    Send_message(f"{viewer} was awarded {amount} crowns.")
+                                elif '!givexp' in message.lower():
+                                    parts = message.split(' ', 3)
+                                    parts += '' * (3 - len(parts))
+                                    ex_com, viewer, amount = parts
+                                    if '@' in viewer:
+                                        viewer = viewer.strip("@")
+                                    print(viewer)
+                                    rew_user = int(c.execute("select exp from users where uname = ?", (viewer.lower(),)).fetchone()[0])
+                                    
+                                    rew_user += int(amount)
+                                    
+                                    c.execute(
+                                        "update users set exp = ? where uname = ?", (rew_user, viewer.lower()))
+                                    conn.commit()
+                                    Send_message(f"Added {amount} xp to {viewer}.")
+                                elif '!rt' in message.lower():
+                                    Send_message(f'Click this link to retweet https://twitter.com/intent/retweet?tweet_id={twitter.get_retweet()}')
+                                elif '!mtc' in message.lower():
+                                    parts = message.split(' ')
+                                    ex_com, strm1, strm2, strm3, strm4 = [
+                                        parts[i] if i < len(parts) else None for i in range(5)]
+                                    command = '!multi'
+                                    target = ''
+                                    if strm3 == None:
+                                        multi = strm1 + '/' + strm2
+                                    elif strm4 == None:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3
+                                    else:
+                                        multi = strm1 + '/' + strm2 + '/' + strm3 + '/' + strm4
+
+                                    action = "Access the multitwitch at http://multitwitch.tv/" + multi + " "                                              "or you can access kadgar at http://kadgar.net/live/" + multi
+
+                                    if c.execute("select * from commands where ex_command = '!multi'").fetchall() != []:
+                                        c.execute("update commands set action = :action where ex_command = :command",
+                                                {'command': command, 'action': action})
+                                        conn.commit()
+                                    else:
+                                        c.execute("insert into commands values (:command, :target, :action)",
+                                                {'command': command, 'target': target, 'action': action})
+                                        conn.commit()
+                                    Send_message(action)
+                                elif '!ded' in message.lower():
+                                    with open(r"F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                        lines = cfile.readlines()
+                                        cfile.seek(0)
+                                        cfile.truncate()
+                                        for line in lines:
+                                            if "Death Counter:" in line:
+                                                you_died = line.split(": ")
+                                                you_died = int(you_died[1])
+                                                you_died += 1
+                                                line = f"Death Counter: {you_died}"
+                                            cfile.write(line)
+
 
                             if message[:3].lower() not in ('!cm', '!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()

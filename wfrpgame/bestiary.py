@@ -6,6 +6,9 @@ def choose_mob():
         main_dict = f.read()
         main_dict = ast.literal_eval(main_dict)
 
+    # For creating more powerful enemies
+    # ==================
+
     # for ite in range(1,50):
     #     type_selection = random.randint(1, 100)
     #     if type_selection > 75:
@@ -13,6 +16,11 @@ def choose_mob():
     #     else:
     #         creature_type = main_dict['Normal']
     #     print(creature_type)
+
+    # Static fight for testing
+    # return main_dict["Pickpocket"]
+
+    # Standard function
     return main_dict[random.choice(list(main_dict)[8:])]
 
 
