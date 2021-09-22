@@ -4,3 +4,4 @@ __py*/*
 
 *.iml
 *.db
+test.py

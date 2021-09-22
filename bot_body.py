@@ -10,7 +10,7 @@ import time
 
 import loader
 from wfrpgame import tcChargen, bestiary
-from utils import twitter, commands
+from utils import twitter, commands, quotes
 from chattodb import social_ad, get_active_list
 import myTwitch
 import wfrpgame
@@ -760,17 +760,22 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
                                 elif '!ded' in message.lower():
-                                    with open(r"F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
+                                    cmd, death_message = message.split(' ',1)
+                                    with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
                                         lines = cfile.readlines()
+                                        if len(lines) >= 5:
+                                            lines.remove(lines[0])
                                         cfile.seek(0)
                                         cfile.truncate()
-                                        for line in lines:
-                                            if "Death Counter:" in line:
-                                                you_died = line.split(": ")
-                                                you_died = int(you_died[1])
-                                                you_died += 1
-                                                line = f"Death Counter: {you_died}"
-                                            cfile.write(line)
+                                        lines.append(death_message + "\n")
+                                        cfile.writelines(lines)
+                                        # for line in lines:
+                                        #     if "Death Counter:" in line:
+                                        #         you_died = line.split(": ")
+                                        #         you_died = int(you_died[1])
+                                        #         you_died += 1
+                                        #         line = f"Death Counter: {you_died}"
+                                        #     cfile.write(line)
 
                             # Broadcaster
                             elif username.lower() in ['rhyle_']:
@@ -1029,11 +1034,15 @@ while Running == True:
                                         f"{username.title()} when someone asks if you're a god you say yes."
                                     ]
                                     chatmessage = choice(lurk_message)
+                                
+                                elif "!quote" in message.lower():
+                                    chatmessage = quotes.quote(message,c, conn)
+                                    
                                 elif "!ban" in message.lower():
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                         "productive member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
-                                    time.sleep(1)
+                                    time.sleep(2)
                                     Send_message("/unban " + username)
                                 elif "!change" in message.lower():
                                     try:
