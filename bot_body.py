@@ -775,6 +775,14 @@ while Running == True:
                                             cfile.truncate()
                                             lines.insert(0, death_message + "\n")
                                             cfile.writelines(lines)
+                                        with open(r"F:\Google Drive\Stream Assets\counter.txt", "r+") as dfile:
+                                            line=dfile.read()
+                                            current_death_count = eval(line)
+                                            current_death_count += 1
+                                            dfile.seek(0)
+                                            dfile.truncate()
+                                            dfile.write(str(current_death_count))
+
                                     else:
                                         Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
 
@@ -1025,6 +1033,13 @@ while Running == True:
                                             cfile.truncate()
                                             lines.insert(0, death_message + "\n")
                                             cfile.writelines(lines)
+                                        with open(r"F:\Google Drive\Stream Assets\counter.txt", "r+") as dfile:
+                                            line=dfile.read()
+                                            current_death_count = eval(line)
+                                            current_death_count += 1
+                                            dfile.seek(0)
+                                            dfile.truncate()
+                                            dfile.write(str(current_death_count))
                                     else:
                                         Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
                                         
