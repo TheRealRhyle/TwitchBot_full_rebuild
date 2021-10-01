@@ -760,22 +760,23 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
                                 elif '!ded' in message.lower():
-                                    cmd, death_message = message.split(' ',1)
-                                    with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
-                                        lines = cfile.readlines()
-                                        if len(lines) >= 5:
-                                            lines.remove(lines[0])
-                                        cfile.seek(0)
-                                        cfile.truncate()
-                                        lines.append(death_message + "\n")
-                                        cfile.writelines(lines)
-                                        # for line in lines:
-                                        #     if "Death Counter:" in line:
-                                        #         you_died = line.split(": ")
-                                        #         you_died = int(you_died[1])
-                                        #         you_died += 1
-                                        #         line = f"Death Counter: {you_died}"
-                                        #     cfile.write(line)
+                                    try:
+                                        cmd, death_message = message.split(' ',1)
+                                    except:
+                                        cmd = message
+                                        death_message = ""
+                                        
+                                    if len(death_message) > 1:
+                                        with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
+                                            lines = cfile.readlines()
+                                            if len(lines) > 4:
+                                                lines.remove(lines[4])
+                                            cfile.seek(0)
+                                            cfile.truncate()
+                                            lines.insert(0, death_message + "\n")
+                                            cfile.writelines(lines)
+                                    else:
+                                        Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
 
                             # Broadcaster
                             elif username.lower() in ['rhyle_']:
@@ -1009,18 +1010,24 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
                                 elif '!ded' in message.lower():
-                                    with open(r"F:\Google Drive\Stream Assets\EQCounter.txt", "r+") as cfile:
-                                        lines = cfile.readlines()
-                                        cfile.seek(0)
-                                        cfile.truncate()
-                                        for line in lines:
-                                            if "Death Counter:" in line:
-                                                you_died = line.split(": ")
-                                                you_died = int(you_died[1])
-                                                you_died += 1
-                                                line = f"Death Counter: {you_died}"
-                                            cfile.write(line)
-
+                                    try:
+                                        cmd, death_message = message.split(' ',1)
+                                    except:
+                                        cmd = message
+                                        death_message = ""
+                                        
+                                    if len(death_message) > 1:
+                                        with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
+                                            lines = cfile.readlines()
+                                            if len(lines) > 4:
+                                                lines.remove(lines[4])
+                                            cfile.seek(0)
+                                            cfile.truncate()
+                                            lines.insert(0, death_message + "\n")
+                                            cfile.writelines(lines)
+                                    else:
+                                        Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
+                                        
 
                             if message[:3].lower() not in ('!cm', '!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
