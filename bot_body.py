@@ -10,7 +10,7 @@ import time
 
 import loader
 from wfrpgame import tcChargen, bestiary
-from utils import twitter, commands, quotes
+from utils import twitter, commands, quotes, soundcommands
 from chattodb import social_ad, get_active_list
 import myTwitch
 import wfrpgame
@@ -592,14 +592,17 @@ while Running == True:
                     #         # Send_message("/timeout " + username + " 1")
 
                     # Command processing
-                    if username.lower() in commands.get_elevated_users(chan) and username not in autoShoutOut:
-                        shoutout = [
-                            f"Big shout out to @{username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
-                            f"Go check out @{username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
-                            f"A wild {myTwitch.get_raider_id(ClientID, oauth, username)} has appeared, prepare for battle! @{username}, I choose you! (https://www.twitch.tv/{username.lower()})",
-                            f"According to @13thfaerie: 'potato' which I think means: go check out @{username}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, username)}. (https://www.twitch.tv/{username.lower()})"]
-                        Send_message(choice(shoutout))
-                        autoShoutOut.append(username)
+
+
+
+                    # if username.lower() in commands.get_elevated_users(chan) and username not in autoShoutOut:
+                    #     shoutout = [
+                    #         f"Big shout out to @{username}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{username.lower()})",
+                    #         f"Go check out @{username} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, username)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{username.lower()})",
+                    #         f"A wild {myTwitch.get_raider_id(ClientID, oauth, username)} has appeared, prepare for battle! @{username}, I choose you! (https://www.twitch.tv/{username.lower()})",
+                    #         f"According to @13thfaerie: 'potato' which I think means: go check out @{username}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, username)}. (https://www.twitch.tv/{username.lower()})"]
+                    #     Send_message(choice(shoutout))
+                    #     autoShoutOut.append(username)
                                 
 
                     if message[0] == '!':
@@ -1044,7 +1047,7 @@ while Running == True:
                                         Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
                                         
 
-                            if message[:3].lower() not in ('!cm', '!de','!be', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
@@ -1326,6 +1329,10 @@ while Running == True:
                                         ex_com, *arg = message.strip('\r').split(' ')
                                         shop(username, *arg)
                                     chatmessage = ""
+                                elif "!beaz" in message.lower().strip('\r') and username.lower() == "big_beaz":
+                                    soundcommands.playme("beaz")
+                                    chatmessage = ''
+                                
                                 # elif "!sr" in message.lower():
                                 #     chatmessage = f"I'm sorry, {username}, song requests have been turned off indefinitely."
                                     # if len(message) < 3:
