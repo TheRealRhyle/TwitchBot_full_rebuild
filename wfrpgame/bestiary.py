@@ -23,14 +23,16 @@ def choose_mob():
     # Standard function
     return main_dict[random.choice(list(main_dict)[8:])]
 
+def choose_bandit():
+    with open('wfrpgame/datafiles/beastdict.txt', 'r') as f:
+        main_dict = f.read()
+        main_dict = ast.literal_eval(main_dict)
+
+    return main_dict["Bandit"]
+
 
 if __name__ == "__main__":
-    xname = ""
-    while xname != "Banshee":
-        x = choose_mob()
-        xname = x['name']
-        print(f"{xname}")
-
+    choose_bandit()
 # creature_type = main_dict[random.choice(list(main_dict)[:8])]
 # creature_type = main_dict[random.choice()]
 
