@@ -1,15 +1,14 @@
 from random import randint, choice
-import math
-import ast
 import socket
 import json
 from urllib import request
 import datetime
 import time
 
+import test
 
 import loader
-from wfrpgame import tcChargen, bestiary
+from wfrpgame import tcChargen, random_encounter
 from utils import twitter, commands, quotes, soundcommands
 from chattodb import social_ad, get_active_list
 import myTwitch
@@ -42,20 +41,23 @@ def Send_message(message, *args):
     args = []
 
     if not args:
-        s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
+        try:
+            s.send(("PRIVMSG #" + chan + " :" + message + "\r\n").encode('UTF-8'))
+        except ConnectionResetError:
+            print("there was a connection reset error")
     else:
         s.send(("PRIVMSG #" + args[0] + " :" +
                 message + "\r\n").encode('UTF-8'))
 
-def get_user_exp(username):
-    """
-    Will get the user details for the database and return them as a dictionary
-    :param username:
-    :return current xp integer and available crowns:
-    """
-    user_info = c.execute(
-        "select * from users where uname = ?", (username,)).fetchone()
-    return user_info[2], user_info[4], user_info[5]
+# def get_user_exp(username):
+#     """
+#     Will get the user details for the database and return them as a dictionary
+#     :param username:
+#     :return current xp integer and available crowns:
+#     """
+#     user_info = c.execute(
+#         "select * from users where uname = ?", (username,)).fetchone()
+#     return user_info[2], user_info[4], user_info[5]
 
 def ret_char(username):
     try:
@@ -127,190 +129,200 @@ def challenge_result(user, amount, *args):
 def uptime(at_command_time):
     return at_command_time - bot_start
 
-def random_encounter(*args):
-    from wfrpgame import itemlist
-    shoplist = itemlist.load_shop()
-    base_damage = 0
+# def random_encounter(*args):
+#     from wfrpgame import itemlist, bestiary
+#     shoplist = itemlist.load_shop()
+#     base_damage = 0
 
-    encounter_value = 100
-    robbers = .10
-    c_wins = 1
-    encounter_dictionary = bestiary.choose_mob()
-    hit_location, c_hit_location, m_hit_location = 0, 0, 0
-    loser = ''
+#     encounter_value = 100
+#     robbers = .10
+#     c_wins = 1
+#     encounter_dictionary = bestiary.choose_mob()
+#     hit_location, c_hit_location, m_hit_location = 0, 0, 0
+#     loser = ''
 
-    if not args:
-        random_character = ret_char(choice(get_active_list()))
+#     if not args:
+#         random_character = ret_char(choice(get_active_list()))
 
-    else:
-        user = args[0].strip('\r\n')
-        random_character = ret_char(user)
+#     else:
+#         user = args[0].strip('\r\n')
+#         random_character = ret_char(user)
 
-    while random_character == 'None':
-        random_character = ret_char(str(choice(get_active_list())))
+#     while random_character == 'None':
+#         random_character = ret_char(str(choice(get_active_list())))
 
-    crowns = c.execute("select crowns from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
-    # character_roll = (randint(2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
-    # mob_roll = (randint(2, 100) + int(encounter_dictionary['ws'])) - random_character['toughness']
+#     crowns = c.execute("select crowns from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
+#     # character_roll = (randint(2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
+#     # mob_roll = (randint(2, 100) + int(encounter_dictionary['ws'])) - random_character['toughness']
 
-    # --------------------------------
-    # BEGIN Random Encounter Rebuild
-    # --------------------------------
+#     # --------------------------------
+#     # BEGIN Random Encounter Rebuild
+#     # --------------------------------
 
-    # --------------------------------
-    # WFRP Roll rules: Need to roll UNDER your WS/BS.  For each full
-    # 10% you beat your chance by, you achieve one degree of success.
-    # Roll to hit using percentile dice. Use Weapon Skill for melee
-    # attacks and Ballistic Skill for ranged attacks. If the player rolls
-    # equal to or less than the character’s Weapon Skill or Ballistic
-    # Skill (as appropriate), a hit is scored.
-    # --------------------------------
+#     # --------------------------------
+#     # WFRP Roll rules: Need to roll UNDER your WS/BS.  For each full
+#     # 10% you beat your chance by, you achieve one degree of success.
+#     # Roll to hit using percentile dice. Use Weapon Skill for melee
+#     # attacks and Ballistic Skill for ranged attacks. If the player rolls
+#     # equal to or less than the character’s Weapon Skill or Ballistic
+#     # Skill (as appropriate), a hit is scored.
+#     # --------------------------------
 
-    character_weapon = random_character['weapon']
-    try:
-        print(shoplist[character_weapon]['damage'])
-        damage_mod = shoplist[character_weapon]['damage']
-        base_damage = math.floor((random_character['strength'])/10)
-        if "+" in damage_mod:
-            base_damage += int(damage_mod.split("+")[1])
-        elif "-" in damage_mod:
-            base_damage -= int(damage_mod.split("-")[1])
-        elif damage_mod == "SB":
-            pass
-        else:
-            base_damage = int(damage_mod)
-    except:
-        print(character_weapon)
+#     character_weapon = random_character['weapon']
+#     try:
+#         print(shoplist[character_weapon]['damage'])
+#         damage_mod = shoplist[character_weapon]['damage']
+#         base_damage = math.floor((random_character['strength'])/10)
+#         if "+" in damage_mod:
+#             base_damage += int(damage_mod.split("+")[1])
+#         elif "-" in damage_mod:
+#             base_damage -= int(damage_mod.split("-")[1])
+#         elif damage_mod == "SB":
+#             pass
+#         else:
+#             base_damage = int(damage_mod)
+#     except:
+#         print(character_weapon)
 
 
-    character_roll = (randint(2, 100))
-    character_ws = random_character['weapon_skill']
+#     character_roll = (randint(2, 100))
+#     character_ws = random_character['weapon_skill']
 
-    # print(f'Character: {character_ws} : {character_roll}')
-    if character_roll > character_ws:
-        character_gos = -1
-    elif character_roll == character_ws:
-        character_gos = 0
-    else:
-        c_hit_location = str(character_roll)[::-1]
-        character_gos = math.floor(character_ws / 10) - math.floor(character_roll / 10)
+#     # print(f'Character: {character_ws} : {character_roll}')
+#     if character_roll > character_ws:
+#         character_gos = -1
+#     elif character_roll == character_ws:
+#         character_gos = 0
+#     else:
+#         c_hit_location = str(character_roll)[::-1]
+#         character_gos = math.floor(character_ws / 10) - math.floor(character_roll / 10)
     
-    # print(f'Character Successes: {character_gos}')
+#     # print(f'Character Successes: {character_gos}')
 
-    mob_roll = (randint(2, 100))
-    mob_ws = int(encounter_dictionary['ws'])
-    # print(f'Mob: {mob_ws}:{mob_roll}')
-    if mob_roll > mob_ws:
-        mob_gos = -1
-    elif mob_roll == mob_ws:
-        mob_gos = 0
-    else:
-        m_hit_location = str(mob_roll)[::-1]
-        mob_gos = math.floor(mob_ws / 10) - math.floor(mob_roll / 10)
-    # print(f'Monster Successes: {mob_gos}')
+#     mob_roll = (randint(2, 100))
+#     mob_ws = int(encounter_dictionary['ws'])
+#     # print(f'Mob: {mob_ws}:{mob_roll}')
+#     if mob_roll > mob_ws:
+#         mob_gos = -1
+#     elif mob_roll == mob_ws:
+#         mob_gos = 0
+#     else:
+#         m_hit_location = str(mob_roll)[::-1]
+#         mob_gos = math.floor(mob_ws / 10) - math.floor(mob_roll / 10)
+#     # print(f'Monster Successes: {mob_gos}')
 
-    if (character_gos > mob_gos) and (character_gos >= 0):
-        # Viewer wins!
-        hit_location = c_hit_location
-        base_damage += character_gos
-        loser = encounter_dictionary['name'].lower()
-        exp, _, wins = get_user_exp(random_character['name'].lower())
-        encounter_value += exp
-        c_wins += wins
-        c.execute("update users set exp = ?, wins = ? where uname = ?", (encounter_value, c_wins, random_character['name'].lower()))
-        conn.commit()
-    elif (character_gos == mob_gos) and (character_gos >= 0):
-        # Draw
-        hit_location = c_hit_location
-        loser = 'Beaten and bloodied they each ran off to fight another day.'
-        # print('Point: Both!')
-    elif (character_gos < mob_gos) and (mob_gos >= 0):
-        # Random monster wins
-        hit_location = m_hit_location
-        base_damage += mob_gos
-        loser = random_character['name'].lower()
-        if encounter_dictionary["name"] in ["Pickpocket", "Bandit", "Footpad"]:
-            print("You might want to check your purse after that encounter.")
-            new_crowns = int(crowns[0] - (crowns[0] * robbers))
-            c.execute("update users set crowns = ? where uname = ?", (new_crowns, random_character['name'].lower()))
-            conn.commit()
+#     if (character_gos > mob_gos) and (character_gos >= 0):
+#         # Viewer wins!
+#         hit_location = c_hit_location
+#         base_damage += character_gos
+#         loser = encounter_dictionary['name'].lower()
+#         exp, _, wins = get_user_exp(random_character['name'].lower())
+#         encounter_value += exp
+#         c_wins += wins
+#         c.execute("update users set exp = ?, wins = ? where uname = ?", (encounter_value, c_wins, random_character['name'].lower()))
+#         conn.commit()
+#     elif (character_gos == mob_gos) and (character_gos >= 0):
+#         # Draw
+#         hit_location = c_hit_location
+#         loser = 'Beaten and bloodied they each ran off to fight another day.'
+#         # print('Point: Both!')
+#     elif (character_gos < mob_gos) and (mob_gos >= 0):
+#         # Random monster wins
+#         hit_location = m_hit_location
+#         base_damage += mob_gos
+#         loser = random_character['name'].lower()
+#         if encounter_dictionary["name"] in ["Pickpocket", "Bandit", "Footpad"]:
+#             print("You might want to check your purse after that encounter.")
+#             new_crowns = int(crowns[0] - (crowns[0] * robbers))
+#             c.execute("update users set crowns = ? where uname = ?", (new_crowns, random_character['name'].lower()))
+#             conn.commit()
             
         
-    else:
-        pass
-        # print("BOTH MISS")
+#     else:
+#         pass
+#         # print("BOTH MISS")
 
-    # --------------------------------
-    # Determine Hit Location. If a hit is scored the player determines
-    # where the blow has landed. Take the attack roll, reverse the order
-    # of the percentile dice (an attack roll of 37, for example, would
-    # hit location 73), and consult the following chart:
-    # hIT loCaTIon
-    # % roll Location
-    # 01-15 Head, 16-35 Right Arm, 36-55 Left Arm, 56-80 Body, 81-90 Right Leg, 91-00 Left Leg
-    # --------------------------------
-    # print("hit location: " + str(hit_location))
-    if len(str(hit_location)) == 0:
-        hit_location = hit_location * 10
+#     # --------------------------------
+#     # Determine Hit Location. If a hit is scored the player determines
+#     # where the blow has landed. Take the attack roll, reverse the order
+#     # of the percentile dice (an attack roll of 37, for example, would
+#     # hit location 73), and consult the following chart:
+#     # hIT loCaTIon
+#     # % roll Location
+#     # 01-15 Head, 16-35 Right Arm, 36-55 Left Arm, 56-80 Body, 81-90 Right Leg, 91-00 Left Leg
+#     # --------------------------------
+#     # print("hit location: " + str(hit_location))
+#     if len(str(hit_location)) == 0:
+#         hit_location = hit_location * 10
         
-    if int(hit_location) in range(0, 15):
-        hit = "head"
-    elif int(hit_location) in range(16, 35):
-        hit = "right arm"
-    elif int(hit_location) in range(36, 55):
-        hit = "left arm"
-    elif int(hit_location) in range(56, 80):
-        hit = "body"
-    elif int(hit_location) in range(81, 90):
-        hit = "right leg"
-    elif int(hit_location) in range(91, 101):
-        hit = "left leg"
-    else:
-        hit="Debug"
+#     if int(hit_location) in range(0, 15):
+#         hit = "head"
+#     elif int(hit_location) in range(16, 35):
+#         hit = "right arm"
+#     elif int(hit_location) in range(36, 55):
+#         hit = "left arm"
+#     elif int(hit_location) in range(56, 80):
+#         hit = "body"
+#     elif int(hit_location) in range(81, 90):
+#         hit = "right leg"
+#     elif int(hit_location) in range(91, 101):
+#         hit = "left leg"
+#     else:
+#         hit="Debug"
 
-    # print("Hit: " + hit)
-    # --------------------------------
-    # END Random Encounter Rebuild
-    # --------------------------------
+#     # print("Hit: " + hit)
+#     # --------------------------------
+#     # END Random Encounter Rebuild
+#     # --------------------------------
 
-    # if mob_gos > character_gos:
-    #     loser = random_character['name'].lower()
-    # elif mob_gos == character_gos and mob_gos != -1:
-    #     loser = 'Beaten and bloodied they each ran off to fight another day.'
-    # else:
-    #     loser = encounter_dictionary['name'].lower()
-    #     exp, _ = get_user_exp(random_character['name'].lower())
-    #     encounter_value += exp
-    #     c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
-    #     conn.commit()
+#     # if mob_gos > character_gos:
+#     #     loser = random_character['name'].lower()
+#     # elif mob_gos == character_gos and mob_gos != -1:
+#     #     loser = 'Beaten and bloodied they each ran off to fight another day.'
+#     # else:
+#     #     loser = encounter_dictionary['name'].lower()
+#     #     exp, _ = get_user_exp(random_character['name'].lower())
+#     #     encounter_value += exp
+#     #     c.execute("update users set exp = ? where uname = ?", (encounter_value, random_character['name'].lower()))
+#     #     conn.commit()
 
-    adj = choice(["walking", "running", "riding"])
-    location = choice(["forest", "town", "desert"])
-    if ' or ' in encounter_dictionary["weapon"]:
-        mob_weapon = encounter_dictionary["weapon"].split(' or ')
-        mob_weapon = choice(mob_weapon)
-    else:
-        mob_weapon = encounter_dictionary["weapon"]
+#     adj = choice(["walking", "running", "riding"])
+#     location = choice(["forest", "town", "desert"])
+#     if ' or ' in encounter_dictionary["weapon"]:
+#         mob_weapon = encounter_dictionary["weapon"].split(' or ')
+#         mob_weapon = choice(mob_weapon)
+#     else:
+#         mob_weapon = encounter_dictionary["weapon"]
 
-    chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
-        f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
-        f'{random_character["name"]} readied their {random_character["weapon"]} against the ' \
-        f'{mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
+#     chatmessage = f'While {adj} through the {location} {random_character["name"]} '\
+#         f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
+#         f'{random_character["name"]}'
+
+#     if character_weapon != "fists":
+#         if shoplist[character_weapon]['type'] == "Melee":
+#             chatmessage= chatmessage + f' readied their {random_character["weapon"]} against the ' \
+#             f'{mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
+#         elif shoplist[character_weapon]['type'] == "Ranged":
+#             chatmessage= chatmessage + f' fired their {random_character["weapon"]} toward the ' \
+#             f'oncoming {encounter_dictionary["name"].lower()}.' 
+#     else:
+#         chatmessage= chatmessage + f' tried to make peace with their gods and readied their fists ' \
+#         f'against the {mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
     
-    if len(loser) > 17:
-        chatmessage2 = f'{loser}'
-    else:
-        if (loser != random_character["name"]):
-            loser = "the " + encounter_dictionary["name"]
-            damage = f" for {base_damage} wounds, "
-        else:
-            damage = f" for {base_damage} wounds, "
-        lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
-            f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
-        chatmessage2 = choice(lossmessage)
-        # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
+#     if len(loser) > 17:
+#         chatmessage2 = f'{loser}'
+#     else:
+#         if (loser != random_character["name"]):
+#             loser = "the " + encounter_dictionary["name"]
+#             damage = f" for {base_damage} wounds, "
+#         else:
+#             damage = f" for {base_damage} wounds, "
+#         lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
+#             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
+#         chatmessage2 = choice(lossmessage)
+#         # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
     
-    return chatmessage, chatmessage2
+#     return chatmessage, chatmessage2
 
 def shop(username, *args):
     from wfrpgame import itemlist
@@ -702,11 +714,13 @@ while Running == True:
                                 elif '!randomenc' in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
-                                        sm1, sm2 = random_encounter(user)
+                                        sm1, sm2 = random_encounter(c,conn,user)
+                                        # sm1, sm2 = random_encounter(user)
                                         Send_message(sm1)
                                         Send_message(sm2)
                                     except:
-                                        sm1, sm2 = random_encounter()
+                                        sm1, sm2 = random_encounter(c, conn)
+                                        # sm1, sm2 = random_encounter()
                                         Send_message(sm1)
                                         Send_message(sm2)
                                     continue
@@ -960,11 +974,11 @@ while Running == True:
                                 elif '!randomenc' in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
-                                        sm1, sm2 = random_encounter(user)
+                                        sm1, sm2 = random_encounter.random_encounter(c, conn, user)
                                         Send_message(sm1)
                                         Send_message(sm2)
                                     except:
-                                        sm1, sm2 = random_encounter()
+                                        sm1, sm2 = random_encounter.random_encounter(c, conn)
                                         Send_message(sm1)
                                         Send_message(sm2)
                                     continue
@@ -1309,6 +1323,7 @@ while Running == True:
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
                                 elif message.lower() == "!uptime":
+                                    #TODO Change this to get Stream up time.
                                     timenow = datetime.datetime.now().replace(microsecond=0)
 
                                     chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
