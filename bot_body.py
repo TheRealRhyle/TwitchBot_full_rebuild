@@ -48,16 +48,6 @@ def Send_message(message, *args):
         s.send(("PRIVMSG #" + args[0] + " :" +
                 message + "\r\n").encode('UTF-8'))
 
-# def get_user_exp(username):
-#     """
-#     Will get the user details for the database and return them as a dictionary
-#     :param username:
-#     :return current xp integer and available crowns:
-#     """
-#     user_info = c.execute(
-#         "select * from users where uname = ?", (username,)).fetchone()
-#     return user_info[2], user_info[4], user_info[5]
-
 def ret_char(username):
     try:
         char_to_return = c.execute(
@@ -131,37 +121,36 @@ def uptime(at_command_time):
 def shop(username, *args):
     from wfrpgame import itemlist
     shoplist = itemlist.load_shop()
-    shop_items = []
+    shop_items_list = []
     shop_message = ''
 
     if not args:
         shop_message = f"/w {username} Welcome to the shop!  The following commands are necessary for using the shop: " \
-            f"(!)shop melee, ranged, or armor will show you the available weapons.  (!)shop buy followed by the item you would " \
+            f"(!)shop melee, ranged, armor, or healing will show you the available equipment.  (!)shop buy followed by the item you would " \
             f"like to purchase will allow you to purchase that specific item assuming that you have the available crowns."
     # elif 'melee' in args[0].lower().strip('\r').strip('\n') or 'ranged' in args[0].lower().strip('\r').strip('\n') or 'armor' in args[0].lower().strip('\r').strip('\n'):
-    elif args[0].lower().strip('\r\n') == 'melee' or args[0].lower().strip('\r\n') == 'ranged' or args[0].lower().strip('\r\n') == 'armor':
-        [shop_items.append(f"[{item}] {shoplist[item]['type']} {shoplist[item]['cost']}") for item in shoplist if args[0].lower().strip('\r\n') in shoplist[item]['type'].lower()]
-        shop_items = str(shop_items).replace('[\'', '').replace(
-            ']\'', '').replace("', '", " ").replace("']", "")
+    elif args[0].lower().strip('\r\n') == 'melee' or args[0].lower().strip('\r\n') == 'ranged' or args[0].lower().strip('\r\n') == 'armor' or args[0].lower().strip('\r\n') == 'healing':
+        [shop_items_list.append(f"[{item}]: {shoplist[item]['cost']}") for item in shoplist if args[0].lower().strip('\r\n') in shoplist[item]['type'].lower()]
+        shop_items = ' || '.join(shop_items_list)
         shop_message = f"/w {username} The available items are as follows: {shop_items}"
+
     elif 'buy' in args[0].lower():
         shopper = ret_char(username)
         _, shopper_purse, _ = game_manager.get_user_exp(c, username)
-        print(len(args))
+
         if len(args) != 2:
             shop_message = "I'm sorry, I didn't understand that, please try again."
         else:
-            new_weapon = args[1].lower().strip('\r\n')
-            if new_weapon not in shoplist:
+            new_item = args[1].lower().strip('\r\n')
+            if new_item not in shoplist:
                 shop_message = "No item exists that with that name, please look at the (!)shop melee, (!)shop armor or (!)shop ranged list again."
                 return
 
-            crown_cost = shoplist[args[1].lower().strip(
-                '\r\n')]['cost'].split(' ')
-            # print(crown_cost[0], shopper_purse)
-
+            crown_cost = shoplist[args[1].lower().strip('\r\n')]['cost'].split(' ')
+            
             if int(shopper_purse) >= int(crown_cost[0]):
-                if shoplist[new_weapon.lower()]['type'] == 'Melee' or shoplist[new_weapon.lower()]['type'] == 'Ranged':
+                # Item can be purchased
+                if shoplist[new_item.lower()]['type'] == 'Melee' or shoplist[new_item.lower()]['type'] == 'Ranged':
                     shopper['weapon'] = args[1]
                     c.execute("update users set crowns = ? where uname = ?", (int(
                         shopper_purse) - int(crown_cost[0]), username))
@@ -169,7 +158,8 @@ def shop(username, *args):
                     conn.commit()
                     shop_message = shop_message = f"/w {username} You brandish your new {args[1]}.  It fits your hands " \
                         f"as though it was made for you."
-                elif shoplist[new_weapon.lower()]['type'] == 'Armor':
+
+                elif shoplist[new_item.lower()]['type'] == 'Armor':
                     shopper['armor'] = args[1]
                     c.execute("update users set crowns = ? where uname = ?", (int(
                         shopper_purse) - int(crown_cost[0]), username))
@@ -177,7 +167,27 @@ def shop(username, *args):
                     conn.commit()
                     shop_message = shop_message = f"/w {username} You don your new {args[1]}.  The armor fits " \
                         f"as though it was made for you."
+                
+                elif shoplist[new_item.lower()]['type'] == 'Healing':
+                    # Get Current and Max wounds
+                    (current_wounds, max_wounds) = c.execute("select CurrentWounds, MaxWounds from users where uname = ?", (username,)).fetchone()
+                    print(shoplist[new_item.lower()]['damage'])
+                    # Add potions healing to current wounds up to Max Wounds.
+                    if current_wounds + int(shoplist[new_item.lower()]['damage'].split(' ')[0]) >= max_wounds:
+                        current_wounds = max_wounds
+                    else:
+                        current_wounds += int(shoplist[new_item.lower()]['damage'].split(' ')[0])
+                    
+                    # Charge the purse
+                    c.execute("update users set crowns = ? where uname = ?", (int(
+                        shopper_purse) - int(crown_cost[0]), username))
+                    c.execute("update users set gchar = ? where uname = ?", (str(shopper), username))
+                    c.execute('update users set CurrentWounds = ? where uname = ?', (current_wounds, username))
+                    conn.commit()
+                    shop_message = f"/w {username} You quaff down the {args[1]}, you begin to feel much better. ({current_wounds}/{max_wounds}) "
+                        
             else:
+                # Charge NSF Fee.
                 Send_message(f"/w {username} You do not have enough Crowns to buy the {args[1]}. Your current purse is {shopper_purse}.")
                 return
     Send_message(shop_message)
@@ -193,32 +203,53 @@ def level_up(username, stat):
         stat = 'toughness'
     elif stat.lower().replace('\r\n', '') == "s":
         stat = 'strength'
+    elif stat.lower().replace('\r\n', '') == "wound":
+        stat = 'wound'
     else:
         Send_message(
-            f"/w {username} {stat} is an unknown stat.  You may only levelup WS, BS, S, or T.")
+            f"/w {username} {stat} is an unknown stat.  You may only levelup WS, BS, S, T or Wound.")
         return
 
+    # Get users current XP
     cxp = c.execute("select exp from users where uname = ?",
                     (username,)).fetchone()[0]
+    
+    
     if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
+        # Is a character
         gchar_dict_to_sql = c.execute(
             "select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+        # converts the string to dictionary
         gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+        # Get the Wounds characteristc
+        char_wounds = c.execute(
+            "select Wounds from users where uname = ?", (username.lower(),)).fetchone()[0]
     else:
         whisper = f"/w {username} {username}, you do not currently have a character, create one with the !char command."
 
-    if cxp >= 100 and gchar_dict[stat] < 75:
-        cxp -= 100
-        gchar_dict[stat] += 5
-        c.execute("update users set exp = ?, gchar = ? where uname = ?", (cxp, str(gchar_dict), username))
-        conn.commit()
-        whisper = f"/w {username} Your {stat} has been increased by 5 points to {gchar_dict[stat]}"
+    if stat != "wound":
+        if cxp >= 100 and gchar_dict[stat] < 75:
+            # Test if the user has more than 100 xp and less that 75 is specific characteristic
+            cxp -= 100
+            gchar_dict[stat] += 5
+            c.execute("update users set exp = ?, gchar = ? where uname = ?", (cxp, str(gchar_dict), username))
+            conn.commit()
+            whisper = f"/w {username} Your {stat} has been increased by 5 points to {gchar_dict[stat]}"
 
-    elif gchar_dict[stat] >= 75:
-        whisper = f"/w {username} Your {stat} has is already maxed out."
-    elif cxp < 100:
-        whisper = f"/w {username} Sorry {username} you do not currently have enough experience to " \
-            f"upgrade your character.  Current EXP: {cxp}"
+        elif gchar_dict[stat] >= 75:
+            # If stat is already over 75.
+            whisper = f"/w {username} Your {stat} has is already maxed out."
+        elif cxp < 100:
+            # if Current xp is not sufficient.
+            whisper = f"/w {username} Sorry {username} you do not currently have enough experience to " \
+                f"upgrade your character.  Current EXP: {cxp}"
+    elif stat == "wound":
+        if cxp >= 100 and char_wounds < 20:
+            cxp -= 100
+            char_wounds += 1
+            c.execute("update users set exp = ?, Wounds = ? where uname = ?", (cxp, str(char_wounds), username))
+            conn.commit()
+            whisper = f"/w {username} Your wounds have been increased by 1 point to {char_wounds}"
     else:
         whisper = f"/w {username} Something strange happend, please alert Rhyle_.  tell him 'def level_up hit else'."
     # print(username, cxp, gchar_dict[stat] + 5)
@@ -385,7 +416,9 @@ while Running == True:
                         user_status = 'user'
                     # print(user_status)
                     if "twitch.tv" not in username:
-                        print(username + " (" + user_status + "): " + message)
+                        print(f"{datetime.datetime.now()} {username} ({user_status}): {message}")
+                        with open("chatlog.txt", 'a') as log:
+                            log.write(f"{datetime.datetime.now()} {username} ({user_status}): {message}")
                     # if username != None:
 
                     #
@@ -430,7 +463,7 @@ while Running == True:
 
                         if username != '':
                             # TODO: Mod, Broadcaster, FOTS, VIP Commands.
-                            print(username)
+                            # print(username)
                             if username.lower() in get_elevated_users(chan) and username.lower() != "rhyle_":
                                 if message[0:7].lower() == '!create':
                                     # Parse the command to be added/created
@@ -933,15 +966,15 @@ while Running == True:
                                         print(
                                             f"user {username} has been added to the database")
                                     finally:
-                                        print(username.lower())
+                                        # print(username.lower())
                                         if (c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',)):
                                             gchar_dict_to_sql = c.execute(
                                                 "select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
                                             gchar_dict = ast.literal_eval(
                                                 gchar_dict_to_sql)
 
-                                            cxp, crowns = c.execute(
-                                                "select exp, crowns from users where uname = ?", (username,)).fetchone()
+                                            cxp, crowns, max_wounds, current_wounds = c.execute(
+                                                "select exp, crowns, MaxWounds, CurrentWounds from users where uname = ?", (username,)).fetchone()
                                             # print(gchar_dict)
                                             article = 'a '
                                             if gchar_dict['race'] == 'elf':
@@ -957,7 +990,7 @@ while Running == True:
                                                     f"{str(gchar_dict['race']).capitalize()} " \
                                                     f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
                                                     f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} Wounds: {current_wounds}/{max_wounds} " \
                                                     f"This is a generic assigned character.  You can !permadeath and then !char " \
                                                     f"in order to get one that is not a Human Peasant." \
                                                     f"Current available Exp: {cxp} Crown Purse: {crowns}" \
@@ -969,7 +1002,7 @@ while Running == True:
                                                     f"{str(gchar_dict['race']).capitalize()} " \
                                                     f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
                                                     f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                    f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} Wounds: {current_wounds}/{max_wounds} " \
                                                     f" You are currently using your " \
                                                     f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                     f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
@@ -993,24 +1026,70 @@ while Running == True:
                                             gchar_dict_to_sql = str(gchar_dict)
 
                                             article = 'a '
+                                            wounds = randint(1,11)
                                             if gchar_dict['race'] == 'elf':
                                                 gchar_dict['race'] = 'elven'
                                                 chat_race = 'elf'
                                                 article = 'an '
+                                                
+                                                if wounds >= 1 and wounds <= 3:
+                                                    wounds = 9
+                                                elif wounds >= 4 and wounds <= 6:
+                                                    wounds = 10
+                                                elif wounds >= 7 and wounds <= 9:
+                                                    wounds = 11
+                                                else:
+                                                    wounds = 12
                                             elif gchar_dict['race'] == 'dwarf':
                                                 chat_race = 'dwarf'
                                                 gchar_dict['race'] = 'dwarven'
+                                                if wounds >= 1 and wounds <= 3:
+                                                    wounds = 11
+                                                elif wounds >= 4 and wounds <= 6:
+                                                    wounds = 12
+                                                elif wounds >= 7 and wounds <= 9:
+                                                    wounds = 13
+                                                else:
+                                                    wounds = 14
+                                            elif gchar_dict['race'] == 'halfling':
+                                                chat_race = gchar_dict['race']
+                                                if wounds >= 1 and wounds <= 3:
+                                                    wounds = 8
+                                                elif wounds >= 4 and wounds <= 6:
+                                                    wounds = 9
+                                                elif wounds >= 7 and wounds <= 9:
+                                                    wounds = 10
+                                                else:
+                                                    wounds = 11
+                                            elif gchar_dict['race'] == 'human':
+                                                chat_race = gchar_dict['race']
+                                                if wounds >= 1 and wounds <= 3:
+                                                    wounds = 10
+                                                elif wounds >= 4 and wounds <= 6:
+                                                    wounds = 11
+                                                elif wounds >= 7 and wounds <= 9:
+                                                    wounds = 12
+                                                else:
+                                                    wounds = 13
                                             else:
                                                 chat_race = gchar_dict['race']
 
-                                            cxp = c.execute(
-                                                "select exp from users where uname = ?", (username,)).fetchone()[0]
+                                                                                        # cxp = c.execute(
+                                            #     "select exp from users where uname = ?", (username,)).fetchone()[0]
 
                                             # Stores character in SQL
                                             c.execute("""update users
-                                                        set gchar = ?
-                                                        where uname = ?""", (gchar_dict_to_sql, username.lower()))
+                                                        set gchar = ?,
+                                                        MaxWounds = ?,
+                                                        CurrentWounds = ?
+                                                        where uname = ?""", (gchar_dict_to_sql, wounds, wounds, username.lower()))
+                                            
                                             conn.commit()
+
+                                            #Get current XP, Crowns, max and current wounds.
+                                            cxp, crowns, max_wounds, current_wounds = c.execute(
+                                                "select exp, crowns, MaxWounds, CurrentWounds from users where uname = ?", (username,)).fetchone()
+
 
                                             # Message to chat and /w to user the character information.
                                             chatmessage = f"{username} the {chat_race.capitalize()} has " \
@@ -1021,7 +1100,7 @@ while Running == True:
                                                 f"{str(gchar_dict['race']).capitalize()} " \
                                                 f"{gchar_dict['prof']} Weapon Skill: {gchar_dict['weapon_skill']} " \
                                                 f"Ballistic Skill: {gchar_dict['ballistic_skill']} Strength: " \
-                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} " \
+                                                f"{gchar_dict['strength']} Toughness: {gchar_dict['toughness']} Wounds: {current_wounds}/{max_wounds}" \
                                                 f" You are currently using your " \
                                                 f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                 f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
@@ -1136,7 +1215,7 @@ while Running == True:
                                     chatmessage = ''
                                     if len(message) <= 9:
                                         chatmessage = "The proper command for this includes one of the " \
-                                            "four character stats: WS, BS, S, T."
+                                            "five character stats: WS, BS, S, T, Wounds."
                                     else:
                                         ex_com, stat = message.strip(
                                             '\r').split(' ')

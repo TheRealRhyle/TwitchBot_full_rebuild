@@ -42,7 +42,7 @@ def check_chatters():
             base_char = tcChargen.base_char(viewerlist[usr])
             # base_char_dict = base_char.get_char(viewerlist[usr])
             gchar_dict_to_sql = str(base_char)
-            c.execute("""insert into users values (?, ?, 0, ?, 0, 0)""",(viewerlist[usr], 'viewer', gchar_dict_to_sql))
+            c.execute("""insert into users values (?, ?, 0, ?, 0, 0, 11, 11)""",(viewerlist[usr], 'viewer', gchar_dict_to_sql))
             conn.commit()
             print("user " + viewerlist[usr] + " has been added to the database")
         else:

@@ -18,5 +18,10 @@
 'throwingaxe': {'type': 'Ranged', 'cost': '5 gc', 'damage': 'SB-2'},
 'leather': {'type': 'Armor', 'cost': '25 gc', 'damage': '1 AP'},
 'mail': {'type': 'Armor', 'cost': '170 gc', 'damage': '3 AP'},
-'plate': {'type': 'Armor', 'cost': '400 gc', 'damage': '5 AP'}
+'plate': {'type': 'Armor', 'cost': '400 gc', 'damage': '5 AP'},
+'small_potion': {'type': 'Healing', 'cost': '1 gc', 'damage': '1 wounds'},
+'medium_potion': {'type': 'Healing', 'cost': '3 gc', 'damage': '3 wounds'},
+'large_potion': {'type': 'Healing', 'cost': '5 gc', 'damage': '5 wounds'},
+'full_heal': {'type': 'Healing', 'cost': '25 gc', 'damage': '100 wounds'}
+
 }
