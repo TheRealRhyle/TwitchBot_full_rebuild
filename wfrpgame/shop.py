@@ -16,6 +16,6 @@ for item in range(len(weapons)):
     # print(weapons[item][0], dict(zip(weapon_profile, weapons[item][1:])))
     # shop[weapons[item][0]] = dict(zip(weapon_profile, weapons[item]))
 
-print (shop_dict)
+# print (shop_dict)
 with open("itemlist.py", 'w') as itemlist:
     itemlist.write(str(shop_dict))

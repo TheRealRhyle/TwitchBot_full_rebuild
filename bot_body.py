@@ -7,6 +7,7 @@ import time
 import ast
 
 import loader
+from anyascii import anyascii
 from wfrpgame import tcChargen, game_manager
 from utils import twitter, commands, quotes, soundcommands
 from chattodb import social_ad, get_active_list
@@ -19,7 +20,8 @@ import myTwitch
 
 # Method for sending a message
 def Send_message(message, *args):
-    time.sleep(0.3)
+    time.sleep(1)
+
 
     if " ^user " in message:
         # print("Message: ", message)
@@ -171,7 +173,7 @@ def shop(username, *args):
                 elif shoplist[new_item.lower()]['type'] == 'Healing':
                     # Get Current and Max wounds
                     (current_wounds, max_wounds) = c.execute("select CurrentWounds, MaxWounds from users where uname = ?", (username,)).fetchone()
-                    print(shoplist[new_item.lower()]['damage'])
+                    # print(shoplist[new_item.lower()]['damage'])
                     # Add potions healing to current wounds up to Max Wounds.
                     if current_wounds + int(shoplist[new_item.lower()]['damage'].split(' ')[0]) >= max_wounds:
                         current_wounds = max_wounds
@@ -223,7 +225,7 @@ def level_up(username, stat):
         gchar_dict = ast.literal_eval(gchar_dict_to_sql)
         # Get the Wounds characteristc
         char_wounds = c.execute(
-            "select Wounds from users where uname = ?", (username.lower(),)).fetchone()[0]
+            "select MaxWounds from users where uname = ?", (username.lower(),)).fetchone()[0]
     else:
         whisper = f"/w {username} {username}, you do not currently have a character, create one with the !char command."
 
@@ -247,7 +249,7 @@ def level_up(username, stat):
         if cxp >= 100 and char_wounds < 20:
             cxp -= 100
             char_wounds += 1
-            c.execute("update users set exp = ?, Wounds = ? where uname = ?", (cxp, str(char_wounds), username))
+            c.execute("update users set exp = ?, MaxWounds = ? where uname = ?", (cxp, str(char_wounds), username))
             conn.commit()
             whisper = f"/w {username} Your wounds have been increased by 1 point to {char_wounds}"
     else:
@@ -338,29 +340,38 @@ while Running == True:
             elif ad_iter == 2:
                 ad_iter = 0
         else:
-            # TODO: botbody line 305, split on whitespace -
-            # https://trello.com/c/MmwQH2XG/24-botbody-line-305-split-on-whitespace#
-            # parts = line.split(" ", 1)
-            # print(line)
-            parts = line.split(":", 2)
 
+            parts = line.split(":", 2)
+            
+            #
+            # DEBUG INFO
+            #
             # for attr in parts:
             #     print(attr)
             # print("Line = " + line)
             # print("Parts index 0 = " + parts[0])
-            # print("Parts index 1 = " + parts[1])
+            # try:
+            #     print("Parts index 1 = " + parts[1])
+            # except:
+            #     print("No Parts index 1")
             # try:
             #     print("Parts index 2 = " + parts[2])
             # except:
-            #     pass
+            #     print("No parts index 2")
             # try:
             #     print("Parts index 3 = " + parts[3])
             # except:
             #     pass
 
             # print("Parts = " + str(parts))
+            try:
+                if "ROOMSTATE" not in parts[0] and "QUIT" not in parts[0] and "JOIN" not in parts[0] and "PART" not in parts[0] and "PING" not in parts[0]:
+                    pass
+            except:
+                print("Expected Crash")
 
-            if "QUIT" not in parts[1] and "JOIN" not in parts[1] and "PART" not in parts[1] and "PING" not in parts[0]:
+
+            if "ROOMSTATE" not in parts[0] and "QUIT" not in parts[0] and "JOIN" not in parts[0] and "PART" not in parts[0] and "PING" not in parts[0]:
                 message = None
                 try:
                     # Sets the message variable to the actual message sent
@@ -398,7 +409,7 @@ while Running == True:
 
                 # username = usernamesplit[0]
                 chan_name = []
-                if "PRIVMSG" in parts[1]:
+                if "PRIVMSG" in parts[0]:
                     chan_name = (parts[1].split('#'))[1]
 
                 # Only works after twitch is done announcing stuff (MOTD = Message of the day)
@@ -418,7 +429,8 @@ while Running == True:
                     if "twitch.tv" not in username:
                         print(f"{datetime.datetime.now()} {username} ({user_status}): {message}")
                         with open("chatlog.txt", 'a') as log:
-                            log.write(f"{datetime.datetime.now()} {username} ({user_status}): {message}")
+                            
+                            log.write(f"{datetime.datetime.now()} {username} ({user_status}): {str(anyascii(message))}")
                     # if username != None:
 
                     #
@@ -645,7 +657,7 @@ while Running == True:
                                 if '!goaway' in message.lower():
                                     Send_message("Shutting down now.")
                                     Running = False
-                                if message[0:8].lower() == '!adduser':
+                                elif message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(
                                         ' ')
                                     c.execute("insert into users values (:user , :status)", {'user': new_user.lower(), 'status': user_type})
@@ -898,7 +910,7 @@ while Running == True:
                                         Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
                                         
 
-                            if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!up', '!de', '!ad', '!go', '!up', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!de', '!ad', '!go', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
@@ -1007,10 +1019,11 @@ while Running == True:
                                                     f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                     f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
                                                     f" upgrade either you can (!)shop to spend your crowns to purchase new weapons" \
-                                                    f" and armor.  Current available Exp: {cxp} Crown Purse: {crowns}"
-
-                                                Send_message(
-                                                    f"/w {build_whisper}")
+                                                    f" and armor.  Current available Exp: {cxp} Crown Purse: {crowns}."
+                                                build_whisper2 = f"{username} You can level up your skills with !levelup and then one of the 4 skills or " \
+                                                    f"wounds.  Skills will not go above 79 and Wounds is capped at 20."
+                                                Send_message(f"/w {build_whisper}")
+                                                Send_message(f"/w {build_whisper2}")
                                             chatmessage = ""
 
                                         else:
@@ -1207,18 +1220,27 @@ while Running == True:
                                         "10 minutes."
                                 elif message.lower() == "!uptime":
                                     #TODO Change this to get Stream up time.
-                                    timenow = datetime.datetime.now().replace(microsecond=0)
 
-                                    chatmessage = f'Rhyle_Bot has been running for {str(uptime(timenow))}, this is not ' \
-                                        f'stream uptime.'
+                                    #
+                                    #   detlion1643:
+                                    # try something like this: https://pastebin.com/yvr8Kaw6
+                                    #                                     
+                                    time_started = myTwitch.get_uptime(ClientID, oauth, Token)
+                                    time_started = time_started["data"][0]["started_at"]
+                                    time_started = datetime.datetime.strptime(time_started,"%Y-%m-%dT%H:%M:%SZ")
+                                    
+                                    now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%SZ")
+                                    
+                                    print(now - time_started)
+                                    chatmessage = f'Rhyle_ has been live since {time_started}.'
                                 elif "!levelup" in message.lower().replace('\r\n', ''):
                                     chatmessage = ''
                                     if len(message) <= 9:
-                                        chatmessage = "The proper command for this includes one of the " \
+                                        chatmessage = f"/w {username} The proper command for this includes one of the " \
                                             "five character stats: WS, BS, S, T, Wounds."
                                     else:
-                                        ex_com, stat = message.strip(
-                                            '\r').split(' ')
+                                        ex_com, stat = message.replace("  ", " ").strip('\r').split(' ')
                                         level_up(username, stat)
                                 elif "!shop" in message.lower().strip('\r'):
                                     if len(message) == 5:

@@ -6,7 +6,7 @@ class Character:
     """ This is going to be a random character generator for twitch.tv/rhyle_
     """
 
-    def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon):
+    def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon, max_wounds, current_wounds):
 
         self.name = name
         self.race = race
@@ -17,26 +17,32 @@ class Character:
         self.t = toughness
         self.armor = armor
         self.weapon = weapon
+        self.max_wounds = max_wounds
+        self.current_wounds = current_wounds
+
 
     def get_char(self, name):
         char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
-                      'toughness':'', 'armor':'','weapon':''}
-        char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t, self.armor, self.weapon]
+                      'toughness':'', 'armor':'','weapon':'', 'max_wounds':'', 'current_wounds':''}
+        char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t, self.armor, self.weapon, self.max_wounds, self.current_wounds]
         return dict(zip(char_dict, char_))
     # def __str__(self):
     #     return f"""{self.name} is a {self.race} {self.prof} who has {self.ws} weapon skill, {self.bs} ballistic skill,
     #     and {self.s} strength, and {self.t} toughness."""
 
+    def take_damage(self, name, amount):
+        pass
+
 def base_char(uname):
     char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
-                      'toughness':'', 'armor':'','weapon':''}
+                      'toughness':'', 'armor':'','weapon':'', 'max_wounds':'', 'current_wounds':''}
     char_ = [uname, 'human', 'peasant', 20, 20, 20,20, 'none', 'fists']
     return dict(zip(char_dict, char_))
 
 
 def chat_char(uname):
     race = choice(['dwarf', 'elf', 'halfling', 'human'])
-    stats_dict = {'WS': 0, 'BS': 0, 'S': 0, 'T': 0}
+    stats_dict = {'WS': 0, 'BS': 0, 'S': 0, 'T': 0, 'MW': 0, 'CW':0}
 
     if race == 'dwarf':
         stats = [30, 20, 20, 30]
@@ -51,6 +57,7 @@ def chat_char(uname):
         stats = [20, 20, 20, 20]
 
     stat_prof  = [stat + randint(2, 20) for stat in stats]
+    
     stats_dict = dict(zip(stats_dict, stat_prof))
 
     # phys = randint(1, 10)

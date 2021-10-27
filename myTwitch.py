@@ -38,9 +38,16 @@ def get_status(ClientID, OAuth):
     # category = category.replace(" ", "+").replace("&","&amp;")
     # gamedata = f'channel[status]={title}&channel[game]={category}&channel[channel_feed_enabled]=false'
     r = requests.get(url=url, headers=headers).json()
-    print(r)
+    return r
 
-def get_current_tags(ClientID, OAuth):
+def get_uptime(ClientID, OAuth, Token):
+    url = "https://api.twitch.tv/helix/streams?user_login=rhyle_"
+    headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token}
+    r = requests.get(url=url, headers=headers).json()   
+    return r
+
+def get_current_tags(ClientID, OAuth, ):
     url = 'https://api.twitch.tv/helix/streams/tags?broadcaster_id=38847203'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
         'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }

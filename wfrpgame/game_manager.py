@@ -31,10 +31,11 @@ def get_active_list():
 
 def ret_char(c, username):
     try:
-        char_to_return = c.execute(
-            "select gchar from users where uname = ?", (username,)).fetchone()[0]
-        if c.execute("select status from users where uname = ?", (username,)).fetchone()[0] == 'bot':
+        char_to_return, Status, CurrentWounds = c.execute("select gchar, status, CurrentWounds from users where uname = ?", (username,)).fetchone()
+        if Status == 'bot' or CurrentWounds == 0:
             char_to_return = ''
+        # if c.execute("select status from users where uname = ?", (username,)).fetchone()[0] == 'bot':
+        #     char_to_return = ''
     except TypeError:
         print("User in channel that has not been added to the database yet: ", username)
         char_to_return = ''
@@ -54,22 +55,28 @@ def random_encounter(c, conn, *args):
     # encounter_dictionary = bestiary.choose_bandit()
     hit_location, c_hit_location, m_hit_location = 0, 0, 0
     loser = ''
+    new_damage = 0
     chatmessage, chatmessage2, chatmessage3 = "","",""
 
+    # if no character was submitted with the randomenc request, grab a random viewer
     if not args:
-        random_character = ret_char(c, choice(get_active_list()))
+        viewer = choice(get_active_list())
+        random_character = ret_char(c, viewer)
 
+    # Strip the @ if it was supplied, and get the requested user
     else:
         user = args[0].strip('\r\n').strip('@')
         random_character = ret_char(c, user)
 
     while random_character == 'None':
-        random_character = ret_char(c, str(choice(get_active_list())))
+        viewer = choice(get_active_list())
+        random_character = ret_char(c, viewer)
 
-    crowns = c.execute("select crowns from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
-    # character_roll = (randint(2, 100) + random_character['weapon_skill']) - int(encounter_dictionary['t'])
-    # mob_roll = (randint(2, 100) + int(encounter_dictionary['ws'])) - random_character['toughness']
+    
+    # Get selected users current Crowns, Max_ and Current_ wounds.
+    crowns, max_wounds, current_wounds  = c.execute("select crowns, MaxWounds, CurrentWounds from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
 
+    # If the selected viewer has 0 wounds OR is a known bot, bypass that user
     # --------------------------------
     # BEGIN Random Encounter Rebuild
     # --------------------------------
@@ -84,6 +91,7 @@ def random_encounter(c, conn, *args):
     # --------------------------------
 
     character_weapon = random_character['weapon']
+    character_armor = random_character['armor']
     try:
         if shoplist[character_weapon]['type'] == "Melee":
             damage_mod = shoplist[character_weapon]['damage']
@@ -92,52 +100,59 @@ def random_encounter(c, conn, *args):
                 base_damage += int(damage_mod.split("+")[1])
             elif "-" in damage_mod:
                 base_damage -= int(damage_mod.split("-")[1])
-            elif damage_mod == "SB":
-                pass
             else:
                 base_damage = int(damage_mod)
         elif shoplist[character_weapon]['type'] == "Ranged":
             damage_mod = shoplist[character_weapon]['damage']
-            base_damage = math.floor((random_character['strength'])/10)
-            if "+" in damage_mod:
-                base_damage += int(damage_mod.split("+")[1])
-            elif "-" in damage_mod:
-                base_damage -= int(damage_mod.split("-")[1])
-            elif damage_mod == "SB":
-                pass
+            
+            if 'SB' in shoplist[character_weapon]['damage']:
+                base_damage = math.floor((random_character['strength'])/10) - int(damage_mod.split("-")[1])
             else:
                 base_damage = int(damage_mod)
+            
     except:
-        # Character does not have a weapon
-        pass
+        if math.floor((random_character['strength'])/10) - 4 < 0:
+            base_damage = 0
+        else:
+            base_damage = math.floor((random_character['strength'])/10) - 4
 
+    # Determin which skill to use based on wielded weapon
+    try:
+        if shoplist[character_weapon]['type'] == 'Melee':
+            character_ws = random_character['weapon_skill']    
+        elif shoplist[character_weapon]['type'] == 'Ranged':
+            character_ws = random_character['ballistic_skill']
+        else:
+            character_ws = random_character['weapon_skill']    
+    except:
+        character_ws = random_character['weapon_skill']    
+    # character_ws = random_character['weapon_skill']
 
+    # Generate a pseudo random number to represend the 2d10 weaponskill check.
     character_roll = (randint(2, 100))
-    character_ws = random_character['weapon_skill']
-
     # print(f'Character: {character_ws} : {character_roll}')
     if character_roll > character_ws:
-        character_gos = -1
-    elif character_roll == character_ws:
-        character_gos = 0
+        character_gos = -1  
+    elif character_roll <= character_ws:
+        character_gos = 1
     else:
         c_hit_location = str(character_roll)[::-1]
+        new_damage = randint(1,11) + base_damage
         character_gos = math.floor(character_ws / 10) - math.floor(character_roll / 10)
     
-    
-
     mob_roll = (randint(2, 100))
     mob_ws = int(encounter_dictionary['ws'])
     # print(f'Mob: {mob_ws}:{mob_roll}')
     if mob_roll > mob_ws:
         mob_gos = -1
-    elif mob_roll == mob_ws:
-        mob_gos = 0
+    elif mob_roll <= mob_ws:
+        mob_gos = 1
     else:
         m_hit_location = str(mob_roll)[::-1]
         mob_gos = math.floor(mob_ws / 10) - math.floor(mob_roll / 10)
     # print(f'Monster Successes: {mob_gos}')
 
+    
     if (character_gos > mob_gos) and (character_gos >= 0):
         # Viewer wins!
         hit_location = c_hit_location
@@ -157,8 +172,10 @@ def random_encounter(c, conn, *args):
         # Random monster wins
         hit_location = m_hit_location
         base_damage += mob_gos
-        current_wounds = c.execute("select CurrentWounds from users where uname = ?", (random_character['name'].lower(),)).fetchone()[0]
         loser = random_character['name'].lower()
+        
+        mitigation = int(shoplist[character_armor]['damage'].split(" ")[0])
+        base_damage -= mitigation
         if (current_wounds - base_damage) <= 0:
             current_wounds = 0
         else:
@@ -170,7 +187,7 @@ def random_encounter(c, conn, *args):
 
         if encounter_dictionary["name"] in ["Pickpocket", "Bandit", "Footpad"]:
             chatmessage3 = f"@{random_character['name']}, you might want to check your purse after that encounter."
-            new_crowns = int(crowns[0] - (crowns[0] * robbers))
+            new_crowns = int(crowns - (crowns * robbers))
             c.execute("update users set crowns = ? where uname = ?", (new_crowns, random_character['name'].lower()))
             conn.commit()
             
@@ -235,27 +252,27 @@ def random_encounter(c, conn, *args):
         f'encountered a {encounter_dictionary["name"]}.  There was a mighty battle: ' \
         f'{random_character["name"]}'
 
-    if character_weapon != "fists":
+    if "fists" not in character_weapon:
         if shoplist[character_weapon]['type'] == "Melee":
             chatmessage= chatmessage + f' readied their {random_character["weapon"]} against the ' \
             f'{mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
         elif shoplist[character_weapon]['type'] == "Ranged":
             chatmessage= chatmessage + f' fired their {random_character["weapon"]} toward the ' \
-            f'oncoming {encounter_dictionary["name"].lower()}.' 
+            f'oncoming {encounter_dictionary["name"].lower()}.'
     else:
-        chatmessage= chatmessage + f' tried to make peace with their gods and readied their fists ' \
-        f'against the {mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.' 
+        chatmessage= chatmessage + f' tried to make peace with their gods and readied their {character_weapon} ' \
+        f'against the {mob_weapon.lower()} of the {encounter_dictionary["name"].lower()}.'
     
     if len(loser) > 17:
         chatmessage2 = f'{loser}'
     else:
         if (loser != random_character["name"]):
             loser = "the " + encounter_dictionary["name"]
-            damage = f" for {base_damage} wounds, "
-            lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
+            damage = f" for {base_damage}(New rolls: {new_damage}) wounds, "
+            lossmessage = [f'{loser.title()} was struck in the {hit} but managed to flee before a fatal blow was landed.',
             f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         else:
-            damage = f" for {base_damage} wounds, "
+            damage = f" for {base_damage}(New rolls: {new_damage}) wounds, "
             if current_wounds == 0:
                 lossmessage = [f"Unfortunately our hero, {loser.title()}, has succumb and shuffled off this mortal coil."]
             else:

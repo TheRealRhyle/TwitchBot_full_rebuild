@@ -16,6 +16,7 @@
 'blunderbuss': {'type': 'Ranged', 'cost': '70 gc', 'damage': '3'},
 'sling': {'type': 'Ranged', 'cost': '4 gc', 'damage': '3'},
 'throwingaxe': {'type': 'Ranged', 'cost': '5 gc', 'damage': 'SB-2'},
+'none': {'type': 'Armor', 'cost': '0 gc', 'damage': '0 AP'},
 'leather': {'type': 'Armor', 'cost': '25 gc', 'damage': '1 AP'},
 'mail': {'type': 'Armor', 'cost': '170 gc', 'damage': '3 AP'},
 'plate': {'type': 'Armor', 'cost': '400 gc', 'damage': '5 AP'},
