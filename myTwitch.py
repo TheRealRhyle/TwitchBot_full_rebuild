@@ -3,36 +3,39 @@ import loader
 import json
 # import othercreds
 
-
-
 # curl -X PATCH 'https://api.twitch.tv/helix/channels?broadcaster_id=41245072' \
 # -H 'Authorization: Bearer 2gbdx6oar67tqtcmt49t3wpcgycthx' \
 # -H 'Client-Id: wbmytr93xzw8zbg0p1izqyzzc5mbiz' \
 # -H 'Content-Type: application/json' \
 # --data-raw '{"game_id":"33214", "title":"there are helicopters in the game? REASON TO PLAY FORTNITE found", "broadcaster_language":"en"}'
 
-def update_twitch(ClientID, OAuth, update_info):
+def update_twitch(ClientID, Token, update_info):
     url = 'https://api.twitch.tv/helix/channels?broadcaster_id=38847203'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer k5v4oampg6e3sxlkmq1p0zh51s2tyb' }
-    title, category = update_info.split("; ")
-    # title = title.replace(" ", "+")
-    category = category.replace("\r",'')
-    # gamedata = f'channel[status]={title}&channel[game]={category}&channel[channel_feed_enabled]=false'
-    # r = requests.patch(url=url, headers=headers, data=gamedata).json()
-    # print(r)
-    gamedata = f'"game_name":"{category}", "title":"{title}"'
-    print(gamedata)
-    gamedata = '{"game_id":"21779"}'
-    x= json.loads(gamedata)
-    print(x)
-    r = requests.patch(url=url, headers=headers, data=x).json()
-    print(r)
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token }
+    title, game = update_info.split("; ")
+    title = title + " | !game !character !crypto"
+    game = game.replace("\r",'')
+    game_id = get_games(ClientID, Token, game)
+    # game_id = 1469308723
+    gamedata = f'"title":"{title}", "game_id":"{game_id}"'
+    gamedata = "{" + gamedata + "}"
+    x = json.loads(gamedata)
+    r = requests.patch(url=url, headers=headers, data=x)
+    print (r)
 
-def get_status(ClientID, OAuth):
-    url = 'https://api.twitch.tv/kraken/channels/38847203'
+def get_games(ClientID, OAuth, Game_Name):
+    url = f"https://api.twitch.tv/helix/games?name={Game_Name}"
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Bearer ' + OAuth }
+    r = requests.get(url=url, headers=headers).json()
+    return r['data'][0]['id']
+    
+    
+def get_status(ClientID, OAuth):
+    url = 'https://api.twitch.tv/helix/channels?broadcaster_id=38847203'
+    headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Bearer ' + OAuth }
     # title, category = update_info.split(";")
     # title = title.replace(" ", "+")
     # category = category.replace(" ", "+").replace("&","&amp;")
@@ -44,22 +47,22 @@ def get_uptime(ClientID, OAuth, Token):
     url = "https://api.twitch.tv/helix/streams?user_login=rhyle_"
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
         'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token}
-    r = requests.get(url=url, headers=headers).json()   
+    r = requests.get(url=url, headers=headers).json()
     return r
 
-def get_current_tags(ClientID, OAuth, ):
+def get_current_tags(ClientID, Token):
     url = 'https://api.twitch.tv/helix/streams/tags?broadcaster_id=38847203'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token }
+        # 'Authorization':OAuth
     # r = requests.get(url = url, headers = headers)
-    requests.get(url = url, headers = headers)
-    # print(r.text)
+    r = requests.get(url = url, headers = headers).json()
+    return r
 
-def set_tags(ClientID, OAuth):
+def set_tags(ClientID, Token):
     url = 'https://api.twitch.tv/helix/streams/tags?broadcaster_id=38847203'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/json', 'Authorization':OAuth, \
-            'Scope':'user:edit+user:read:email+user:edit:broadcast'}
+        'Content-Type': 'application/json', 'Authorization':'Bearer ' + Token}
     tags = '{"tag_ids": ["cea7bc0c-75a5-4446-8743-6db031b71550","a59f1e4e-257b-4bd0-90c7-189c3efbf917", \
         "6f86127d-6051-4a38-94bb-f7b475dde109"]}'
     # r = requests.put(url=url, headers=headers, data=tags)

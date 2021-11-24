@@ -6,10 +6,14 @@ import json
 import ast
 
 def get_user_exp(c, username):
-    """
-    Will get the user details for the database and return them as a dictionary
-    :param username:
-    :return current xp integer and available crowns:
+    """Gets stats from  the selected user
+
+    Args:
+        c (pointer): database pointer
+        username (string): viewer name
+
+    Returns:
+        exp, crowns, max_wounds
     """
     user_info = c.execute("select * from users where uname = ?", (username,)).fetchone()
     return user_info[2], user_info[4], user_info[5]
@@ -30,9 +34,19 @@ def get_active_list():
     return viewerlist
 
 def ret_char(c, username):
+    """Get character from database.
+
+    Args:
+        c (pointer): Database pointer
+        username (string): viewer name
+
+    Returns:
+        Either returns none or a dictionary
+    """
     try:
-        char_to_return, Status, CurrentWounds = c.execute("select gchar, status, CurrentWounds from users where uname = ?", (username,)).fetchone()
-        if Status == 'bot' or CurrentWounds == 0:
+        char_to_return, Status = c.execute("select gchar, status from users where uname = ?", (username,)).fetchone()
+        # If the selected viewer is a known bot, bypass that user
+        if Status == 'bot':
             char_to_return = ''
         # if c.execute("select status from users where uname = ?", (username,)).fetchone()[0] == 'bot':
         #     char_to_return = ''
@@ -49,10 +63,10 @@ def random_encounter(c, conn, *args):
     shoplist = itemlist.load_shop()
     base_damage = 0
     encounter_value = 100
-    robbers = .10
+    won_crowns = randint(1, 10)
+    robbers = .10 # If someone looses to a Pickpocket, Bandit, or Footpat they lose this percentage of their current purse.
     c_wins = 1
     encounter_dictionary = bestiary.choose_mob()
-    # encounter_dictionary = bestiary.choose_bandit()
     hit_location, c_hit_location, m_hit_location = 0, 0, 0
     loser = ''
     new_damage = 0
@@ -74,9 +88,12 @@ def random_encounter(c, conn, *args):
 
     
     # Get selected users current Crowns, Max_ and Current_ wounds.
-    crowns, max_wounds, current_wounds  = c.execute("select crowns, MaxWounds, CurrentWounds from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
+    # crowns, max_wounds, current_wounds  = c.execute("select crowns, MaxWounds, CurrentWounds from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()
+    crowns = c.execute("select crowns from users where uname = ?", (str(random_character['name']).lower(), )).fetchone()[0]
+    
+    current_wounds = random_character["current_wounds"]
 
-    # If the selected viewer has 0 wounds OR is a known bot, bypass that user
+    
     # --------------------------------
     # BEGIN Random Encounter Rebuild
     # --------------------------------
@@ -159,10 +176,12 @@ def random_encounter(c, conn, *args):
         base_damage += character_gos
         loser = encounter_dictionary['name'].lower()
         exp, _, wins = get_user_exp(c, random_character['name'].lower())
-        encounter_value += exp
+        exp += encounter_value
         c_wins += wins
-        c.execute("update users set exp = ?, wins = ? where uname = ?", (encounter_value, c_wins, random_character['name'].lower()))
+        crowns += won_crowns
+        c.execute("update users set exp = ?, crowns = ?, wins = ? where uname = ?", (encounter_value, crowns, c_wins, random_character['name'].lower()))
         conn.commit()
+        chatmessage3 = f"You've earned {encounter_value} experience, and found {won_crowns} crowns in the aftermath!"
     elif (character_gos == mob_gos) and (character_gos >= 0):
         # Draw
         hit_location = c_hit_location

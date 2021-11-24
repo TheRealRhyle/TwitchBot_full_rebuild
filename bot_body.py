@@ -8,7 +8,7 @@ import ast
 
 import loader
 from anyascii import anyascii
-from wfrpgame import tcChargen, game_manager
+from wfrpgame import tcChargen, game_manager, character_manager
 from utils import twitter, commands, quotes, soundcommands
 from chattodb import social_ad, get_active_list
 import myTwitch
@@ -229,7 +229,7 @@ def level_up(username, stat):
     else:
         whisper = f"/w {username} {username}, you do not currently have a character, create one with the !char command."
 
-    if stat != "wound":
+    if stat.lower() != "wound":
         if cxp >= 100 and gchar_dict[stat] < 75:
             # Test if the user has more than 100 xp and less that 75 is specific characteristic
             cxp -= 100
@@ -245,13 +245,15 @@ def level_up(username, stat):
             # if Current xp is not sufficient.
             whisper = f"/w {username} Sorry {username} you do not currently have enough experience to " \
                 f"upgrade your character.  Current EXP: {cxp}"
-    elif stat == "wound":
+    elif stat.lower() == "wound":
         if cxp >= 100 and char_wounds < 20:
             cxp -= 100
             char_wounds += 1
             c.execute("update users set exp = ?, MaxWounds = ? where uname = ?", (cxp, str(char_wounds), username))
             conn.commit()
             whisper = f"/w {username} Your wounds have been increased by 1 point to {char_wounds}"
+        else:
+            whisper = f"/w {username} It looks like you either don't have enough experience or you're already capped out on wounds!"
     else:
         whisper = f"/w {username} Something strange happend, please alert Rhyle_.  tell him 'def level_up hit else'."
     # print(username, cxp, gchar_dict[stat] + 5)
@@ -301,9 +303,9 @@ ad_iter = 0
 autoShoutOut = ['rhyle_', 'rhyle_bot']
 
 # Clear Currently playing file
-with open('songrequest\\current_song.txt', 'w') as cs:
-    cs.write('')
-starttime = datetime.datetime.now()
+# with open('songrequest\\current_song.txt', 'w') as cs:
+#     cs.write('')
+# starttime = datetime.datetime.now()
 
 while Running == True:
 
@@ -320,8 +322,7 @@ while Running == True:
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
         if ("PING :" in line):
             s.send(bytes("PONG\r\n", "UTF-8"))
-            currentTime = datetime.datetime.now()
-            secondsDelta = currentTime - starttime
+            
             # print(secondsDelta.seconds / 60)
             # print((currentTime - starttime) / 60)
             # if (((currentTime - starttime) / 60) >= 5):
@@ -486,8 +487,7 @@ while Running == True:
                                     c.execute("insert into commands values (:command, :target, :action)",
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
-                                    Send_message(
-                                        "Command " + command + " has been added.")
+                                    Send_message("Command " + command + " has been added.")
                                 elif message[0:7].lower() == '!update':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -657,6 +657,17 @@ while Running == True:
                                 if '!goaway' in message.lower():
                                     Send_message("Shutting down now.")
                                     Running = False
+                                elif message[0:6].lower() == "!title":
+                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
+                                    update_info = message.replace("!title ", "")
+                                    # print(myTwitch.get_current_tags(ClientID, Token))
+                                    print(myTwitch.get_status(ClientID, Token))
+                                    # print(myTwitch.set_tags(ClientID, Token))
+                                    print(myTwitch.update_twitch(ClientID, Token, update_info))
+                                elif message[0:7].lower() == "!gameid":
+                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
+                                    cmd, game_name = message.split(" ")
+                                    myTwitch.get_games(ClientID, Token, game_name)
                                 elif message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(
                                         ' ')
@@ -930,7 +941,7 @@ while Running == True:
                                     chatmessage = "It looks like " + username + " no longer thinks they can be a " \
                                         "productive member of the community and has requested to be banned."
                                     Send_message("/ban " + username + " Self exile")
-                                    time.sleep(2)
+                                    time.sleep(5)
                                     Send_message("/unban " + username)
                                 elif "!change" in message.lower():
                                     try:
@@ -973,7 +984,7 @@ while Running == True:
                                         user = c.execute("select * from users where uname = ?", (username.lower(),))
                                     except:
                                         c.execute(
-                                            """insert into users values (?, ?, 0, '', 0)""", (username.lower(), 'viewer'))
+                                            """insert into users values (?, ?, 0, '', 0, 0, 0, 0)""", (username.lower(), 'viewer'))
                                         conn.commit()
                                         print(
                                             f"user {username} has been added to the database")
@@ -982,8 +993,7 @@ while Running == True:
                                         if (c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',)):
                                             gchar_dict_to_sql = c.execute(
                                                 "select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
-                                            gchar_dict = ast.literal_eval(
-                                                gchar_dict_to_sql)
+                                            gchar_dict = ast.literal_eval(gchar_dict_to_sql)
 
                                             cxp, crowns, max_wounds, current_wounds = c.execute(
                                                 "select exp, crowns, MaxWounds, CurrentWounds from users where uname = ?", (username,)).fetchone()
@@ -1028,12 +1038,10 @@ while Running == True:
 
                                         else:
                                             # Generate character using the Character Class
-                                            gchar = tcChargen.chat_char(
-                                                username)
+                                            gchar = character_manager.chat_char(username)
 
                                             # Converts the Class to a dictionary
-                                            gchar_dict = gchar.get_char(
-                                                username)
+                                            gchar_dict = gchar.get_char(username)
 
                                             # Casts the dictionary to a string for storage in SQL
                                             gchar_dict_to_sql = str(gchar_dict)
@@ -1087,7 +1095,7 @@ while Running == True:
                                             else:
                                                 chat_race = gchar_dict['race']
 
-                                                                                        # cxp = c.execute(
+                                            # cxp = c.execute(
                                             #     "select exp from users where uname = ?", (username,)).fetchone()[0]
 
                                             # Stores character in SQL
@@ -1118,7 +1126,7 @@ while Running == True:
                                                 f"{str(gchar_dict['weapon']).capitalize()} as a weapon and " \
                                                 f"{str(gchar_dict['armor']).capitalize()} for armor. If you would like to" \
                                                 f" upgrade either you can (!)shop to spend your crowns to purchase new weapons" \
-                                                f" and armor.  Current available Exp: {cxp}"
+                                                f" and armor.  Current available Exp: {cxp} Coin Purse: {crowns}"
 
                                             Send_message(f"/w {build_whisper}")
                                 elif "!retire" in message.lower():
@@ -1174,29 +1182,26 @@ while Running == True:
                                             Send_message(f"{str(chall['name']).capitalize()}, {str(vic['name']).capitalize()} has accepted your challenge.  Prepare for combat!")
                                             time.sleep(1)
                                             victim_random = randint(2, 100)
-                                            vic_roll = (
-                                                vic['weapon_skill'] + victim_random) - chall['toughness']
+                                            vic_roll = (vic['strength'] + victim_random) - chall['toughness']
                                             if vic_roll < 0:
                                                 vic_roll = 0
                                             Send_message(f"{victim[0]} hits {challenger[0]} with their {vic['weapon']} (({vic['weapon_skill']} + {victim_random})-{chall['toughness']}) ({vic_roll})")
                                             time.sleep(1)
                                             challenger_random = randint(2, 100)
-                                            chall_roll = (
-                                                chall['weapon_skill'] + challenger_random) - vic['toughness']
+                                            chall_roll = (chall['strength'] + challenger_random) - vic['toughness']
                                             if chall_roll < 0:
                                                 chall_roll = 0
-                                            Send_message(f"{challenger[0]} returns the blow with their {chall['weapon']} (({chall['weapon_skill']} + {challenger_random}) - {vic['toughness']}) ({chall_roll})")
+                                            Send_message(f"{challenger[0]} returns the blow! (({chall['weapon_skill']} + {challenger_random}) - {vic['toughness']}) ({chall_roll})")
                                             time.sleep(1)
 
                                             if vic_roll > chall_roll:
                                                 Send_message(f'{victim[0]} has defeated their challenger {challenger[0]} and earned! {amount} exp.')
-                                                challenge_result(
-                                                    victim[0], amount, challenger[0])
+                                                challenge_result(victim[0], amount, challenger[0])
                                             elif vic_roll == chall_roll:
                                                 Send_message(
-                                                    f'After a bloody fight {victim[0]} and {challenger[0]} call it a draw!')
+                                                    f'After a knock-down, drag-out fight both {victim[0]} and {challenger[0]} call it a draw!')
                                             else:
-                                                Send_message(f'{challenger[0]} has bested their victim, {victim[0]}, earning themselves {amount}')
+                                                Send_message(f'After a knock-down, drag-out fight both {challenger[0]}, and {victim[0]} have been ejected from the bar, {challenger[0]} clearly the victor, earning themselves {amount}.')
                                                 challenge_result(
                                                     challenger[0], amount)
                                             chatmessage = ""
@@ -1219,21 +1224,13 @@ while Running == True:
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
                                 elif message.lower() == "!uptime":
-                                    #TODO Change this to get Stream up time.
-
-                                    #
-                                    #   detlion1643:
-                                    # try something like this: https://pastebin.com/yvr8Kaw6
-                                    #                                     
                                     time_started = myTwitch.get_uptime(ClientID, oauth, Token)
                                     time_started = time_started["data"][0]["started_at"]
                                     time_started = datetime.datetime.strptime(time_started,"%Y-%m-%dT%H:%M:%SZ")
                                     
-                                    now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                                     now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%SZ")
-                                    
-                                    print(now - time_started)
-                                    chatmessage = f'Rhyle_ has been live since {time_started}.'
+                                    chatmessage = f'Rhyle_ has been live for {now - time_started} hours.'
                                 elif "!levelup" in message.lower().replace('\r\n', ''):
                                     chatmessage = ''
                                     if len(message) <= 9:

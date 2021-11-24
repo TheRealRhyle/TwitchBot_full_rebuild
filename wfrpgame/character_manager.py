@@ -3,11 +3,14 @@ import ast
 
 
 class Character:
-    """ This is going to be a random character generator for twitch.tv/rhyle_
+    """ Character Class for idle chat game
+        methods: 
+            get_char: requires username
+            take_damage: requires username, amount
+            heal_damage: requires username, amount
+            level_up: requires which stat.
     """
-
     def __init__(self, name, race, prof, weapon_skill, ballistic_skill, strength, toughness, armor, weapon, max_wounds, current_wounds):
-
         self.name = name
         self.race = race
         self.prof = prof
@@ -20,45 +23,90 @@ class Character:
         self.max_wounds = max_wounds
         self.current_wounds = current_wounds
 
-
     def get_char(self, name):
+        """Converts String character into dictionary
+
+        Args:
+            name (string): twitch viewer name
+
+        Returns:
+            Dictionary: character dict
+        """
         char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
                       'toughness':'', 'armor':'','weapon':'', 'max_wounds':'', 'current_wounds':''}
         char_ = [self.name, self.race, self.prof, self.ws, self.bs, self.s, self.t, self.armor, self.weapon, self.max_wounds, self.current_wounds]
         return dict(zip(char_dict, char_))
-    # def __str__(self):
-    #     return f"""{self.name} is a {self.race} {self.prof} who has {self.ws} weapon skill, {self.bs} ballistic skill,
-    #     and {self.s} strength, and {self.t} toughness."""
 
     def take_damage(self, name, amount):
-        pass
+        if self.current_wounds - amount <=0:
+            self.current_wounds = 0
+            isDead = True
+        else:
+            self.current_wounds -= amount
+    
+    def heal_damage(self, name, amount):
+        if self.current_wounds + amount > self.max_wounds:
+            self.current_wounds = self.max_wounds
+        else:
+            self.current_wounds += amount
+
+    def level_up(self, stat):
+        if stat == "ws":
+            self.ws += 5
+        elif stat == "bs":
+            self.bs += 5
+        elif stat == "s":
+            self.s += 5
+        elif stat == "t":
+            self.t += 5
+        elif stat == 'w':
+            if self.max_wounds <= 20:
+                self.max_wounds += 1
+                self.current_wounds += 1
+            else:
+                print("max wounds already at 20")
 
 def base_char(uname):
+    """Creates basic template character for anyone new to the chat.
+
+    Args:
+        uname (string): twitch viewer name
+
+    Returns:
+        dictionary: basic character
+    """
     char_dict =  {'name': '', 'race':'', 'prof':'', 'weapon_skill':'', 'ballistic_skill':'', 'strength':'',
                       'toughness':'', 'armor':'','weapon':'', 'max_wounds':'', 'current_wounds':''}
     char_ = [uname, 'human', 'peasant', 20, 20, 20,20, 'none', 'fists', 10, 10]
     return dict(zip(char_dict, char_))
 
-
 def chat_char(uname):
+    """Generates random character based on WFRP 2nd ed
+
+    Args:
+        uname (string): the twitch viewer
+
+    Returns:
+        Character: instance of the Character class.
+    """
     race = choice(['dwarf', 'elf', 'halfling', 'human'])
     stats_dict = {'WS': 0, 'BS': 0, 'S': 0, 'T': 0, 'MW': 0, 'CW':0}
 
     if race == 'dwarf':
         max_wounds = choice([11,12,13,14])
-        stats = [30, 20, 20, 30]
+        stats = [30, 20, 20, 30, max_wounds, max_wounds]
 
     elif race == 'elf':
         max_wounds = choice([9,10,11,12])
-        stats = [20, 30, 20, 20]
+        stats = [20, 30, 20, 20, max_wounds, max_wounds]
 
     elif race == 'halfling':
         max_wounds = choice([8,9,10,11])
-        stats = [10, 30, 10, 10]
+        stats = [10, 30, 10, 10, max_wounds, max_wounds]
 
     elif race == 'human':
         max_wounds = choice([10,11,12,13])
-        stats = [20, 20, 20, 20]
+        stats = [20, 20, 20, 20, max_wounds, max_wounds]
 
     stat_prof  = [stat + randint(2, 20) for stat in stats]
     
@@ -92,6 +140,22 @@ def chat_char(uname):
                          armor, weapon, max_wounds, max_wounds)
 
     return chatchar
+
+
+if __name__ == "__main__":
+    a= chat_char("testuser")
+    print(a.get_char("testuser"))
+    a.take_damage("testuser", 5)
+    print(a.get_char("testuser"))
+    a.heal_damage("testuser", 100)
+    print(a.get_char("testuser"))
+    a.level_up("ws")
+    a.level_up("bs")
+    a.level_up("s")
+    a.level_up("t")
+    a.level_up("w")
+    print(a.get_char("testuser"))
+    
 
 # ch = (chat_char('test'))
 #
