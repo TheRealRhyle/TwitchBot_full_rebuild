@@ -658,7 +658,7 @@ while Running == True:
                                     Send_message("Shutting down now.")
                                     Running = False
                                 elif message[0:6].lower() == "!title":
-                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
+                                    ClientID, Token = "".split("/")
                                     update_info = message.replace("!title ", "")
                                     # print(myTwitch.get_current_tags(ClientID, Token))
                                     print(myTwitch.get_status(ClientID, Token))
