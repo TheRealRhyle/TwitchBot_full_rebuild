@@ -10,7 +10,8 @@ def playme(sound_name):
     elif sound_name == "fts":
         playsound(r"F:\Google Drive\Stream Assets\Sounds\fuck-this-shit-im-out.mp3")
     else:
-        playsound(r"F:\Google Drive\Stream Assets\futuresoundfx-98\futuresoundfx-98.mp3")
+        
+        playsound(fr"F:\Google Drive\Stream Assets\Sounds\Death\{sound_name}")
 
 if __name__ == "__main__":
     playme("chips")

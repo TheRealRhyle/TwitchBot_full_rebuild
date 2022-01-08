@@ -1,3 +1,4 @@
+from logging import FATAL
 from random import randint, choice
 import socket
 import json
@@ -9,14 +10,15 @@ import ast
 import loader
 from anyascii import anyascii
 from wfrpgame import tcChargen, game_manager, character_manager
-from utils import twitter, commands, quotes, soundcommands
+from utils import twitter, commands, quotes, soundcommands, deathcounter
 from chattodb import social_ad, get_active_list
 import myTwitch
 # import wfrpgame
 # import song_request
 # import playlist_maker
 
-
+# Set deathcounter off at init.
+death_counter = False
 
 # Method for sending a message
 def Send_message(message, *args):
@@ -488,6 +490,24 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
+                                elif message in ['!youdied','!youdead', '!ded','!udead', '!medic', '!mandown'] and death_counter is True:
+                                    death_message = [
+                                        f"Uh oh, looks like Rhyle_ died... again",
+                                        f"Looks like Rhyle_ has gone the way of the dodo.",
+                                        f'Rhyle_ has been eliminated by IOI-655321',
+                                        f'MEDIC!!!',
+                                        f'You have died, Returning to Bind point.  Loading....',
+                                        f'You will not evade me %T!',
+                                        f'Rhyle_ began casting Ranger Gate.'
+                                    ]
+                                    sounds = ['hes-dead-jim.mp3','Price-is-right-losing-horn.mp3', \
+                                        'run-bitch-ruun_part.mp3', 'super-mario-bros-ost-8-youre-dead.mp3', \
+                                        'why-you-always-dying-destiny.mp3','wilhelmscream.mp3'
+                                    ]
+                                    Send_message(choice(death_message))
+                                    soundcommands.playme(choice(sounds))
+                                    deathcounter.increment_death_count(death_counter_character)
+                                    
                                 elif message[0:7].lower() == '!update':
                                     # Parse the command to be added/created
                                     command, target, action = message.split(
@@ -625,40 +645,52 @@ while Running == True:
                                                 {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
-                                elif '!ded' in message.lower():
-                                    try:
-                                        cmd, death_message = message.split(' ',1)
-                                    except:
-                                        cmd = message
-                                        death_message = ""
-                                        
-                                    if len(death_message) > 1:
-                                        with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
-                                            lines = cfile.readlines()
-                                            if len(lines) > 4:
-                                                lines.remove(lines[4])
-                                            cfile.seek(0)
-                                            cfile.truncate()
-                                            lines.insert(0, death_message + "\n")
-                                            cfile.writelines(lines)
-                                        with open(r"F:\Google Drive\Stream Assets\counter.txt", "r+") as dfile:
-                                            line=dfile.read()
-                                            current_death_count = eval(line)
-                                            current_death_count += 1
-                                            dfile.seek(0)
-                                            dfile.truncate()
-                                            dfile.write(str(current_death_count))
-
-                                    else:
-                                        Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
-
+                                
                             # Broadcaster
                             elif username.lower() in ['rhyle_']:
                                 if '!goaway' in message.lower():
                                     Send_message("Shutting down now.")
                                     Running = False
+                                elif '!setdc' in message:
+                                    # used to set which character/game is being actively tracked in the deathcounter.
+                                    # for EQ use Character_Name-Server
+                                    # Any other game just use Character_Name
+                                    if len(message.split(" ")) == 2:
+                                        cmd, character = message.split(" ")
+                                        death_counter_character = character
+                                        deathcounter.create_death_counter_file(character, 0)
+                                        Send_message(f"Death counter has been set to track deaths for: {character}")
+                                        death_counter = True
+                                    elif len(message.split(" ")) == 3:
+                                        cmd, character, character_class = message.split(" ")
+                                        death_counter_character = character
+                                        deathcounter.create_death_counter_file(character, 0, character_class)
+                                        Send_message(f"Death counter has been set to track deaths for: {character}")
+                                        death_counter = True
+                                    else:
+                                        Send_message("You have not provided enough information to set the current death counter. " \
+                                            "!setdc <character_name-server> optional: <character class>")
+
+                                elif message in ['!ded','!udead', '!medic', '!man down'] and death_counter is True:
+                                    death_message = [
+                                        f"Uh oh, looks like Rhyle_ died... again",
+                                        f"Looks like Rhyle_ has gone the way of the dodo.",
+                                        f'Rhyle_ has been eliminated by IOI-655321',
+                                        f'MEDIC!!!',
+                                        f'You have died, Returning to Bind point.  Loading....',
+                                        f'You will not evade me %T!',
+                                        f'Rhyle_ began casting Ranger Gate.'
+                                    ]
+                                    sounds = ['hes-dead-jim.mp3','Price-is-right-losing-horn.mp3', \
+                                        'run-bitch-ruun_part.mp3', 'super-mario-bros-ost-8-youre-dead.mp3', \
+                                        'why-you-always-dying-destiny.mp3','wilhelmscream.mp3'
+                                    ]
+                                    Send_message(choice(death_message))
+                                    soundcommands.playme(choice(sounds))
+                                    deathcounter.increment_death_count(death_counter_character)
+
                                 elif message[0:6].lower() == "!title":
-                                    ClientID, Token = "".split("/")
+                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
                                     update_info = message.replace("!title ", "")
                                     # print(myTwitch.get_current_tags(ClientID, Token))
                                     print(myTwitch.get_status(ClientID, Token))
@@ -894,32 +926,6 @@ while Running == True:
                                                 {'command': command, 'target': target, 'action': action})
                                         conn.commit()
                                     Send_message(action)
-                                elif '!ded' in message.lower():
-                                    try:
-                                        cmd, death_message = message.split(' ',1)
-                                    except:
-                                        cmd = message
-                                        death_message = ""
-                                        
-                                    if len(death_message) > 1:
-                                        with open(r"F:\Google Drive\Stream Assets\most_recent_deaths.txt", "r+") as cfile:
-                                            lines = cfile.readlines()
-                                            if len(lines) > 4:
-                                                lines.remove(lines[4])
-                                            cfile.seek(0)
-                                            cfile.truncate()
-                                            lines.insert(0, death_message + "\n")
-                                            cfile.writelines(lines)
-                                        with open(r"F:\Google Drive\Stream Assets\counter.txt", "r+") as dfile:
-                                            line=dfile.read()
-                                            current_death_count = eval(line)
-                                            current_death_count += 1
-                                            dfile.seek(0)
-                                            dfile.truncate()
-                                            dfile.write(str(current_death_count))
-                                    else:
-                                        Send_message("If you're trying to add a death message you need to add a message.  !ded does nothing by itself.")
-                                        
 
                             if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!de', '!ad', '!go', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
