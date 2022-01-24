@@ -671,7 +671,7 @@ while Running == True:
                                         Send_message("You have not provided enough information to set the current death counter. " \
                                             "!setdc <character_name-server> optional: <character class>")
 
-                                elif message in ['!ded','!udead', '!medic', '!man down'] and death_counter is True:
+                                elif message in ['!rip', '!ded','!udead', '!medic', '!man down'] and death_counter is True:
                                     death_message = [
                                         f"Uh oh, looks like Rhyle_ died... again",
                                         f"Looks like Rhyle_ has gone the way of the dodo.",
