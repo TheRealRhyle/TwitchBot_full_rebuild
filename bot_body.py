@@ -490,7 +490,7 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
-                                elif message in ['!youdied','!youdead', '!ded','!udead', '!medic', '!mandown'] and death_counter is True:
+                                elif message in ['!rip', '!youdied','!youdead', '!ded','!udead', '!medic', '!mandown'] and death_counter is True:
                                     death_message = [
                                         f"Uh oh, looks like Rhyle_ died... again",
                                         f"Looks like Rhyle_ has gone the way of the dodo.",
