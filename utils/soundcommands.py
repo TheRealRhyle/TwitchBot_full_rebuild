@@ -2,16 +2,16 @@ from playsound import playsound
 
 def playme(sound_name):
     if sound_name == "test":
-        playsound(r"F:\Google Drive\Stream Assets\Sounds\Good night Beaz.mp4")
+        playsound(r"sounds\Good night Beaz.mp4")
     elif sound_name == "beaz":
-        playsound(r"F:\Google Drive\Stream Assets\Sounds\hello_motherfrucker.mp3")
+        playsound(r"sounds\hello_motherfrucker.mp3")
     elif sound_name == "faerie":
-        playsound(r"F:\Google Drive\Stream Assets\Sounds\surprise-motherfucker.mp3")
+        playsound(r"sounds\surprise-motherfucker.mp3")
     elif sound_name == "fts":
-        playsound(r"F:\Google Drive\Stream Assets\Sounds\fuck-this-shit-im-out.mp3")
+        playsound(r"sounds\fuck-this-shit-im-out.mp3")
     else:
         
-        playsound(fr"F:\Google Drive\Stream Assets\Sounds\Death\{sound_name}")
+        playsound(fr"sounds\Death\{sound_name}")
 
 if __name__ == "__main__":
-    playme("chips")
+    playme("beaz")
