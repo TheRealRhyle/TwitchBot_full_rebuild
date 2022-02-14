@@ -7,7 +7,7 @@ If you're character is dead, you're character is dead, no random encounters for 
 
 Later:
     Suggestions:
-        warpenguin_ (viewer): add quests
+        warpenguin_ (viewer): add quests?
         savedagrill: grave robbers should automatically make money with someone dies XD -- Class based commands?
     Class skill timer:
         new column in the db that stores the last time a player used a class skill, if time.now - time.then > X min, skill check, else "Skill on cooldown"
