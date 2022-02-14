@@ -10,7 +10,7 @@ import ast
 import loader
 from anyascii import anyascii
 from wfrpgame import tcChargen, game_manager, character_manager
-from utils import twitter, commands, quotes, soundcommands, deathcounter
+from utils import twitter, commands, quotes, soundcommands, deathcounter, excuse
 from chattodb import social_ad, get_active_list
 import myTwitch
 # import wfrpgame
@@ -927,6 +927,8 @@ while Running == True:
                                         conn.commit()
                                     Send_message(action)
 
+                            # viewer commands start here.
+
                             if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!de', '!ad', '!go', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
@@ -943,12 +945,14 @@ while Running == True:
                                 elif "!quote" in message.lower():
                                     chatmessage = quotes.quote(message,c, conn)
                                     
+                                elif "!excuse" in message.lower():
+                                    chatmessage = f"Hello {username}.  Your excuse for the evening is: {' '.join(excuse.make_excuse())}" 
                                 elif "!ban" in message.lower():
-                                    chatmessage = "It looks like " + username + " no longer thinks they can be a " \
+                                    chatmessage = f"It looks like {username} no longer thinks they can be a " \
                                         "productive member of the community and has requested to be banned."
-                                    Send_message("/ban " + username + " Self exile")
+                                    Send_message(f"/ban {username} Self exile")
                                     time.sleep(5)
-                                    Send_message("/unban " + username)
+                                    Send_message(f"/unban {username}")
                                 elif "!change" in message.lower():
                                     try:
                                         ex_com, race = message.strip('\r').split(" ")
@@ -1138,12 +1142,12 @@ while Running == True:
                                 elif "!retire" in message.lower():
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
-                                    chatmessage = "Hello " + username + ", this command is being worked on at the " \
+                                    chatmessage = f"Hello {username}, this command is being worked on at the " \
                                         "moment, please check back soon(tm)."
                                 elif "!permadeath" in message.lower():
                                     c.execute("update users set gchar = '' where uname = ?", (username.lower(),))
                                     conn.commit()
-                                    chatmessage = username + " has chosen to permanently kill off their " \
+                                    chatmessage = f"{username} has chosen to permanently kill off their " \
                                         "character. You may issue the !char command to create a new one."
 
                                 elif message[0:11].lower() == "!challenge ":
@@ -1292,11 +1296,14 @@ while Running == True:
                                     c.execute("select ex_command from commands"))
                                 for itr in range(len(commandlist)):
                                     commandlist[itr] = commandlist[itr][0]
-                                for item in ["!lurk", "!ban", "!change", "!char", "!retire", "!permadeath", "!challenge", "!uptime", "!levelup", "!shop", "!gunter"]:
+                                for item in [
+                                    "!ban", "!challenge", "!change", "!char", 
+                                    "!excuse", "!gunter", "!levelup", "!lurk", 
+                                    "!permadeath", "!quote", "!shop", "!uptime",
+                                    ]:
                                     commandlist.append(item)
                                 Send_message(
-                                    "You've found the (not so) hidden command list " +
-                                    username + ". Command list: "
+                                    f"You've found the (not so) hidden command list {username}. Command list: "
                                     + ', '.join(commandlist))
                             else:
                                 pass

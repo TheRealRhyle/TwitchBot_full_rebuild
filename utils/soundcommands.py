@@ -2,9 +2,9 @@ from playsound import playsound
 
 def playme(sound_name):
     if sound_name == "test":
-        playsound(r"sounds\Good night Beaz.mp4")
-    elif sound_name == "beaz":
         playsound(r"sounds\hello_motherfrucker.mp3")
+    elif sound_name == "beaz":
+        playsound(r"sounds\GNB-shortened.mp3")
     elif sound_name == "faerie":
         playsound(r"sounds\surprise-motherfucker.mp3")
     elif sound_name == "fts":
