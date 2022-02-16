@@ -25,6 +25,7 @@ def send_tweet(tweet_txt):
     oauth = OAuth()
     api = tweepy.API(oauth)
     api.update_status(tweet_txt)
+    return("Yon tweet has been twoted!")
 
 def get_retweet():
     oauth = OAuth()

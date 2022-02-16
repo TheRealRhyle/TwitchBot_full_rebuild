@@ -331,8 +331,11 @@ while Running == True:
             #     starttime = currentTime
             if ad_iter == 0:
                 sm1, sm2 = game_manager.random_encounter(c, conn)
-                Send_message(sm1)
-                Send_message(sm2)
+                with open("wfrpgame\encounter.txt", "w") as f:
+                    text = '  |  '.join([sm1, sm2, "\t"])
+                    f.write(text)
+                # Send_message(sm1)
+                # Send_message(sm2)
                 # random_encounter()
                 ad_iter += 1
             elif ad_iter == 1:
@@ -490,7 +493,7 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
-                                elif message in ['!rip', '!youdied','!youdead', '!ded','!udead', '!medic', '!mandown'] and death_counter is True:
+                                elif message in ['!rip', '!youdied','!youdead', '!ded', '!udead', '!medic', '!mandown'] and death_counter is True:
                                     death_message = [
                                         f"Uh oh, looks like Rhyle_ died... again",
                                         f"Looks like Rhyle_ has gone the way of the dodo.",
@@ -500,9 +503,16 @@ while Running == True:
                                         f'You will not evade me %T!',
                                         f'Rhyle_ began casting Ranger Gate.'
                                     ]
-                                    sounds = ['hes-dead-jim.mp3','Price-is-right-losing-horn.mp3', \
-                                        'run-bitch-ruun_part.mp3', 'super-mario-bros-ost-8-youre-dead.mp3', \
-                                        'why-you-always-dying-destiny.mp3','wilhelmscream.mp3'
+                                    sounds = [
+                                        'hes-dead-jim.mp3',
+                                        'Price-is-right-losing-horn.mp3', 
+                                        'run-bitch-ruun_part.mp3', 
+                                        'super-mario-bros-ost-8-youre-dead.mp3', 
+                                        'why-you-always-dying-destiny.mp3',
+                                        'wilhelmscream.mp3',
+                                        'gta-san-andreas-ah-shit-here-we-go-again_BWv0Gvc.mp3',
+                                        'you-are-dead-2.mp3',
+                                        
                                     ]
                                     Send_message(choice(death_message))
                                     soundcommands.playme(choice(sounds))
@@ -584,14 +594,18 @@ while Running == True:
                                     try:
                                         ex_com, user = message.lower().split(' ')
                                         sm1, sm2 = game_manager.random_encounter(c, conn, user)
-                                        # sm1, sm2 = random_encounter(user)
-                                        Send_message(sm1)
-                                        Send_message(sm2)
+                                        with open("wfrpgame\encounter.txt", "w") as f:
+                                            text = '  |  '.join([sm1, sm2, "\t"])
+                                            f.write(text)
+                                        # Send_message(sm1)
+                                        # Send_message(sm2)
                                     except:
                                         sm1, sm2 = game_manager.random_encounter(c, conn)
-                                        # sm1, sm2 = random_encounter()
-                                        Send_message(sm1)
-                                        Send_message(sm2)
+                                        with open("wfrpgame\encounter.txt", "w") as f:
+                                            text = '  |  '.join([sm1, sm2, "\t"])
+                                            f.write(text)
+                                        # Send_message(sm1)
+                                        # Send_message(sm2)
                                     continue
                                 elif "!givecrowns" in message:
                                     ex_com, viewer, amount = message.split(' ')
@@ -681,9 +695,15 @@ while Running == True:
                                         f'You will not evade me %T!',
                                         f'Rhyle_ began casting Ranger Gate.'
                                     ]
-                                    sounds = ['hes-dead-jim.mp3','Price-is-right-losing-horn.mp3', \
-                                        'run-bitch-ruun_part.mp3', 'super-mario-bros-ost-8-youre-dead.mp3', \
-                                        'why-you-always-dying-destiny.mp3','wilhelmscream.mp3'
+                                    sounds = sounds = [
+                                        'hes-dead-jim.mp3',
+                                        'Price-is-right-losing-horn.mp3', 
+                                        'run-bitch-ruun_part.mp3', 
+                                        'super-mario-bros-ost-8-youre-dead.mp3', 
+                                        'why-you-always-dying-destiny.mp3',
+                                        'wilhelmscream.mp3',
+                                        'gta-san-andreas-ah-shit-here-we-go-again_BWv0Gvc.mp3',
+                                        'you-are-dead-2.mp3',
                                     ]
                                     Send_message(choice(death_message))
                                     soundcommands.playme(choice(sounds))
@@ -737,10 +757,10 @@ while Running == True:
                                     ex_com, tweet = message.split(' ', 1)
                                     if len(tweet) <= 280:
                                         print(tweet)
-                                        twitter.send_tweet(tweet)
+                                        twoted = twitter.send_tweet(tweet)
+                                        Send_message(twoted)
                                     else:
-                                        Send_message(
-                                            "Sorry boss, that tweet is too long.")
+                                        Send_message("Sorry boss, that tweet is too long.")
                                 elif '!beanlist' in message.lower():
                                     try:
                                         ex_com, poopie_head, bean = message.split(' ')
@@ -867,12 +887,18 @@ while Running == True:
                                     try:
                                         ex_com, user = message.lower().split(' ')
                                         sm1, sm2 = game_manager.random_encounter(c, conn, user)
-                                        Send_message(sm1)
-                                        Send_message(sm2)
+                                        with open("wfrpgame\encounter.txt", "w") as f:
+                                            text = '  |  '.join([sm1, sm2, "\t"])
+                                            f.write(text)
+                                        # Send_message(sm1)
+                                        # Send_message(sm2)
                                     except:
                                         sm1, sm2 = game_manager.random_encounter(c, conn)
-                                        Send_message(sm1)
-                                        Send_message(sm2)
+                                        with open("wfrpgame\encounter.txt", "w") as f:
+                                            text = '  |  '.join([sm1, sm2, "\t"])
+                                            f.write(text)
+                                        # Send_message(sm1)
+                                        # Send_message(sm2)
                                     continue
                                 elif "!givecrowns" in message:
                                     ex_com, viewer, amount = message.split(' ')
@@ -1256,7 +1282,7 @@ while Running == True:
                                         ex_com, *arg = message.strip('\r').split(' ')
                                         shop(username, *arg)
                                     chatmessage = ""
-                                elif "!beaz" in message.lower().strip('\r') and username.lower() == "big_beaz":
+                                elif "!beaz" in message.lower().strip('\r') and (username.lower() == "big_beaz" or username.lower() == "rhyle_") :
                                     soundcommands.playme("beaz")
                                     chatmessage = ''
                                 elif "!faerie" in message.lower().strip('\r') and username.lower() == "13thfaerie" :
@@ -1265,6 +1291,7 @@ while Running == True:
                                 elif "!fts" in message.lower().strip('\r') and username.lower() == "rhyle_" :
                                     soundcommands.playme("fts")
                                     chatmessage = ''
+                                
                                 
                                 # elif "!sr" in message.lower():
                                 #     chatmessage = f"I'm sorry, {username}, song requests have been turned off indefinitely."

@@ -10,7 +10,6 @@ def playme(sound_name):
     elif sound_name == "fts":
         playsound(r"sounds\fuck-this-shit-im-out.mp3")
     else:
-        
         playsound(fr"sounds\Death\{sound_name}")
 
 if __name__ == "__main__":

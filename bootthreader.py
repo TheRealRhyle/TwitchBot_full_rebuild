@@ -1,14 +1,11 @@
 import threading
 
-
 def bot_body():
     import bot_body
-
 
 def chatters_to_db():
     import chattodb
     chattodb.get_chatters()
-
 
 # def start_playlist():
 #     import song_request
