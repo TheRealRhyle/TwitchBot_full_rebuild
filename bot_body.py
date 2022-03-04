@@ -330,18 +330,18 @@ while Running == True:
             # if (((currentTime - starttime) / 60) >= 5):
             #     starttime = currentTime
             if ad_iter == 0:
-                sm1, sm2 = game_manager.random_encounter(c, conn)
-                with open("wfrpgame\encounter.txt", "w") as f:
-                    text = '  |  '.join([sm1, sm2, "\t"])
-                    f.write(text)
+                user, sm3 = game_manager.random_encounter(c, conn)
+                if sm3:
+                    Send_message(f"/w {user} {sm3}")
                 # Send_message(sm1)
                 # Send_message(sm2)
                 # random_encounter()
                 ad_iter += 1
             elif ad_iter == 1:
-                sm1, sm2 = choice([(social_ad(),""), game_manager.random_encounter(c, conn)])
-                Send_message(sm1)
-                Send_message(sm2)
+                user, sm3 = choice([(social_ad(),""), game_manager.random_encounter(c, conn)])
+                if sm3:
+                    Send_message(f"/w {user} {sm3}")
+                
                 ad_iter += 1
             elif ad_iter == 2:
                 ad_iter = 0
@@ -586,26 +586,20 @@ while Running == True:
                                         user = user.replace("@", "")
                                     shoutout = [
                                         f"Big shout out to {user}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{user.lower()})",
-                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
-                                        f"A wild {myTwitch.get_raider_id(ClientID, oauth, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
-                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, user)}. (https://www.twitch.tv/{user.lower()})"]
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, Token, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
+                                        f"A wild {myTwitch.get_raider_id(ClientID, Token, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
+                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, Token, user)}. (https://www.twitch.tv/{user.lower()})"]
                                     Send_message(choice(shoutout))
                                 elif '!randomenc' in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
-                                        sm1, sm2 = game_manager.random_encounter(c, conn, user)
-                                        with open("wfrpgame\encounter.txt", "w") as f:
-                                            text = '  |  '.join([sm1, sm2, "\t"])
-                                            f.write(text)
-                                        # Send_message(sm1)
-                                        # Send_message(sm2)
+                                        user, sm3 = game_manager.random_encounter(c, conn, user.strip('@'))
+                                        if sm3:
+                                            Send_message(f"/w {user} {sm3}")
                                     except:
-                                        sm1, sm2 = game_manager.random_encounter(c, conn)
-                                        with open("wfrpgame\encounter.txt", "w") as f:
-                                            text = '  |  '.join([sm1, sm2, "\t"])
-                                            f.write(text)
-                                        # Send_message(sm1)
-                                        # Send_message(sm2)
+                                        user, sm3 = game_manager.random_encounter(c, conn)
+                                        if sm3:
+                                            Send_message(sm3)
                                     continue
                                 elif "!givecrowns" in message:
                                     ex_com, viewer, amount = message.split(' ')
@@ -879,26 +873,21 @@ while Running == True:
                                         user = user.replace("@", "")
                                     shoutout = [
                                         f"Big shout out to {user}! Give them some love here and go follow their channel so you can get updates when they go live! (https://www.twitch.tv/{user.lower()})",
-                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, oauth, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
-                                        f"A wild {myTwitch.get_raider_id(ClientID, oauth, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
-                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, oauth, user)}. (https://www.twitch.tv/{user.lower()})"]
+                                        f"Go check out {user} they were last streaming {myTwitch.get_raider_id(ClientID, Token, user)}, check out their channel, if you like what you see toss them a follow. You never know, you may find your new favorite streamer. (https://www.twitch.tv/{user.lower()})",
+                                        f"A wild {myTwitch.get_raider_id(ClientID, Token, user)} has appeared, prepare for battle! {user}, I choose you! (https://www.twitch.tv/{user.lower()})",
+                                        f"According to @13thfaerie: 'potato' which I think means: go check out {user}, last streaming: {myTwitch.get_raider_id(ClientID, Token, user)}. (https://www.twitch.tv/{user.lower()})"]
                                     Send_message(choice(shoutout))
                                 elif '!randomenc' in message.lower():
                                     try:
                                         ex_com, user = message.lower().split(' ')
-                                        sm1, sm2 = game_manager.random_encounter(c, conn, user)
-                                        with open("wfrpgame\encounter.txt", "w") as f:
-                                            text = '  |  '.join([sm1, sm2, "\t"])
-                                            f.write(text)
-                                        # Send_message(sm1)
-                                        # Send_message(sm2)
+                                        user = user.strip("@")
+                                        user, sm3 = game_manager.random_encounter(c, conn, user)
+                                        if sm3:
+                                            Send_message(f"/w {user} {sm3}")
                                     except:
-                                        sm1, sm2 = game_manager.random_encounter(c, conn)
-                                        with open("wfrpgame\encounter.txt", "w") as f:
-                                            text = '  |  '.join([sm1, sm2, "\t"])
-                                            f.write(text)
-                                        # Send_message(sm1)
-                                        # Send_message(sm2)
+                                        user, sm3 = game_manager.random_encounter(c, conn)
+                                        if sm3:
+                                            Send_message(f"/w {user} {sm3}")
                                     continue
                                 elif "!givecrowns" in message:
                                     ex_com, viewer, amount = message.split(' ')
@@ -955,7 +944,7 @@ while Running == True:
 
                             # viewer commands start here.
 
-                            if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!de', '!ad', '!go', '!gu', '!sl', '!mt', '!vi', '!so', '!st'):
+                            if message[:3].lower() not in ('!cm', '!de', '!gi','!rt', '!ra', '!hl', '!de', '!ad', '!go', '!gu', '!sl', '!mt', '!vi', '!st'):
                                 chatmessage = message.strip().lower()
                                 if '!lurk' in message.lower():
                                     lurk_message = [
@@ -967,18 +956,20 @@ while Running == True:
                                         f"{username.title()} when someone asks if you're a god you say yes."
                                     ]
                                     chatmessage = choice(lurk_message)
-                                
+
                                 elif "!quote" in message.lower():
                                     chatmessage = quotes.quote(message,c, conn)
-                                    
+
                                 elif "!excuse" in message.lower():
                                     chatmessage = f"Hello {username}.  Your excuse for the evening is: {' '.join(excuse.make_excuse())}" 
+
                                 elif "!ban" in message.lower():
                                     chatmessage = f"It looks like {username} no longer thinks they can be a " \
                                         "productive member of the community and has requested to be banned."
                                     Send_message(f"/ban {username} Self exile")
                                     time.sleep(5)
                                     Send_message(f"/unban {username}")
+
                                 elif "!change" in message.lower():
                                     try:
                                         ex_com, race = message.strip('\r').split(" ")
@@ -1014,6 +1005,7 @@ while Running == True:
                                     except:
                                         chatmessage = f'Sorry {username}, you must choose one of the 4 standard WFRP' \
                                             f' races: Human, Elf, Dwarf, Halfling.'
+
                                 elif "!char" in message.lower():
                                     # test if user in database
                                     try:
@@ -1165,11 +1157,13 @@ while Running == True:
                                                 f" and armor.  Current available Exp: {cxp} Coin Purse: {crowns}"
 
                                             Send_message(f"/w {build_whisper}")
+
                                 elif "!retire" in message.lower():
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
                                     chatmessage = f"Hello {username}, this command is being worked on at the " \
                                         "moment, please check back soon(tm)."
+
                                 elif "!permadeath" in message.lower():
                                     c.execute("update users set gchar = '' where uname = ?", (username.lower(),))
                                     conn.commit()
@@ -1209,6 +1203,7 @@ while Running == True:
                                             f' can take you down.  If you want to accept the fight type !accept or you can !decline.'
                                         pvp[(f'{username.lower()}', f'{time.time()}')] = (
                                             f'{target.lower()}', amount)
+
                                 elif "!accept" in message.lower():
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
@@ -1244,6 +1239,7 @@ while Running == True:
                                         else:
                                             chatmessage = f"There is not currently a pending challenge for {username}"
                                     del pvp[challenger]
+
                                 elif '!decline' in message.lower():
                                     for challenger, victim in pvp.items():
                                         if victim[0] == username:
@@ -1253,12 +1249,14 @@ while Running == True:
                                             chatmessage = f"{str(chall['name']).capitalize()}, " \
                                                 f"{str(vic['name']).capitalize()} has declined your challenge."
                                     del pvp[challenger]
+
                                 elif message.lower() == "!challenge":
                                     chatmessage = "This command will allow you to challenge another viewer with a " \
                                         "game character to a quick PVP fight. The proper usage is !challenge username " \
                                         "amount  Please not that you may not challenge for an amount more than your " \
                                         "current exp.  Current exp can be found on your !char whisper, it updates every " \
                                         "10 minutes."
+
                                 elif message.lower() == "!uptime":
                                     time_started = myTwitch.get_uptime(ClientID, oauth, Token)
                                     time_started = time_started["data"][0]["started_at"]
@@ -1267,6 +1265,7 @@ while Running == True:
                                     now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
                                     now = datetime.datetime.strptime(now, "%Y-%m-%dT%H:%M:%SZ")
                                     chatmessage = f'Rhyle_ has been live for {now - time_started} hours.'
+
                                 elif "!levelup" in message.lower().replace('\r\n', ''):
                                     chatmessage = ''
                                     if len(message) <= 9:
@@ -1275,6 +1274,7 @@ while Running == True:
                                     else:
                                         ex_com, stat = message.replace("  ", " ").strip('\r').split(' ')
                                         level_up(username, stat)
+
                                 elif "!shop" in message.lower().strip('\r'):
                                     if len(message) == 5:
                                         shop(username)
@@ -1282,17 +1282,19 @@ while Running == True:
                                         ex_com, *arg = message.strip('\r').split(' ')
                                         shop(username, *arg)
                                     chatmessage = ""
+
                                 elif "!beaz" in message.lower().strip('\r') and (username.lower() == "big_beaz" or username.lower() == "rhyle_") :
                                     soundcommands.playme("beaz")
                                     chatmessage = ''
+
                                 elif "!faerie" in message.lower().strip('\r') and username.lower() == "13thfaerie" :
                                     soundcommands.playme("faerie")
                                     chatmessage = ''
-                                elif "!fts" in message.lower().strip('\r') and username.lower() == "rhyle_" :
+
+                                elif "!fts" in message.lower().strip('\r'):
                                     soundcommands.playme("fts")
                                     chatmessage = ''
-                                
-                                
+
                                 # elif "!sr" in message.lower():
                                 #     chatmessage = f"I'm sorry, {username}, song requests have been turned off indefinitely."
                                     # if len(message) < 3:

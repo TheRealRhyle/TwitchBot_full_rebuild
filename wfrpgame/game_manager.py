@@ -74,8 +74,8 @@ def random_encounter(c, conn, *args):
 
     # if no character was submitted with the randomenc request, grab a random viewer
     if not args:
-        viewer = choice(get_active_list())
-        random_character = ret_char(c, viewer)
+        user = choice(get_active_list())
+        random_character = ret_char(c, user)
 
     # Strip the @ if it was supplied, and get the requested user
     else:
@@ -83,8 +83,8 @@ def random_encounter(c, conn, *args):
         random_character = ret_char(c, user)
 
     while random_character == 'None':
-        viewer = choice(get_active_list())
-        random_character = ret_char(c, viewer)
+        user = choice(get_active_list())
+        random_character = ret_char(c, user)
 
     
     # Get selected users current Crowns, Max_ and Current_ wounds.
@@ -289,7 +289,7 @@ def random_encounter(c, conn, *args):
             loser = "the " + encounter_dictionary["name"]
             damage = f" for {base_damage}(New rolls: {new_damage}) wounds, "
             lossmessage = [f'{loser.title()} was struck in the {hit} but managed to flee before a fatal blow was landed.',
-            f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
+            f'Someone will need to be digging a grave for {loser} after they lost their {hit}.']
         else:
             damage = f" for {base_damage}(New rolls: {new_damage}) wounds, "
             if current_wounds == 0:
@@ -302,11 +302,16 @@ def random_encounter(c, conn, *args):
         # lossmessage = [f'{loser.title()} was struck in the {hit} {damage} but managed to flee before a fatal blow was landed.',
         #     f'Someone will need to be digging a grave for {loser} after they lost their {hit}']
         chatmessage2 = choice(lossmessage)
-        if chatmessage3:
-            chatmessage2 = chatmessage2 + " " + chatmessage3
         # f'the fight did not end well for {loser}. {character_roll} vs {mob_roll}'
     
-    return chatmessage, chatmessage2
+    with open("F:\Google Drive\May 2020\TwitchBot_full_rebuild\wfrpgame\encounter.txt", "w") as f:
+        text = ' '.join([chatmessage, chatmessage2 + "  || ", "\t"])
+        f.write(text)
+    
+    if chatmessage3:
+        return user, chatmessage3
+    else:
+        return user, False
 
 
 if __name__ == "__main__":

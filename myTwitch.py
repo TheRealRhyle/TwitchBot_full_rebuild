@@ -68,26 +68,30 @@ def set_tags(ClientID, Token):
     # r = requests.put(url=url, headers=headers, data=tags)
     requests.put(url=url, headers=headers, data=tags)
     
-def get_raider_id(ClientID, OAuth, raider):
-    url = f'https://api.twitch.tv/kraken/users?login={raider}'
+def get_raider_id(ClientID, Token, raider):
+    # url = f"https://api.twitch.tv/helix/channels?broadcaster_name={raider}"
+    url = f"https://api.twitch.tv/helix/users?login={raider}"
+    # url = f'https://api.twitch.tv/kraken/users?login={raider}'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token}
     r = requests.get(url=url, headers=headers)
     raiderjson = r.json()
-    raider_id = raiderjson['users'][0]['_id']
-    return(get_raider_info(ClientID, OAuth, raider_id))
-    
-def get_raider_info(ClientID, OAuth, raider_id):
-    url = f'https://api.twitch.tv/kraken/channels/{raider_id}'
+    raider_id = raiderjson['data'][0]['id']
+    return(get_raider_info(ClientID, Token, raider_id))
+
+def get_raider_info(ClientID, Token, raider_id):
+    # url = f'https://api.twitch.tv/kraken/channels/{raider_id}'
+    url = f'https://api.twitch.tv/helix/channels?broadcaster_id={raider_id}'
     headers = {'Client-ID':ClientID, 'Accept':'application/vnd.twitchtv.v5+json', \
-        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':OAuth }
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization':'Bearer ' + Token }
     # title, category = update_info.split(";")
     # title = title.replace(" ", "+")
     # category = category.replace(" ", "+").replace("&","&amp;")
     # gamedata = f'channel[status]={title}&channel[game]={category}&channel[channel_feed_enabled]=false'
     r = requests.get(url=url, headers=headers).json()
-    return(r["game"])
+    return(r['data'][0]["game_name"])
 
 if __name__ == "__main__":
+    print(get_raider_id("gp762nuuoqcoxypju8c569th9wz7q5", "rbz271cs9omqnggpeaugnkqxqoluqi", "medallionstallion_"))
     pass
     
