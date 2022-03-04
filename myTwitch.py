@@ -92,6 +92,6 @@ def get_raider_info(ClientID, Token, raider_id):
     return(r['data'][0]["game_name"])
 
 if __name__ == "__main__":
-    print(get_raider_id("gp762nuuoqcoxypju8c569th9wz7q5", "rbz271cs9omqnggpeaugnkqxqoluqi", "medallionstallion_"))
+    
     pass
     
