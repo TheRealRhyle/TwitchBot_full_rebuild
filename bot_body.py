@@ -711,8 +711,11 @@ while Running == True:
                                     # print(myTwitch.set_tags(ClientID, Token))
                                     print(myTwitch.update_twitch(ClientID, Token, update_info))
                                 elif message[0:7].lower() == "!gameid":
-                                    # ClientID, Token = "xxx/xxx".split("/")
-                                    cmd, game_name = message.split(" ", 1)
+                                    try:
+                                        cmd, game_name = message.split(" ", 1)
+                                    except:
+                                        Send_message("Sorry, you did not supply a game name to check the ID of.")
+                                        break
                                     gameid = myTwitch.get_games(ClientID, Token, game_name)
                                     print(f"You requested the ID of {game_name}: {gameid}")
                                 elif message[0:8].lower() == '!adduser':
