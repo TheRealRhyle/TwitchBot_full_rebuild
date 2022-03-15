@@ -704,16 +704,17 @@ while Running == True:
                                     deathcounter.increment_death_count(death_counter_character)
 
                                 elif message[0:6].lower() == "!title":
-                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
+                                    # !title <Title Text>; Game Name
                                     update_info = message.replace("!title ", "")
                                     # print(myTwitch.get_current_tags(ClientID, Token))
                                     print(myTwitch.get_status(ClientID, Token))
                                     # print(myTwitch.set_tags(ClientID, Token))
                                     print(myTwitch.update_twitch(ClientID, Token, update_info))
                                 elif message[0:7].lower() == "!gameid":
-                                    ClientID, Token = "tddftg7vkqm1v654prp86dgr73k5t4/zjpz6p2287ceyvk4dr2drqo4nkna6d".split("/")
-                                    cmd, game_name = message.split(" ")
-                                    myTwitch.get_games(ClientID, Token, game_name)
+                                    # ClientID, Token = "xxx/xxx".split("/")
+                                    cmd, game_name = message.split(" ", 1)
+                                    gameid = myTwitch.get_games(ClientID, Token, game_name)
+                                    print(f"You requested the ID of {game_name}: {gameid}")
                                 elif message[0:8].lower() == '!adduser':
                                     command, new_user, user_type = message.split(
                                         ' ')
