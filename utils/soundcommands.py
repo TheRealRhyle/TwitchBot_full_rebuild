@@ -1,4 +1,5 @@
 from playsound import playsound
+# import song_request
 
 def playme(sound_name):
     if sound_name == "test":
@@ -9,6 +10,9 @@ def playme(sound_name):
         playsound(r"sounds\surprise-motherfucker.mp3")
     elif sound_name == "fts":
         playsound(r"sounds\fuck-this-shit-im-out.mp3")
+    elif sound_name == "eyes":
+        # song_request.play('cqRBCej8WNU')
+        pass
     else:
         playsound(fr"sounds\Death\{sound_name}")
 

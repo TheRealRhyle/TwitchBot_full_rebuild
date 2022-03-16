@@ -197,6 +197,31 @@ def shop(username, *args):
     Send_message(shop_message)
     # chatmessage = ''
 
+def retire(uname):
+    if c.execute("select gchar from users where uname = ?", (username.lower(),)).fetchone() != ('',):
+        # Is a character
+        gchar_dict_to_sql = c.execute(
+            "select gchar from users where uname = ?", (username.lower(),)).fetchone()[0]
+        # converts the string to dictionary
+        gchar_dict = ast.literal_eval(gchar_dict_to_sql)
+    else:
+        whisper = f"/w {username} {username}, you do not currently have a character, create one with the !char command."
+    
+    with open ('wfrpgame/character_template.html', 'r') as ct:
+        template = ct.readlines()
+
+    template = str(template).replace("$character", str(gchar_dict['name']).title())
+    template = str(template).replace("$species", str(gchar_dict['race']).title())
+    template = str(template).replace("$profession", str(gchar_dict['prof']).title())
+    template = str(template).replace("$ws", str(gchar_dict['weapon_skill']))
+    template = str(template).replace("$bs",str(gchar_dict['ballistic_skill']))
+    template = str(template).replace("$s", str(gchar_dict['strength']))
+    template = str(template).replace("$t", str(gchar_dict['toughness']))
+    with open(f'wfrpgame/{uname}.html', 'w') as rc:
+        rc.writelines(template)
+        pass
+
+
 def level_up(username, stat):
     gchar_dict = None
     if stat.lower().replace('\r\n', '') == 'ws':
@@ -1163,8 +1188,10 @@ while Running == True:
                                             Send_message(f"/w {build_whisper}")
 
                                 elif "!retire" in message.lower():
+                                    
                                     # TODO: Retired characters should output to HTML and be stored on a webserver.
                                     # TODO: should also provide link for download in whisper.
+                                    print(retire(username.lower()))
                                     chatmessage = f"Hello {username}, this command is being worked on at the " \
                                         "moment, please check back soon(tm)."
 

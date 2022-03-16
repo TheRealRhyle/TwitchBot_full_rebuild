@@ -141,6 +141,9 @@ def chat_char(uname):
 
     return chatchar
 
+def retire(uname):
+    pass
+
 
 if __name__ == "__main__":
     a= chat_char("testuser")

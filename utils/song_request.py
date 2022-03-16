@@ -1,7 +1,7 @@
 import vlc
 import pafy
 import time
-import bot_body as b
+# import bot_body as b
 play_list_status = False
 
 vlcInstance = vlc.Instance()
@@ -20,6 +20,7 @@ def start_playlist():
                 if song.strip('\n') != playlist[0].strip('\n'):
                     cs.write(song)
         time.sleep(1)
+        play(playlist[0])
         try:
             play(playlist[0])
         except:
@@ -65,7 +66,7 @@ def play(playlist0, *argv):
         cs.writelines("     ..." + decoded_string + "...", )
 
     # while mplayer.is_playing():
-    b.Send_message("Now playing: " + decoded_string + " " + video.duration)
+    # b.Send_message("Now playing: " + decoded_string + " " + video.duration)
 
     while mplayer.is_playing() == True:
         continue
