@@ -1,7 +1,7 @@
 __py*/*
 .idea/*
 .vscode/*
-
 *.iml
 *.db
 test.py
+*__pycache__*
