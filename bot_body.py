@@ -7,6 +7,8 @@ import datetime
 import time
 import ast
 
+# from attr import NOTHING
+
 import loader
 from anyascii import anyascii
 from wfrpgame import tcChargen, game_manager, character_manager
@@ -369,11 +371,11 @@ while Running == True:
                 
                 ad_iter += 1
             elif ad_iter == 2:
+                Send_message(social_ad(),"")
                 ad_iter = 0
         else:
 
-            parts = line.split(":", 2)
-            
+            parts = line.split(":", 3)
             #
             # DEBUG INFO
             #
@@ -518,6 +520,9 @@ while Running == True:
                                               {'command': command, 'target': target, 'action': action})
                                     conn.commit()
                                     Send_message("Command " + command + " has been added.")
+                                elif message in ['!sketchy', '!sketch', '!puk', '!mischief']:
+                                    Send_message("Looks like the streamer is about to get into something!")
+                                    soundcommands.playme('sketchy-shit.mp3')
                                 elif message in ['!rip', '!youdied','!youdead', '!ded', '!udead', '!medic', '!mandown'] and death_counter is True:
                                     death_message = [
                                         f"Uh oh, looks like Rhyle_ died... again",
@@ -536,8 +541,7 @@ while Running == True:
                                         'why-you-always-dying-destiny.mp3',
                                         'wilhelmscream.mp3',
                                         'gta-san-andreas-ah-shit-here-we-go-again_BWv0Gvc.mp3',
-                                        'you-are-dead-2.mp3',
-                                        
+                                        'you-are-dead-2.mp3',                                        
                                     ]
                                     Send_message(choice(death_message))
                                     soundcommands.playme(choice(sounds))
@@ -703,7 +707,9 @@ while Running == True:
                                     else:
                                         Send_message("You have not provided enough information to set the current death counter. " \
                                             "!setdc <character_name-server> optional: <character class>")
-
+                                elif message in ['!sketchy', '!sketch', '!puk', '!mischief']:
+                                    Send_message("Looks like the streamer is about to get into something!")
+                                    soundcommands.playme('sketchy-shit.mp3')
                                 elif message in ['!rip', '!ded','!udead', '!medic', '!man down'] and death_counter is True:
                                     death_message = [
                                         f"Uh oh, looks like Rhyle_ died... again",
@@ -1318,6 +1324,10 @@ while Running == True:
                                     soundcommands.playme("beaz")
                                     chatmessage = ''
 
+                                elif "!penny" in message.lower().strip('\r') and (username.lower() == "pennylane69739" or username.lower() == "rhyle_") :
+                                    soundcommands.playme("penny")
+                                    chatmessage = ''
+                                
                                 elif "!faerie" in message.lower().strip('\r') and username.lower() == "13thfaerie" :
                                     soundcommands.playme("faerie")
                                     chatmessage = ''
@@ -1340,15 +1350,17 @@ while Running == True:
                                         chatmessage = c.execute("select action from commands where ex_command = ?",
                                                                 (chatmessage.strip(''),)).fetchone()[0]
                                     except:
-                                        chatmessage = f'/w {username} Hello {username} there is not currently a {message} command. ' \
-                                            f'If you would like to have one created, let me know. Subs take precedence for !commands.'
+                                        chatmessage = ''
+                                        # chatmessage = f'/w {username} Hello {username} there is not currently a {message} command. ' \
+                                        #     f'If you would like to have one created, let me know. Subs take precedence for !commands.'
                                         # print(f'504: {chatmessage}')
 
                                 # send the assembled chatmessage variable
+                                
                                 try:
-                                    Send_message(chatmessage, username)
+                                    Send_message(chatmessage, username)    
                                 except:
-                                    print(f'1026: {chatmessage}')
+                                    pass
 
                             # Gunter command
                             elif message.lower() == '!gunter' or message.lower() == "!cmd":

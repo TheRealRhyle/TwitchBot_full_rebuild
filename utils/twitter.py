@@ -30,9 +30,9 @@ def send_tweet(tweet_txt):
 def get_retweet():
     oauth = OAuth()
     api = tweepy.API(oauth)
-    lastTweet = api.user_timeline(302662769, count=1)[0]
+    lastTweet = api.user_timeline(screen_name = 'Rhyle_')[0]
     return(lastTweet.id)
 
-# if __name__=="__main__":
-#     (ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET) = getCreds()
-#     print(f"{ACCESS_TOKEN}, {ACCESS_TOKEN_SECRET}, {CONSUMER_KEY}, {CONSUMER_SECRET}")
+if __name__=="__main__":
+    (ACCESS_TOKEN, ACCESS_TOKEN_SECRET, CONSUMER_KEY, CONSUMER_SECRET) = getCreds()
+    print(get_retweet())
