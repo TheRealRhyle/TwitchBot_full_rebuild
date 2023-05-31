@@ -1,0 +1,24 @@
+.sprite {
+    /* float: right;
+    display: inline-block; */
+    width: 71px;
+    height: 177px;
+    background-image: url("images/warrior_sprite_sheet.png");
+    background-repeat: no-repeat;
+    animation: animate-sprite 10s steps(17) infinite;
+    transform: matrix(1.42, 0, 0, 1.42, 15, 35);
+}
+
+@keyframes animate-sprite {
+    0% {
+        background-position: 0 0;
+    }
+
+    75.0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: -1190px 0;
+    }
+}

@@ -13,7 +13,8 @@ def playme(sound_name):
     elif sound_name == "penny":
         playsound(r"sounds\\eyes.mp3")
     else:
-        playsound(fr"sounds\\Death\\{sound_name}")
+        pass
+        # playsound(f"sounds\\Death\\{sound_name}")
 
 if __name__ == "__main__":
     playme("beaz")

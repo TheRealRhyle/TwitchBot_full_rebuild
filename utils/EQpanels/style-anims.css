@@ -1,0 +1,29 @@
+.container {
+    position: relative;
+}
+
+.background {
+    display: block;
+}
+
+.class-anim {
+    position: absolute;
+    top: var(--top);
+    left: var(--left);
+    width: var(--width);
+    height: var(--height);
+    background-image: var(--bg-image);
+    background-repeat: no-repeat;
+    background-size: var(--background-size) auto;
+    animation: animate 3s steps(var(--steps)) infinite;
+}
+
+@keyframes animate {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: var(--background-size-inverse) 0;
+    }
+}

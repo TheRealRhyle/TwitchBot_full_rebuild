@@ -5,3 +5,4 @@ __py*/*
 *.db
 test.py
 *__pycache__*
+*.zip

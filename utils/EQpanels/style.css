@@ -1,0 +1,85 @@
+* {
+    box-sizing: border-box;
+    /* border: 2px solid black; */
+}
+
+.container {
+    position: relative;
+    /* border: 2px solid black; */
+}
+
+.main {
+    display: flex;
+    /* border: 2px solid black; */
+}
+
+.align2 {
+    margin-right: 0px;
+    transform: matrix(1, 0, 0, 1.3, 0, 33);
+}
+
+.align1,
+.align2,
+.align3 {
+    /* background: #e8e7e3;
+    border: 1px solid #8a8a8a; */
+    /* padding: 5px 10px; */
+}
+
+@font-face {
+    font-family: "tarragon-icg-regular";
+    src: url("https://www.dafontfree.net/data/36/t/128007/tarragonicg.ttf") format("woff"),
+        url("https://www.dafontfree.net/data/36/t/128007/tarragonicg.ttf") format("opentype"),
+        url("https://www.dafontfree.net/data/36/t/128007/tarragonicg.ttf") format("truetype");
+}
+
+body {
+    /* background-color: black; */
+    margin: 0px;
+    overflow: hidden;
+    width: 80%;
+}
+
+p {
+    font-family: 'tarragon-icg-regular', sans-serif;
+    font-family: 'Aclonica';
+    font-size: 33px;
+    /* border: 2px solid #7204a2; */
+    color: #ffffffff;
+    /* background-color: #212529af; */
+    padding: 7px;
+    margin: 5px 0;
+    border-radius: 5px;
+    text-shadow: 5px 5px 0px black, 0 0 20px silver;
+    /* display: inline-block; */
+}
+
+#eq_container {
+    width: min-content;
+    /* max-width: 600px; */
+    white-space: nowrap;
+    border: 20px solid transparent;
+    padding: 5px;
+    border-image: url("images/bugrpt.png") 30;
+    background-image: url("images/wnd_bg_light_rock.png");
+}
+
+.green {
+    color: green;
+}
+
+.blue {
+    color: blue;
+}
+
+.red {
+    color: red;
+}
+
+.live {
+    color: royalblue;
+}
+
+.testing {
+    border: 50px solid red;
+}
